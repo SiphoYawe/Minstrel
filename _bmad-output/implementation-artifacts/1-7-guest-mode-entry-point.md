@@ -1,6 +1,6 @@
 # Story 1.7: Guest Mode Entry Point
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

@@ -41,14 +41,14 @@ story_location: _bmad-output/implementation-artifacts
 
 development_status:
   # Epic 1: First Note Experience
-  epic-1: in-progress
+  epic-1: done
   1-1-initialize-project-from-starter-template: done
   1-2-configure-design-system-and-dark-studio-aesthetic: done
   1-3-web-midi-device-connection-and-auto-detection: done
   1-4-midi-event-capture-and-basic-canvas-visualization: done
   1-5-midi-troubleshooting-guidance: done
-  1-6-audio-only-fallback-mode: in-progress
-  1-7-guest-mode-entry-point: ready-for-dev
+  1-6-audio-only-fallback-mode: done
+  1-7-guest-mode-entry-point: done
   epic-1-retrospective: optional
 
   # Epic 2: Real-Time Analysis & Silent Coach
