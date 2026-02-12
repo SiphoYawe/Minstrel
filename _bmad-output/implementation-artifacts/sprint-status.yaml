@@ -1,0 +1,112 @@
+# generated: 2026-02-12
+# project: Minstrel
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog -> in-progress: Automatically when first story is created (via create-story)
+#   - in-progress -> done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-02-12
+project: Minstrel
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # Epic 1: First Note Experience
+  epic-1: in-progress
+  1-1-initialize-project-from-starter-template: done
+  1-2-configure-design-system-and-dark-studio-aesthetic: ready-for-dev
+  1-3-web-midi-device-connection-and-auto-detection: ready-for-dev
+  1-4-midi-event-capture-and-basic-canvas-visualization: ready-for-dev
+  1-5-midi-troubleshooting-guidance: ready-for-dev
+  1-6-audio-only-fallback-mode: ready-for-dev
+  1-7-guest-mode-entry-point: ready-for-dev
+  epic-1-retrospective: optional
+
+  # Epic 2: Real-Time Analysis & Silent Coach
+  epic-2: in-progress
+  2-1-note-and-chord-detection-engine: ready-for-dev
+  2-2-timing-accuracy-and-tempo-analysis: ready-for-dev
+  2-3-key-center-and-harmonic-analysis: ready-for-dev
+  2-4-genre-pattern-and-tendency-tracking: ready-for-dev
+  2-5-silence-triggered-session-snapshot: ready-for-dev
+  2-6-silent-coach-mode-layout: ready-for-dev
+  2-7-freeform-play-mode: ready-for-dev
+  2-8-session-recording-to-indexeddb: ready-for-dev
+  epic-2-retrospective: optional
+
+  # Epic 3: Accounts & API Key Management
+  epic-3: in-progress
+  3-1-user-registration-and-login: ready-for-dev
+  3-2-guest-to-account-data-migration: ready-for-dev
+  3-3-llm-api-key-configuration-ui: ready-for-dev
+  3-4-api-key-validation-and-encrypted-storage: ready-for-dev
+  3-5-graceful-degradation-without-api-key: ready-for-dev
+  3-6-token-usage-estimation-display: ready-for-dev
+  epic-3-retrospective: optional
+
+  # Epic 4: AI Coaching & Dashboard Mode
+  epic-4: in-progress
+  4-1-vercel-ai-sdk-integration-and-provider-setup: ready-for-dev
+  4-2-dashboard-chat-mode-layout: ready-for-dev
+  4-3-ai-coaching-chat-with-streaming-responses: ready-for-dev
+  4-4-session-grounded-ai-responses: ready-for-dev
+  4-5-genre-aware-advice-and-growth-mindset-framing: ready-for-dev
+  epic-4-retrospective: optional
+
+  # Epic 5: Difficulty Engine & AI Drills
+  epic-5: in-progress
+  5-1-multi-dimensional-skill-assessment: ready-for-dev
+  5-2-dynamic-difficulty-adjustment-and-growth-zone-detection: ready-for-dev
+  5-3-progressive-overload-and-cross-session-recalibration: ready-for-dev
+  5-4-ai-drill-generation: ready-for-dev
+  5-5-midi-output-demonstration-playback: ready-for-dev
+  5-6-drill-tracking-and-improvement-measurement: ready-for-dev
+  5-7-micro-sessions-and-auto-generated-warm-ups: ready-for-dev
+  epic-5-retrospective: optional
+
+  # Epic 6: Session Replay & Continuity
+  epic-6: in-progress
+  6-1-replay-studio-mode-layout: ready-for-dev
+  6-2-timeline-scrubbing-and-playback-controls: ready-for-dev
+  6-3-ai-questions-about-replay-moments: ready-for-dev
+  6-4-cross-session-continuity: ready-for-dev
+  epic-6-retrospective: optional
+
+  # Epic 7: Engagement & Progress Tracking
+  epic-7: in-progress
+  7-1-practice-streak-tracking: ready-for-dev
+  7-2-xp-calculation-and-awards: ready-for-dev
+  7-3-achievement-badges-system: ready-for-dev
+  7-4-progress-trends-visualization: ready-for-dev
+  7-5-weekly-progress-summaries: ready-for-dev
+  7-6-personal-records-tracking: ready-for-dev
+  epic-7-retrospective: optional
