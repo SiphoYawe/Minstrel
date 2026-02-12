@@ -31,10 +31,6 @@ Minstrel connects to any MIDI instrument via the Web MIDI API, listens to every 
 - **Testing:** Vitest + React Testing Library + Playwright
 - **Deploy:** Vercel
 
-## Business Model
-
-Free with BYOK (Bring Your Own Key). Users provide their own LLM API keys. All features available to all users at launch. Monetization deferred to a future phase.
-
 ## Target Users
 
 - **Self-taught beginners** (15-30) who lack structure and can't hear their own mistakes
