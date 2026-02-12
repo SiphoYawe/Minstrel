@@ -43,7 +43,7 @@ development_status:
   # Epic 1: First Note Experience
   epic-1: in-progress
   1-1-initialize-project-from-starter-template: done
-  1-2-configure-design-system-and-dark-studio-aesthetic: ready-for-dev
+  1-2-configure-design-system-and-dark-studio-aesthetic: done
   1-3-web-midi-device-connection-and-auto-detection: ready-for-dev
   1-4-midi-event-capture-and-basic-canvas-visualization: ready-for-dev
   1-5-midi-troubleshooting-guidance: ready-for-dev

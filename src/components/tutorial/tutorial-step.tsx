@@ -1,27 +1,18 @@
-import { Checkbox } from "../ui/checkbox";
-
-export function TutorialStep({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+export function TutorialStep({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <li className="relative">
-      <Checkbox
+      <input
+        type="checkbox"
         id={title}
         name={title}
-        className={`absolute top-[3px] mr-2 peer`}
+        className="absolute top-[3px] mr-2 peer h-4 w-4 shrink-0 border border-primary bg-transparent accent-primary"
       />
       <label
         htmlFor={title}
-        className={`relative text-base text-foreground peer-checked:line-through font-medium`}
+        className="relative text-base text-foreground peer-checked:line-through font-medium"
       >
         <span className="ml-8">{title}</span>
-        <div
-          className={`ml-8 text-sm peer-checked:line-through font-normal text-muted-foreground`}
-        >
+        <div className="ml-8 text-sm peer-checked:line-through font-normal text-muted-foreground">
           {children}
         </div>
       </label>

@@ -1,6 +1,6 @@
 # Story 1.2: Configure Design System and Dark Studio Aesthetic
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -93,7 +93,9 @@ So that the interface communicates seriousness and capability.
   - [ ] Add `prefers-reduced-motion` media query in `globals.css`:
     ```css
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
+      *,
+      *::before,
+      *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
@@ -148,4 +150,40 @@ So that the interface communicates seriousness and capability.
 
 ### Completion Notes List
 
+- Dark-only theme implemented: #0F0F0F background, #7CB9E8 primary, 0px border radius everywhere
+- Fonts loaded via next/font/google (Inter + JetBrains_Mono) — next/font/local had Turbopack build failures
+- All 12 required shadcn/ui components restyled to dark studio aesthetic
+- dropdown-menu.tsx and label.tsx also restyled for design system consistency
+- checkbox.tsx removed (unused, unstyled)
+- ThemeSwitcher removed from template pages (dark-only app)
+- Toaster (sonner) added to root layout for toast notifications
+- All components meet 44px minimum touch target (h-11)
+- No shadows, no rounded corners, no dark: conditional prefixes
+- Reduced motion support via prefers-reduced-motion media query
+- Focus-visible scoped to non-component elements to avoid double focus indicators
+- Marketing landing page at (marketing)/page.tsx — server component, Minstrel branding, CTA to /play
+- 118 tests passing, lint clean, build clean
+
 ### File List
+
+- src/app/globals.css — CSS custom properties, dark-only design tokens, reduced motion, focus-visible
+- tailwind.config.ts — Extended theme: colors, 0px radius, fonts, typography scale, transitions
+- src/app/layout.tsx — Dark class, Google Fonts, TooltipProvider, Toaster
+- src/app/(marketing)/layout.tsx — Marketing route layout
+- src/app/(marketing)/page.tsx — Marketing landing page (server component)
+- src/components/ui/button.tsx — Restyled (h-11, duration-micro, surface colors)
+- src/components/ui/card.tsx — Restyled (bg-card, border-border)
+- src/components/ui/badge.tsx — Restyled (accent color variants)
+- src/components/ui/input.tsx — Restyled (h-11, bg-surface-light, focus border-primary)
+- src/components/ui/dialog.tsx — Restyled (bg-card, bg-background/60 overlay, 44px close button)
+- src/components/ui/select.tsx — Restyled (h-11, surface-light, duration-micro, no dark: prefixes)
+- src/components/ui/tabs.tsx — Restyled (primary indicator, surface-light active)
+- src/components/ui/sonner.tsx — Restyled (dark theme, border-l accents, 0px radius)
+- src/components/ui/tooltip.tsx — Restyled (bg-surface-light, border-border)
+- src/components/ui/progress.tsx — Restyled (bg-primary fill, bg-surface-lighter track)
+- src/components/ui/scroll-area.tsx — Restyled (surface-border scrollbar)
+- src/components/ui/separator.tsx — Restyled (bg-surface-border)
+- src/components/ui/dropdown-menu.tsx — Restyled (bg-card, surface-light, duration-micro)
+- src/components/ui/label.tsx — Restyled (text-ui-label, text-foreground)
+- src/components/tutorial/tutorial-step.tsx — Replaced Checkbox with native input
+- src/design-system.test.ts — 48 tests for design system configuration
