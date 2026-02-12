@@ -80,6 +80,7 @@ describe('createFadingNote', () => {
     velocity: 100,
     channel: 0,
     timestamp: 500,
+    source: 'midi',
   };
 
   it('creates a fading note with correct properties', () => {
@@ -115,6 +116,7 @@ describe('renderNotes', () => {
         velocity: 100,
         channel: 0,
         timestamp: 1000,
+        source: 'midi',
       },
     };
 
@@ -171,6 +173,7 @@ describe('renderNotes', () => {
         velocity: 40,
         channel: 0,
         timestamp: 1000,
+        source: 'midi',
       },
       72: {
         type: 'note-on',
@@ -179,6 +182,7 @@ describe('renderNotes', () => {
         velocity: 120,
         channel: 0,
         timestamp: 1000,
+        source: 'midi',
       },
     };
 

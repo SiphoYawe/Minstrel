@@ -49,6 +49,7 @@ describe('parseMidiMessage', () => {
         velocity: 100,
         channel: 0,
         timestamp: ts,
+        source: 'midi',
       });
     });
 
@@ -86,6 +87,7 @@ describe('parseMidiMessage', () => {
         velocity: 0,
         channel: 0,
         timestamp: ts,
+        source: 'midi',
       });
     });
 

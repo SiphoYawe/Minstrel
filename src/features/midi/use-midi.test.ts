@@ -4,6 +4,7 @@ import { useMidi } from './use-midi';
 import { useMidiStore } from '@/stores/midi-store';
 import * as midiEngine from './midi-engine';
 import * as midiUtils from './midi-utils';
+import * as audioEngine from './audio-engine';
 
 vi.mock('./midi-engine', () => ({
   requestMidiAccess: vi.fn(),
@@ -14,12 +15,21 @@ vi.mock('./midi-utils', () => ({
   isMidiSupported: vi.fn(() => true),
 }));
 
+vi.mock('./audio-engine', () => ({
+  requestAudioAccess: vi.fn().mockResolvedValue(undefined),
+  stopAudioListening: vi.fn(),
+  isAudioSupported: vi.fn(() => true),
+}));
+
 describe('useMidi', () => {
   beforeEach(() => {
     useMidiStore.getState().reset();
     vi.mocked(midiUtils.isMidiSupported).mockReset().mockReturnValue(true);
     vi.mocked(midiEngine.requestMidiAccess).mockReset().mockResolvedValue(undefined);
     vi.mocked(midiEngine.disconnectMidi).mockReset();
+    vi.mocked(audioEngine.requestAudioAccess).mockReset().mockResolvedValue(undefined);
+    vi.mocked(audioEngine.stopAudioListening).mockReset();
+    vi.mocked(audioEngine.isAudioSupported).mockReset().mockReturnValue(true);
   });
 
   it('calls requestMidiAccess on mount when supported', () => {
@@ -176,6 +186,7 @@ describe('useMidi', () => {
           velocity: 100,
           channel: 9,
           timestamp: 1000,
+          source: 'midi',
         });
       });
 
@@ -196,6 +207,7 @@ describe('useMidi', () => {
           velocity: 100,
           channel: 0,
           timestamp: 1000,
+          source: 'midi',
         });
       });
 
@@ -217,6 +229,7 @@ describe('useMidi', () => {
           velocity: 100,
           channel: 0,
           timestamp: 1000,
+          source: 'midi',
         });
       });
 
@@ -229,6 +242,7 @@ describe('useMidi', () => {
           velocity: 80,
           channel: 9,
           timestamp: 1001,
+          source: 'midi',
         });
       });
 
@@ -331,6 +345,7 @@ describe('useMidi', () => {
           velocity: 80,
           channel: 9,
           timestamp: 1000,
+          source: 'midi',
         });
       });
 
@@ -361,5 +376,38 @@ describe('useMidi', () => {
     expect(result.current.detectedChannel).toBeNull();
     expect(typeof result.current.retryConnection).toBe('function');
     expect(typeof result.current.dismissTroubleshooting).toBe('function');
+  });
+
+  describe('audio mode', () => {
+    it('startAudioMode calls requestAudioAccess and dismisses troubleshooting', async () => {
+      const { result } = renderHook(() => useMidi());
+
+      act(() => {
+        useMidiStore.getState().setShowTroubleshooting(true);
+      });
+
+      await act(async () => {
+        await result.current.startAudioMode();
+      });
+
+      expect(audioEngine.requestAudioAccess).toHaveBeenCalledTimes(1);
+      expect(useMidiStore.getState().showTroubleshooting).toBe(false);
+    });
+
+    it('returns inputSource from store', () => {
+      const { result } = renderHook(() => useMidi());
+      expect(result.current.inputSource).toBe('none');
+
+      act(() => {
+        useMidiStore.getState().setInputSource('audio');
+      });
+      expect(result.current.inputSource).toBe('audio');
+    });
+
+    it('cleanup calls stopAudioListening', () => {
+      const { unmount } = renderHook(() => useMidi());
+      unmount();
+      expect(audioEngine.stopAudioListening).toHaveBeenCalled();
+    });
   });
 });

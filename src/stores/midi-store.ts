@@ -22,6 +22,9 @@ export const useMidiStore = create<MidiEventStore>()(
     latestEvent: null as MidiEvent | null,
     activeNotes: {} as Record<number, MidiEvent>,
 
+    // Audio mode state (Story 1.6)
+    inputSource: 'none' as 'midi' | 'audio' | 'none',
+
     // Troubleshooting state (Story 1.5)
     showTroubleshooting: false,
     detectedChannel: null as number | null,
@@ -31,6 +34,9 @@ export const useMidiStore = create<MidiEventStore>()(
     setActiveDevice: (device) => set({ activeDevice: device }),
     setAvailableDevices: (devices) => set({ availableDevices: devices }),
     setErrorMessage: (message) => set({ errorMessage: message }),
+
+    // Audio mode actions
+    setInputSource: (source) => set({ inputSource: source }),
 
     // Troubleshooting actions
     setShowTroubleshooting: (show) => set({ showTroubleshooting: show }),
@@ -95,6 +101,7 @@ export const useMidiStore = create<MidiEventStore>()(
         currentEvents: [],
         latestEvent: null,
         activeNotes: {},
+        inputSource: 'none',
         showTroubleshooting: false,
         detectedChannel: null,
       }),

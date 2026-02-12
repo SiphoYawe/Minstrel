@@ -10,6 +10,7 @@ function makeEvent(overrides: Partial<MidiEvent> = {}): MidiEvent {
     velocity: 100,
     channel: 0,
     timestamp: 1000,
+    source: 'midi',
     ...overrides,
   };
 }

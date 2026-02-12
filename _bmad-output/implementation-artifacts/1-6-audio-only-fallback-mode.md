@@ -1,6 +1,6 @@
 # Story 1.6: Audio-Only Fallback Mode
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 

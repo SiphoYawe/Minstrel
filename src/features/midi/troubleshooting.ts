@@ -16,7 +16,8 @@ export function isDrumChannel(channel: number): boolean {
 
 export function getTroubleshootingSteps(
   connectionStatus: MidiConnectionStatus,
-  detectedChannel?: number | null
+  detectedChannel?: number | null,
+  audioSupported?: boolean
 ): TroubleshootingStep[] {
   const steps: TroubleshootingStep[] = [];
 
@@ -51,6 +52,17 @@ export function getTroubleshootingSteps(
         actionLabel: 'Try Again',
       }
     );
+
+    // Audio fallback option when microphone is available
+    if (audioSupported) {
+      steps.push({
+        id: 'audio-fallback',
+        title: 'No MIDI device? Try Audio Mode',
+        description:
+          'Use your microphone to capture basic pitch and volume. Some features require a MIDI connection for full precision.',
+        actionLabel: 'Use Microphone',
+      });
+    }
   }
 
   if (detectedChannel != null && isDrumChannel(detectedChannel)) {

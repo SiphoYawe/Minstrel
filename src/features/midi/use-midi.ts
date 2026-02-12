@@ -3,6 +3,7 @@
 import { useEffect, useCallback } from 'react';
 import { useMidiStore } from '@/stores/midi-store';
 import { requestMidiAccess, disconnectMidi } from './midi-engine';
+import { requestAudioAccess, stopAudioListening, isAudioSupported } from './audio-engine';
 import { isMidiSupported } from './midi-utils';
 import { isDrumChannel } from './troubleshooting';
 import type { MidiEngineCallbacks } from './midi-engine';
@@ -14,9 +15,21 @@ function createMidiCallbacks(): MidiEngineCallbacks {
 
   return {
     onConnectionStatusChanged: (status) => {
-      useMidiStore.getState().setConnectionStatus(status);
+      const store = useMidiStore.getState();
+
+      // Auto-switch from audio to MIDI when a device connects
+      if (status === 'connected' && store.inputSource === 'audio') {
+        // Set source first so any final note-off from stopAudioListening
+        // arrives while store already reflects MIDI mode
+        store.setInputSource('midi');
+        stopAudioListening();
+      }
+
+      store.setConnectionStatus(status);
+
       if (status === 'connected') {
-        useMidiStore.getState().setShowTroubleshooting(false);
+        store.setInputSource('midi');
+        store.setShowTroubleshooting(false);
       }
     },
     onDevicesChanged: (devices) => useMidiStore.getState().setAvailableDevices(devices),
@@ -44,15 +57,21 @@ export function useMidi() {
   const errorMessage = useMidiStore((s) => s.errorMessage);
   const showTroubleshooting = useMidiStore((s) => s.showTroubleshooting);
   const detectedChannel = useMidiStore((s) => s.detectedChannel);
+  const inputSource = useMidiStore((s) => s.inputSource);
 
   const isSupported = isMidiSupported();
 
   useEffect(() => {
     if (!isSupported) {
+      const audioSupported = isAudioSupported();
       useMidiStore.getState().setConnectionStatus('unsupported');
       useMidiStore
         .getState()
-        .setErrorMessage('Minstrel works best in Chrome or Edge for full MIDI support.');
+        .setErrorMessage(
+          audioSupported
+            ? 'Minstrel works best in Chrome or Edge for full MIDI support.'
+            : 'Your browser cannot capture instrument input. Please use Chrome or Edge.'
+        );
       return;
     }
 
@@ -68,6 +87,7 @@ export function useMidi() {
 
     return () => {
       clearTimeout(timer);
+      stopAudioListening();
       disconnectMidi();
       useMidiStore.getState().reset();
     };
@@ -79,6 +99,11 @@ export function useMidi() {
     useMidiStore.getState().setConnectionStatus('connecting');
     useMidiStore.getState().setDetectedChannel(null);
     await requestMidiAccess(createMidiCallbacks());
+  }, []);
+
+  const startAudioMode = useCallback(async () => {
+    useMidiStore.getState().setShowTroubleshooting(false);
+    await requestAudioAccess();
   }, []);
 
   const dismissTroubleshooting = useCallback(() => {
@@ -93,7 +118,9 @@ export function useMidi() {
     isSupported,
     showTroubleshooting,
     detectedChannel,
+    inputSource,
     retryConnection,
+    startAudioMode,
     dismissTroubleshooting,
   };
 }

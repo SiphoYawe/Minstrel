@@ -8,6 +8,7 @@ interface TroubleshootingPanelProps {
   steps: TroubleshootingStep[];
   onRetry: () => Promise<void>;
   onDismiss: () => void;
+  onAudioFallback?: () => Promise<void>;
   connectionStatus: MidiConnectionStatus;
 }
 
@@ -15,10 +16,13 @@ export function TroubleshootingPanel({
   steps,
   onRetry,
   onDismiss,
+  onAudioFallback,
   connectionStatus,
 }: TroubleshootingPanelProps) {
   const [retrying, setRetrying] = useState(false);
   const retryingRef = useRef(false);
+  const [audioStarting, setAudioStarting] = useState(false);
+  const audioStartingRef = useRef(false);
 
   // Auto-dismiss on successful connection (only when panel has content)
   useEffect(() => {
@@ -51,6 +55,18 @@ export function TroubleshootingPanel({
       setRetrying(false);
     }
   }, [onRetry]);
+
+  const handleAudioFallback = useCallback(async () => {
+    if (audioStartingRef.current || !onAudioFallback) return;
+    audioStartingRef.current = true;
+    setAudioStarting(true);
+    try {
+      await onAudioFallback();
+    } finally {
+      audioStartingRef.current = false;
+      setAudioStarting(false);
+    }
+  }, [onAudioFallback]);
 
   if (steps.length === 0) return null;
 
@@ -89,13 +105,14 @@ export function TroubleshootingPanel({
         <div className="divide-y divide-[#2A2A2A]" aria-live="polite">
           {steps.map((step, i) => {
             const isChannel = step.id === 'channel-mismatch';
+            const isAudioFallback = step.id === 'audio-fallback';
 
             return (
               <div key={step.id} className="flex gap-3 px-4 py-3">
                 {/* Step number */}
                 <span
                   className={`mt-px font-mono text-caption tabular-nums ${
-                    isChannel ? 'text-accent-warm' : 'text-muted-foreground'
+                    isChannel || isAudioFallback ? 'text-accent-warm' : 'text-muted-foreground'
                   }`}
                   aria-hidden="true"
                 >
@@ -106,7 +123,7 @@ export function TroubleshootingPanel({
                 <div className="flex-1 space-y-1">
                   <p
                     className={`text-ui-label font-medium ${
-                      isChannel ? 'text-accent-warm' : 'text-foreground'
+                      isChannel || isAudioFallback ? 'text-accent-warm' : 'text-foreground'
                     }`}
                   >
                     {step.title}
@@ -124,6 +141,21 @@ export function TroubleshootingPanel({
                       onClick={onDismiss}
                       className="h-8 px-3 text-caption font-medium text-accent-warm border border-accent-warm/30 transition-colors duration-micro hover:bg-accent-warm/10"
                     >
+                      {step.actionLabel}
+                    </button>
+                  ) : isAudioFallback ? (
+                    <button
+                      type="button"
+                      onClick={handleAudioFallback}
+                      disabled={audioStarting}
+                      className="flex h-8 items-center gap-2 px-3 text-caption font-medium text-accent-warm border border-accent-warm/30 transition-colors duration-micro hover:bg-accent-warm/10 disabled:opacity-50"
+                    >
+                      {audioStarting && (
+                        <span
+                          className="inline-block h-1.5 w-1.5 animate-pulse bg-accent-warm"
+                          aria-label="Requesting microphone access"
+                        />
+                      )}
                       {step.actionLabel}
                     </button>
                   ) : (

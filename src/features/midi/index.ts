@@ -10,6 +10,9 @@ export type {
   MidiEventStoreState,
   MidiEventStoreActions,
   MidiEventStore,
+  InputSource,
+  AudioModeStoreState,
+  AudioModeStoreActions,
   TroubleshootingStoreState,
   TroubleshootingStoreActions,
 } from './midi-types';
@@ -23,6 +26,19 @@ export { parseMidiMessage, noteNumberToName, resetRunningStatus } from './midi-p
 // Troubleshooting
 export type { TroubleshootingStep } from './troubleshooting';
 export { getTroubleshootingSteps, isDrumChannel } from './troubleshooting';
+
+// Audio
+export {
+  requestAudioAccess,
+  stopAudioListening,
+  isAudioSupported,
+  calculateRMS,
+  rmsToVelocity,
+} from './audio-engine';
+export { detectPitch, frequencyToMidiNote } from './pitch-detector';
+export type { PitchResult } from './pitch-detector';
+export type { DisabledFeature } from './audio-mode-limits';
+export { getDisabledFeatures, isFeatureDisabledInAudioMode } from './audio-mode-limits';
 
 // Utils
 export { isMidiSupported } from './midi-utils';

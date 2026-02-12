@@ -34,6 +34,8 @@ export type MidiStore = MidiStoreState & MidiStoreActions;
 
 export type MidiEventType = 'note-on' | 'note-off' | 'control-change';
 
+export type InputSource = 'midi' | 'audio' | 'none';
+
 export interface MidiEvent {
   type: MidiEventType;
   note: number;
@@ -41,6 +43,7 @@ export interface MidiEvent {
   velocity: number;
   channel: number;
   timestamp: number;
+  source: InputSource;
 }
 
 export interface MidiEventStoreState {
@@ -53,6 +56,16 @@ export interface MidiEventStoreActions {
   addEvent: (event: MidiEvent) => void;
   removeNote: (noteNumber: number) => void;
   clearEvents: () => void;
+}
+
+// --- Audio Mode State (Story 1.6) ---
+
+export interface AudioModeStoreState {
+  inputSource: InputSource;
+}
+
+export interface AudioModeStoreActions {
+  setInputSource: (source: InputSource) => void;
 }
 
 // --- Troubleshooting State (Story 1.5) ---
@@ -71,5 +84,7 @@ export type MidiEventStore = MidiStoreState &
   MidiStoreActions &
   MidiEventStoreState &
   MidiEventStoreActions &
+  AudioModeStoreState &
+  AudioModeStoreActions &
   TroubleshootingStoreState &
   TroubleshootingStoreActions;

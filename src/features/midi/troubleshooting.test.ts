@@ -89,4 +89,29 @@ describe('getTroubleshootingSteps', () => {
     const steps = getTroubleshootingSteps('unsupported', 9);
     expect(steps.length).toBe(0);
   });
+
+  it('includes audio fallback step when audioSupported is true and disconnected', () => {
+    const steps = getTroubleshootingSteps('disconnected', null, true);
+    expect(steps.length).toBe(4);
+    expect(steps[3].id).toBe('audio-fallback');
+    expect(steps[3].actionLabel).toBe('Use Microphone');
+  });
+
+  it('does not include audio fallback when audioSupported is false', () => {
+    const steps = getTroubleshootingSteps('disconnected', null, false);
+    expect(steps.length).toBe(3);
+    expect(steps.every((s) => s.id !== 'audio-fallback')).toBe(true);
+  });
+
+  it('does not include audio fallback when audioSupported is undefined', () => {
+    const steps = getTroubleshootingSteps('disconnected');
+    expect(steps.length).toBe(3);
+  });
+
+  it('includes both audio fallback and channel mismatch when applicable', () => {
+    const steps = getTroubleshootingSteps('disconnected', 9, true);
+    expect(steps.length).toBe(5);
+    expect(steps[3].id).toBe('audio-fallback');
+    expect(steps[4].id).toBe('channel-mismatch');
+  });
 });

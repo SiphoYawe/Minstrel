@@ -1,6 +1,6 @@
 # Story 1.5: MIDI Troubleshooting Guidance
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

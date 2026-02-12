@@ -74,5 +74,6 @@ export function parseMidiMessage(data: Uint8Array, timestamp: number): MidiEvent
     velocity: data2,
     channel,
     timestamp,
+    source: 'midi',
   };
 }
