@@ -22,11 +22,19 @@ export const useMidiStore = create<MidiEventStore>()(
     latestEvent: null as MidiEvent | null,
     activeNotes: {} as Record<number, MidiEvent>,
 
+    // Troubleshooting state (Story 1.5)
+    showTroubleshooting: false,
+    detectedChannel: null as number | null,
+
     // Connection actions
     setConnectionStatus: (status) => set({ connectionStatus: status }),
     setActiveDevice: (device) => set({ activeDevice: device }),
     setAvailableDevices: (devices) => set({ availableDevices: devices }),
     setErrorMessage: (message) => set({ errorMessage: message }),
+
+    // Troubleshooting actions
+    setShowTroubleshooting: (show) => set({ showTroubleshooting: show }),
+    setDetectedChannel: (channel) => set({ detectedChannel: channel }),
 
     // Event actions
     addEvent: (event) =>
@@ -87,6 +95,8 @@ export const useMidiStore = create<MidiEventStore>()(
         currentEvents: [],
         latestEvent: null,
         activeNotes: {},
+        showTroubleshooting: false,
+        detectedChannel: null,
       }),
   }))
 );

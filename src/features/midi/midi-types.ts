@@ -55,7 +55,21 @@ export interface MidiEventStoreActions {
   clearEvents: () => void;
 }
 
+// --- Troubleshooting State (Story 1.5) ---
+
+export interface TroubleshootingStoreState {
+  showTroubleshooting: boolean;
+  detectedChannel: number | null;
+}
+
+export interface TroubleshootingStoreActions {
+  setShowTroubleshooting: (show: boolean) => void;
+  setDetectedChannel: (channel: number | null) => void;
+}
+
 export type MidiEventStore = MidiStoreState &
   MidiStoreActions &
   MidiEventStoreState &
-  MidiEventStoreActions;
+  MidiEventStoreActions &
+  TroubleshootingStoreState &
+  TroubleshootingStoreActions;

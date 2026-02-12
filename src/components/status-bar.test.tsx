@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { StatusBar } from './status-bar';
 import { useMidiStore } from '@/stores/midi-store';
 
@@ -72,5 +72,30 @@ describe('StatusBar', () => {
     render(<StatusBar />);
     expect(screen.getByText('Error')).toBeDefined();
     expect(screen.getByText('MIDI access was not granted.')).toBeDefined();
+  });
+
+  it('shows Help button when disconnected', () => {
+    useMidiStore.getState().setConnectionStatus('disconnected');
+    render(<StatusBar />);
+    expect(screen.getByText('Help')).toBeDefined();
+  });
+
+  it('shows Help button when error', () => {
+    useMidiStore.getState().setConnectionStatus('error');
+    render(<StatusBar />);
+    expect(screen.getByText('Help')).toBeDefined();
+  });
+
+  it('does not show Help button when connected', () => {
+    useMidiStore.getState().setConnectionStatus('connected');
+    render(<StatusBar />);
+    expect(screen.queryByText('Help')).toBeNull();
+  });
+
+  it('clicking Help sets showTroubleshooting to true in store', () => {
+    useMidiStore.getState().setConnectionStatus('disconnected');
+    render(<StatusBar />);
+    fireEvent.click(screen.getByText('Help'));
+    expect(useMidiStore.getState().showTroubleshooting).toBe(true);
   });
 });

@@ -81,6 +81,17 @@ export function StatusBar() {
               </span>
             </>
           )}
+
+          {/* Help link when disconnected */}
+          {(connectionStatus === 'disconnected' || connectionStatus === 'error') && (
+            <button
+              type="button"
+              className="text-caption text-primary underline underline-offset-2 transition-opacity duration-micro hover:opacity-80"
+              onClick={() => useMidiStore.getState().setShowTroubleshooting(true)}
+            >
+              Help
+            </button>
+          )}
         </div>
 
         {/* Right: Session timer placeholder */}
