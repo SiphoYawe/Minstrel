@@ -1,41 +1,104 @@
-# Minstrel
+<p align="center">
+  <img alt="Minstrel" src="./Minstrel-logo-white.svg" width="400">
+</p>
 
-AI-powered real-time MIDI practice companion for instrumentalists.
+<p align="center">
+ The fastest way to build apps with Next.js and Supabase
+</p>
 
-## What It Does
+<p align="center">
+  <a href="#features"><strong>Features</strong></a> ·
+  <a href="#demo"><strong>Demo</strong></a> ·
+  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
+  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
+  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
+  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
+</p>
+<br/>
 
-Minstrel connects to any MIDI instrument via the Web MIDI API, listens to every note in real time, analyzes playing across notes, chords, timing, and feel, and delivers personalized challenges and drills to keep musicians growing.
+## Features
 
-- **Ear-first** — no sheet music, ever. Feedback is data-driven and visual.
-- **Adaptive** — the Difficulty Engine keeps every player at their exact growth edge in real time.
-- **Bidirectional MIDI** — drills are demonstrated through the user's own instrument speakers before they attempt them.
-- **AI Coaching** — session-aware, genre-aware conversational AI powered by the user's own LLM API key (BYOK).
+- Works across the entire [Next.js](https://nextjs.org) stack
+  - App Router
+  - Pages Router
+  - Proxy
+  - Client
+  - Server
+  - It just works!
+- supabase-ssr. A package to configure Supabase Auth to use cookies
+- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
+- Styling with [Tailwind CSS](https://tailwindcss.com)
+- Components with [shadcn/ui](https://ui.shadcn.com/)
+- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
+  - Environment variables automatically assigned to Vercel project
 
-## Core Features
+## Demo
 
-- **Real-Time Analysis** — note/chord/progression detection, timing accuracy, harmonic analysis, playing tendency tracking
-- **The Difficulty Engine** — unified adaptive challenge system that calibrates across sessions
-- **AI Drill Generation** — personalized exercises generated from actual weaknesses, never the same drill twice
-- **Three Interaction Modes** — Silent Coach (immersive visualization), Dashboard + Chat (split analysis + AI), Replay Studio (session review with timeline scrubbing)
-- **Engagement** — practice streaks, XP, achievement badges, progress trends, personal records
+You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
 
-## Tech Stack
+## Deploy to Vercel
 
-- **Framework:** Next.js 16 (App Router) + TypeScript
-- **UI:** React + shadcn/ui + Tailwind CSS v4 + Canvas/WebGL
-- **State:** Zustand 5.x (3-store architecture)
-- **AI:** Vercel AI SDK 6.x (provider-agnostic, BYOK)
-- **Database:** Supabase PostgreSQL + Dexie.js 4.x (IndexedDB, offline-first)
-- **Auth:** Supabase Auth (`@supabase/ssr`)
-- **Monitoring:** Sentry 10.x + PostHog
-- **Testing:** Vitest + React Testing Library + Playwright
-- **Deploy:** Vercel
+Vercel deployment will guide you through creating a Supabase account and project.
 
 ## Target Users
 
-- **Self-taught beginners** (15-30) who lack structure and can't hear their own mistakes
-- **Intermediate players** (20-45) hitting plateaus who want to break through with data-driven practice
+If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
 
-## Platform
+## Clone and run locally
 
-Browser-based web application. Chrome/Edge primary (Web MIDI API). Desktop-first (1024px+ viewport).
+1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+
+2. Create a Next.js app using the Supabase Starter template npx command
+
+   ```bash
+   npx create-next-app --example with-supabase with-supabase-app
+   ```
+
+   ```bash
+   yarn create next-app --example with-supabase with-supabase-app
+   ```
+
+   ```bash
+   pnpm create next-app --example with-supabase with-supabase-app
+   ```
+
+3. Use `cd` to change into the app's directory
+
+   ```bash
+   cd with-supabase-app
+   ```
+
+4. Rename `.env.example` to `.env.local` and update the following:
+
+  ```env
+  NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[INSERT SUPABASE PROJECT API PUBLISHABLE OR ANON KEY]
+  ```
+  > [!NOTE]
+  > This example uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, which refers to Supabase's new **publishable** key format.
+  > Both legacy **anon** keys and new **publishable** keys can be used with this variable name during the transition period. Supabase's dashboard may show `NEXT_PUBLIC_SUPABASE_ANON_KEY`; its value can be used in this example.
+  > See the [full announcement](https://github.com/orgs/supabase/discussions/29260) for more information.
+
+  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+
+5. You can now run the Next.js local development server:
+
+   ```bash
+   npm run dev
+   ```
+
+   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+
+6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+
+> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+
+## Feedback and issues
+
+Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+
+## More Supabase examples
+
+- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
+- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
+- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
