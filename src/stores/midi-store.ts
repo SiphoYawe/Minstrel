@@ -1,29 +1,92 @@
 import { create } from 'zustand';
-import type { MidiConnectionStatus, MidiDeviceInfo, MidiStore } from '@/features/midi/midi-types';
+import { subscribeWithSelector } from 'zustand/middleware';
+import type {
+  MidiConnectionStatus,
+  MidiDeviceInfo,
+  MidiEvent,
+  MidiEventStore,
+} from '@/features/midi/midi-types';
 
-const initialState = {
-  connectionStatus: 'disconnected' as MidiConnectionStatus,
-  activeDevice: null as MidiDeviceInfo | null,
-  availableDevices: [] as MidiDeviceInfo[],
-  errorMessage: null as string | null,
-};
+const MAX_EVENT_BUFFER = 500;
 
-export const useMidiStore = create<MidiStore>()((set) => ({
-  ...initialState,
+export const useMidiStore = create<MidiEventStore>()(
+  subscribeWithSelector((set) => ({
+    // Connection state
+    connectionStatus: 'disconnected' as MidiConnectionStatus,
+    activeDevice: null as MidiDeviceInfo | null,
+    availableDevices: [] as MidiDeviceInfo[],
+    errorMessage: null as string | null,
 
-  setConnectionStatus: (status) => set({ connectionStatus: status }),
+    // Event state (Story 1.4)
+    currentEvents: [] as MidiEvent[],
+    latestEvent: null as MidiEvent | null,
+    activeNotes: {} as Record<number, MidiEvent>,
 
-  setActiveDevice: (device) => set({ activeDevice: device }),
+    // Connection actions
+    setConnectionStatus: (status) => set({ connectionStatus: status }),
+    setActiveDevice: (device) => set({ activeDevice: device }),
+    setAvailableDevices: (devices) => set({ availableDevices: devices }),
+    setErrorMessage: (message) => set({ errorMessage: message }),
 
-  setAvailableDevices: (devices) => set({ availableDevices: devices }),
+    // Event actions
+    addEvent: (event) =>
+      set((state) => {
+        // Ring buffer: drop oldest when full
+        const events = state.currentEvents;
+        const nextEvents =
+          events.length >= MAX_EVENT_BUFFER
+            ? [...events.slice(-(MAX_EVENT_BUFFER - 1)), event]
+            : [...events, event];
 
-  setErrorMessage: (message) => set({ errorMessage: message }),
+        // Only create new activeNotes ref for note-on/note-off (Issue 1/9 fix)
+        if (event.type === 'note-on') {
+          return {
+            currentEvents: nextEvents,
+            latestEvent: event,
+            activeNotes: { ...state.activeNotes, [event.note]: event },
+          };
+        }
 
-  reset: () =>
-    set({
-      connectionStatus: 'disconnected',
-      activeDevice: null,
-      availableDevices: [],
-      errorMessage: null,
-    }),
-}));
+        if (event.type === 'note-off') {
+          const next = { ...state.activeNotes };
+          delete next[event.note];
+          return {
+            currentEvents: nextEvents,
+            latestEvent: event,
+            activeNotes: next,
+          };
+        }
+
+        // control-change and others: don't touch activeNotes reference
+        return {
+          currentEvents: nextEvents,
+          latestEvent: event,
+        };
+      }),
+
+    removeNote: (noteNumber) =>
+      set((state) => {
+        const nextActiveNotes = { ...state.activeNotes };
+        delete nextActiveNotes[noteNumber];
+        return { activeNotes: nextActiveNotes };
+      }),
+
+    clearEvents: () =>
+      set({
+        currentEvents: [],
+        latestEvent: null,
+        activeNotes: {},
+      }),
+
+    reset: () =>
+      set({
+        connectionStatus: 'disconnected',
+        activeDevice: null,
+        availableDevices: [],
+        errorMessage: null,
+        currentEvents: [],
+        latestEvent: null,
+        activeNotes: {},
+      }),
+  }))
+);

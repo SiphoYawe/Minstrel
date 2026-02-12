@@ -45,7 +45,7 @@ development_status:
   1-1-initialize-project-from-starter-template: done
   1-2-configure-design-system-and-dark-studio-aesthetic: done
   1-3-web-midi-device-connection-and-auto-detection: done
-  1-4-midi-event-capture-and-basic-canvas-visualization: ready-for-dev
+  1-4-midi-event-capture-and-basic-canvas-visualization: done
   1-5-midi-troubleshooting-guidance: ready-for-dev
   1-6-audio-only-fallback-mode: ready-for-dev
   1-7-guest-mode-entry-point: ready-for-dev

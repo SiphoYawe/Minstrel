@@ -27,6 +27,7 @@ export function useMidi() {
       onDevicesChanged: (devices) => useMidiStore.getState().setAvailableDevices(devices),
       onActiveDeviceChanged: (device) => useMidiStore.getState().setActiveDevice(device),
       onError: (message) => useMidiStore.getState().setErrorMessage(message),
+      onMidiEvent: (event) => useMidiStore.getState().addEvent(event),
     });
 
     return () => {

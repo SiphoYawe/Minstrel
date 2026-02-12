@@ -29,3 +29,33 @@ export interface MidiStoreActions {
 }
 
 export type MidiStore = MidiStoreState & MidiStoreActions;
+
+// --- MIDI Event Types (Story 1.4) ---
+
+export type MidiEventType = 'note-on' | 'note-off' | 'control-change';
+
+export interface MidiEvent {
+  type: MidiEventType;
+  note: number;
+  noteName: string;
+  velocity: number;
+  channel: number;
+  timestamp: number;
+}
+
+export interface MidiEventStoreState {
+  currentEvents: MidiEvent[];
+  latestEvent: MidiEvent | null;
+  activeNotes: Record<number, MidiEvent>;
+}
+
+export interface MidiEventStoreActions {
+  addEvent: (event: MidiEvent) => void;
+  removeNote: (noteNumber: number) => void;
+  clearEvents: () => void;
+}
+
+export type MidiEventStore = MidiStoreState &
+  MidiStoreActions &
+  MidiEventStoreState &
+  MidiEventStoreActions;

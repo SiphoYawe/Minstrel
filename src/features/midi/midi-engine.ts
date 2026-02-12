@@ -1,10 +1,12 @@
-import type { MidiDeviceInfo } from './midi-types';
+import type { MidiDeviceInfo, MidiEvent } from './midi-types';
 import { isMidiSupported } from './midi-utils';
+import { parseMidiMessage } from './midi-parser';
 
 // Module-level ref for non-serializable MIDIAccess object (AR: not in Zustand)
 let midiAccess: MIDIAccess | null = null;
 let initPromise: Promise<void> | null = null;
 let stateChangeTimer: ReturnType<typeof setTimeout> | null = null;
+let disposed = false;
 
 export type MidiEngineCallbacks = {
   onDevicesChanged: (devices: MidiDeviceInfo[]) => void;
@@ -13,6 +15,7 @@ export type MidiEngineCallbacks = {
   ) => void;
   onActiveDeviceChanged: (device: MidiDeviceInfo | null) => void;
   onError: (message: string) => void;
+  onMidiEvent?: (event: MidiEvent) => void;
 };
 
 function portToDeviceInfo(port: MIDIPort, type: 'input' | 'output'): MidiDeviceInfo {
@@ -40,7 +43,39 @@ function selectFirstInputDevice(devices: MidiDeviceInfo[]): MidiDeviceInfo | nul
   return devices.find((d) => d.type === 'input' && d.state === 'connected') ?? null;
 }
 
+let activeInputPort: MIDIInput | null = null;
+
+function bindMidiInput(
+  access: MIDIAccess,
+  device: MidiDeviceInfo | null,
+  onMidiEvent?: (event: MidiEvent) => void
+): void {
+  // Unbind previous listener
+  if (activeInputPort) {
+    activeInputPort.onmidimessage = null;
+    activeInputPort = null;
+  }
+
+  if (!device || !onMidiEvent) return;
+
+  const port = access.inputs.get(device.id);
+  if (!port) return;
+
+  activeInputPort = port;
+  port.onmidimessage = (e: MIDIMessageEvent) => {
+    if (!e.data) return;
+    // Use the native MIDI event timestamp for higher accuracy (Issue 7 fix)
+    const ts = e.timeStamp > 0 ? e.timeStamp : performance.now();
+    const parsed = parseMidiMessage(e.data, ts);
+    if (parsed) {
+      onMidiEvent(parsed);
+    }
+  };
+}
+
 async function doRequestMidiAccess(callbacks: MidiEngineCallbacks): Promise<void> {
+  disposed = false;
+
   if (!isMidiSupported()) {
     callbacks.onConnectionStatusChanged('error');
     callbacks.onError('Minstrel works best in Chrome or Edge for full MIDI support.');
@@ -51,6 +86,10 @@ async function doRequestMidiAccess(callbacks: MidiEngineCallbacks): Promise<void
 
   try {
     const access = await navigator.requestMIDIAccess({ sysex: false });
+
+    // Bail if disconnectMidi was called while awaiting
+    if (disposed) return;
+
     midiAccess = access;
 
     const devices = enumerateDevices(access);
@@ -59,6 +98,7 @@ async function doRequestMidiAccess(callbacks: MidiEngineCallbacks): Promise<void
     const activeInput = selectFirstInputDevice(devices);
     callbacks.onActiveDeviceChanged(activeInput);
     callbacks.onConnectionStatusChanged(activeInput ? 'connected' : 'disconnected');
+    bindMidiInput(access, activeInput, callbacks.onMidiEvent);
 
     // Debounced handler for hot-plug events.
     // Multi-port devices fire one event per port in rapid succession,
@@ -75,6 +115,7 @@ async function doRequestMidiAccess(callbacks: MidiEngineCallbacks): Promise<void
         const newActive = selectFirstInputDevice(updatedDevices);
         callbacks.onActiveDeviceChanged(newActive);
         callbacks.onConnectionStatusChanged(newActive ? 'connected' : 'disconnected');
+        bindMidiInput(access, newActive, callbacks.onMidiEvent);
       }, 100);
     };
   } catch (error) {
@@ -97,6 +138,11 @@ export async function requestMidiAccess(callbacks: MidiEngineCallbacks): Promise
 }
 
 export function disconnectMidi(): void {
+  disposed = true;
+  if (activeInputPort) {
+    activeInputPort.onmidimessage = null;
+    activeInputPort = null;
+  }
   if (stateChangeTimer) {
     clearTimeout(stateChangeTimer);
     stateChangeTimer = null;

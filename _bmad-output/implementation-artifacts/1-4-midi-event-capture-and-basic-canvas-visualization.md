@@ -1,6 +1,6 @@
 # Story 1.4: MIDI Event Capture and Basic Canvas Visualization
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -39,11 +39,11 @@ So that I know Minstrel is listening and responding to my playing.
     ```typescript
     interface MidiEvent {
       type: 'note-on' | 'note-off' | 'control-change';
-      note: number;        // 0-127 MIDI note number
-      noteName: string;    // e.g., "C4", "G#3"
-      velocity: number;    // 0-127
-      channel: number;     // 0-15
-      timestamp: number;   // performance.now() DOMHighResTimeStamp
+      note: number; // 0-127 MIDI note number
+      noteName: string; // e.g., "C4", "G#3"
+      velocity: number; // 0-127
+      channel: number; // 0-15
+      timestamp: number; // performance.now() DOMHighResTimeStamp
     }
     ```
 
@@ -80,7 +80,7 @@ So that I know Minstrel is listening and responding to my playing.
     - Render active notes as rectangles or bars on the canvas
     - Apply velocity-based visual scaling:
       - Brightness/opacity: `velocity / 127` mapped to alpha or lightness
-      - Size: base width + (velocity / 127) * bonus width
+      - Size: base width + (velocity / 127) \* bonus width
     - Use `#7CB9E8` (primary accent) as the note color, with velocity modulating brightness
     - Render note-off as a fade-out animation (reduce opacity over ~200ms)
   - [ ] Create `src/components/viz/canvas-utils.ts`:
