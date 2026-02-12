@@ -1,6 +1,6 @@
 # Story 1.3: Web MIDI Device Connection and Auto-Detection
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

@@ -64,16 +64,16 @@ describe('design system configuration (Story 1.2)', () => {
     const config = readFileSync(resolve(ROOT, 'tailwind.config.ts'), 'utf-8');
 
     it('defines 0px border radius for all sizes', () => {
-      expect(config).toContain('sm: "0px"');
-      expect(config).toContain('md: "0px"');
-      expect(config).toContain('lg: "0px"');
-      expect(config).toContain('xl: "0px"');
-      expect(config).toContain('full: "0px"');
+      expect(config).toMatch(/sm:\s*['"]0px['"]/);
+      expect(config).toMatch(/md:\s*['"]0px['"]/);
+      expect(config).toMatch(/lg:\s*['"]0px['"]/);
+      expect(config).toMatch(/xl:\s*['"]0px['"]/);
+      expect(config).toMatch(/full:\s*['"]0px['"]/);
     });
 
     it('defines Inter and JetBrains Mono font families', () => {
-      expect(config).toContain('"Inter"');
-      expect(config).toContain('"JetBrains Mono"');
+      expect(config).toMatch(/['"]Inter['"]/);
+      expect(config).toMatch(/['"]JetBrains Mono['"]/);
     });
 
     it('defines surface color tokens', () => {
@@ -82,22 +82,22 @@ describe('design system configuration (Story 1.2)', () => {
     });
 
     it('defines accent-blue, accent-warm, accent-success colors', () => {
-      expect(config).toContain('"accent-blue"');
-      expect(config).toContain('"accent-warm"');
-      expect(config).toContain('"accent-success"');
+      expect(config).toMatch(/['"]accent-blue['"]/);
+      expect(config).toMatch(/['"]accent-warm['"]/);
+      expect(config).toMatch(/['"]accent-success['"]/);
     });
 
     it('defines custom typography scale', () => {
-      expect(config).toContain('"page-title"');
-      expect(config).toContain('"section-heading"');
-      expect(config).toContain('"card-heading"');
-      expect(config).toContain('"ui-label"');
+      expect(config).toMatch(/['"]page-title['"]/);
+      expect(config).toMatch(/['"]section-heading['"]/);
+      expect(config).toMatch(/['"]card-heading['"]/);
+      expect(config).toMatch(/['"]ui-label['"]/);
       expect(config).toMatch(/caption:\s*\[/);
     });
 
     it('defines micro and layout transition durations', () => {
-      expect(config).toContain('micro: "150ms"');
-      expect(config).toContain('layout: "300ms"');
+      expect(config).toMatch(/micro:\s*['"]150ms['"]/);
+      expect(config).toMatch(/layout:\s*['"]300ms['"]/);
     });
   });
 

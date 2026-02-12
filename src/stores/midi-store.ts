@@ -1,8 +1,29 @@
 import { create } from 'zustand';
+import type { MidiConnectionStatus, MidiDeviceInfo, MidiStore } from '@/features/midi/midi-types';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- Populated in Story 1.3
-interface MidiState {}
+const initialState = {
+  connectionStatus: 'disconnected' as MidiConnectionStatus,
+  activeDevice: null as MidiDeviceInfo | null,
+  availableDevices: [] as MidiDeviceInfo[],
+  errorMessage: null as string | null,
+};
 
-export const useMidiStore = create<MidiState>()(() => ({
-  // Initial state TBD
+export const useMidiStore = create<MidiStore>()((set) => ({
+  ...initialState,
+
+  setConnectionStatus: (status) => set({ connectionStatus: status }),
+
+  setActiveDevice: (device) => set({ activeDevice: device }),
+
+  setAvailableDevices: (devices) => set({ availableDevices: devices }),
+
+  setErrorMessage: (message) => set({ errorMessage: message }),
+
+  reset: () =>
+    set({
+      connectionStatus: 'disconnected',
+      activeDevice: null,
+      availableDevices: [],
+      errorMessage: null,
+    }),
 }));
