@@ -18,6 +18,9 @@ vi.mock('@/features/modes/mode-switcher', () => ({
 vi.mock('@/features/modes/dashboard-chat', () => ({
   DashboardChat: () => <div data-testid="dashboard-chat">DashboardChat</div>,
 }));
+vi.mock('@/features/modes/replay-studio', () => ({
+  ReplayStudio: () => <div data-testid="replay-studio">Replay Studio</div>,
+}));
 
 // Mock hooks and utilities
 vi.mock('@/features/session/use-guest-session', () => ({
