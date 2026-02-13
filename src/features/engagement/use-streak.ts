@@ -50,8 +50,19 @@ export function useStreak() {
 
     const timezoneOffsetMinutes = -new Date().getTimezoneOffset();
     const updated = calculateStreakUpdate(streakRef.current, new Date(), timezoneOffsetMinutes);
+
+    // Optimistic update for immediate UI feedback
     setStreak(updated);
-    await updateStreak(userId, updated);
+
+    // Persist atomically — use server return value as authority
+    const result = await updateStreak(userId, updated);
+    if (result) {
+      setStreak((prev) => ({
+        ...prev,
+        currentStreak: result.newCurrentStreak,
+        bestStreak: result.newBestStreak,
+      }));
+    }
   }
 
   return { streak, loading, recordSession };

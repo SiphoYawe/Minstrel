@@ -50,11 +50,14 @@ describe('awardXp', () => {
     vi.clearAllMocks();
   });
 
-  it('calls RPC with correct parameters', async () => {
-    mockRpc.mockResolvedValue({ error: null });
+  it('calls RPC with correct parameters and returns server value', async () => {
+    mockRpc.mockResolvedValue({
+      data: [{ new_lifetime_xp: 142, new_best_xp: 142 }],
+      error: null,
+    });
 
     const breakdown = makeBreakdown(42);
-    await awardXp('user-123', breakdown);
+    const result = await awardXp('user-123', breakdown);
 
     expect(mockRpc).toHaveBeenCalledTimes(1);
     expect(mockRpc).toHaveBeenCalledWith('increment_xp', {
@@ -63,36 +66,42 @@ describe('awardXp', () => {
       p_metadata: breakdown,
       p_last_qualified_at: expect.any(String),
     });
+    expect(result).toEqual({ newLifetimeXp: 142 });
   });
 
-  it('does nothing when totalXp is zero', async () => {
+  it('returns null when totalXp is zero', async () => {
     const breakdown = makeBreakdown(0);
-    await awardXp('user-123', breakdown);
+    const result = await awardXp('user-123', breakdown);
 
     expect(mockRpc).not.toHaveBeenCalled();
+    expect(result).toBeNull();
   });
 
-  it('does nothing when totalXp is negative', async () => {
+  it('returns null when totalXp is negative', async () => {
     const breakdown = makeBreakdown(-5);
-    await awardXp('user-123', breakdown);
+    const result = await awardXp('user-123', breakdown);
 
     expect(mockRpc).not.toHaveBeenCalled();
+    expect(result).toBeNull();
   });
 
-  it('handles RPC error gracefully without throwing', async () => {
+  it('returns null on RPC error', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    mockRpc.mockResolvedValue({ error: { message: 'Database unavailable' } });
+    mockRpc.mockResolvedValue({ data: null, error: { message: 'Database unavailable' } });
 
     const breakdown = makeBreakdown(10);
-    // Should not throw
-    await expect(awardXp('user-123', breakdown)).resolves.toBeUndefined();
+    const result = await awardXp('user-123', breakdown);
 
+    expect(result).toBeNull();
     expect(consoleSpy).toHaveBeenCalledWith('[XP] Failed to award XP:', 'Database unavailable');
     consoleSpy.mockRestore();
   });
 
-  it('passes breakdown as metadata to the RPC', async () => {
-    mockRpc.mockResolvedValue({ error: null });
+  it('passes breakdown as metadata and returns server XP', async () => {
+    mockRpc.mockResolvedValue({
+      data: [{ new_lifetime_xp: 255, new_best_xp: 255 }],
+      error: null,
+    });
 
     const breakdown: XpBreakdown = {
       practiceXp: 10,
@@ -102,11 +111,12 @@ describe('awardXp', () => {
       totalXp: 55,
     };
 
-    await awardXp('user-456', breakdown);
+    const result = await awardXp('user-456', breakdown);
 
     const callArgs = mockRpc.mock.calls[0][1];
     expect(callArgs.p_delta).toBe(55);
     expect(callArgs.p_metadata).toEqual(breakdown);
+    expect(result).toEqual({ newLifetimeXp: 255 });
   });
 });
 

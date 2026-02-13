@@ -31,18 +31,32 @@ export async function fetchStreak(userId: string): Promise<StreakData> {
   };
 }
 
-export async function updateStreak(userId: string, streak: StreakData): Promise<void> {
+/**
+ * Atomically update streak using server-side RPC.
+ * Returns server-authoritative streak values to prevent lost updates
+ * from concurrent operations across multiple browser tabs.
+ */
+export async function updateStreak(
+  userId: string,
+  streak: StreakData
+): Promise<{ newCurrentStreak: number; newBestStreak: number } | null> {
   const supabase = createClient();
-  await supabase.from('progress_metrics').upsert(
-    {
-      user_id: userId,
-      metric_type: METRIC_TYPE,
-      current_value: streak.currentStreak,
-      best_value: streak.bestStreak,
-      last_qualified_at: streak.lastQualifiedAt,
-      metadata: { streakStatus: streak.streakStatus },
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id,metric_type' }
-  );
+  const { data, error } = await supabase.rpc('increment_streak', {
+    p_user_id: userId,
+    p_streak_value: streak.currentStreak,
+    p_best_streak: streak.bestStreak,
+    p_last_qualified_at: streak.lastQualifiedAt ?? new Date().toISOString(),
+    p_metadata: { streakStatus: streak.streakStatus },
+  });
+
+  if (error) {
+    console.error('[streak] Failed to update streak:', error.message);
+    return null;
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  return {
+    newCurrentStreak: row?.new_current_streak ?? streak.currentStreak,
+    newBestStreak: row?.new_best_streak ?? streak.bestStreak,
+  };
 }

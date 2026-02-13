@@ -52,14 +52,19 @@ export function useXp() {
     setLastBreakdown(breakdown);
 
     if (breakdown.totalXp > 0) {
+      // Optimistic update for immediate UI feedback
       setLifetimeXp((prev) => prev + breakdown.totalXp);
 
-      // Persist for authenticated users
+      // Persist for authenticated users — use server return value as authority
       const currentUser = useAppStore.getState().user;
       const currentAuth = useAppStore.getState().isAuthenticated;
       if (currentAuth && currentUser?.id) {
         try {
-          await awardXp(currentUser.id, breakdown);
+          const result = await awardXp(currentUser.id, breakdown);
+          if (result?.newLifetimeXp != null) {
+            // Server-authoritative: override optimistic value
+            setLifetimeXp(result.newLifetimeXp);
+          }
         } catch {
           console.warn('[xp] Failed to persist XP to Supabase');
         }

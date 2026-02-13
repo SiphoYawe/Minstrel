@@ -1,6 +1,6 @@
 # Story 18.4: Fix Concurrent XP and Streak Race Conditions
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -42,8 +42,27 @@ So that no XP or streak increments are lost from simultaneous operations.
 
 ### Agent Model Used
 
+Claude Opus 4.6
+
 ### Debug Log References
+
+- All 35 engagement tests pass (xp-service: 8, streak-tracker: 27)
+- TypeScript compiles clean
 
 ### Completion Notes List
 
+- Updated increment_xp RPC to return new_lifetime_xp (was VOID)
+- Created increment_streak RPC with atomic INSERT...ON CONFLICT
+- awardXp() now returns { newLifetimeXp } from server
+- use-xp hook sets lifetimeXp from server return (optimistic → authoritative)
+- updateStreak() now uses RPC and returns server values
+- use-streak hook sets streak from server return (optimistic → authoritative)
+
 ### File List
+
+- supabase/migrations/20260213000012_fix_xp_streak_race_conditions.sql (new)
+- src/features/engagement/xp-service.ts (modified)
+- src/features/engagement/use-xp.ts (modified)
+- src/features/engagement/streak-service.ts (modified)
+- src/features/engagement/use-streak.ts (modified)
+- src/features/engagement/xp-service.test.ts (modified)

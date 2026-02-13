@@ -36,12 +36,18 @@ export async function fetchLifetimeXp(userId: string): Promise<number> {
  * The `increment_xp` RPC performs an INSERT ... ON CONFLICT that atomically
  * increments current_value by the delta, eliminating race conditions from
  * concurrent read-modify-write cycles (e.g., session end + achievement unlock).
+ *
+ * Returns the server-authoritative new lifetime XP so callers can set
+ * local state from the server value rather than optimistic calculation.
  */
-export async function awardXp(userId: string, breakdown: XpBreakdown): Promise<void> {
-  if (breakdown.totalXp <= 0) return;
+export async function awardXp(
+  userId: string,
+  breakdown: XpBreakdown
+): Promise<{ newLifetimeXp: number } | null> {
+  if (breakdown.totalXp <= 0) return null;
 
   const supabase = createClient();
-  const { error } = await supabase.rpc('increment_xp', {
+  const { data, error } = await supabase.rpc('increment_xp', {
     p_user_id: userId,
     p_delta: breakdown.totalXp,
     p_metadata: breakdown,
@@ -50,5 +56,12 @@ export async function awardXp(userId: string, breakdown: XpBreakdown): Promise<v
 
   if (error) {
     console.error('[XP] Failed to award XP:', error.message);
+    return null;
   }
+
+  // RPC returns TABLE(new_lifetime_xp, new_best_xp) — data is an array
+  const row = Array.isArray(data) ? data[0] : data;
+  return {
+    newLifetimeXp: row?.new_lifetime_xp ?? breakdown.totalXp,
+  };
 }
