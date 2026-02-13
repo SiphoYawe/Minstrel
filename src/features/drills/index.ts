@@ -8,6 +8,12 @@ export type {
   DrillResults,
   DrillStatus,
   DrillGenerationRequest,
+  WarmupExercise,
+  WarmupRoutine,
+  WarmupDifficulty,
+  MicroSession,
+  MicroSessionStack,
+  SessionSummary,
 } from './drill-types';
 export {
   buildDrillRequest,

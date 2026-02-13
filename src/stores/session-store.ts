@@ -26,7 +26,11 @@ import type {
   RecalibrationResult,
 } from '@/features/difficulty/difficulty-types';
 import { GrowthZoneStatus } from '@/features/difficulty/difficulty-types';
-import type { GeneratedDrill } from '@/features/drills/drill-types';
+import type {
+  GeneratedDrill,
+  WarmupRoutine,
+  MicroSessionStack,
+} from '@/features/drills/drill-types';
 import { DrillPhase } from '@/features/drills/drill-types';
 import type { DrillRepResult, ImprovementDelta } from '@/features/drills/drill-tracker';
 import { calculateImprovementDelta, toRepPerformance } from '@/features/drills/drill-tracker';
@@ -70,6 +74,10 @@ interface SessionState {
   currentDrill: GeneratedDrill | null;
   drillRepHistory: DrillRepResult[];
   drillImprovement: ImprovementDelta | null;
+  isWarmingUp: boolean;
+  currentWarmupExercise: number;
+  warmupRoutine: WarmupRoutine | null;
+  microSessionStack: MicroSessionStack | null;
 }
 
 interface SessionActions {
@@ -109,6 +117,10 @@ interface SessionActions {
   setCurrentDrill: (drill: GeneratedDrill | null) => void;
   addDrillRepResult: (result: DrillRepResult) => void;
   clearDrillRepHistory: () => void;
+  setIsWarmingUp: (warming: boolean) => void;
+  setCurrentWarmupExercise: (index: number) => void;
+  setWarmupRoutine: (routine: WarmupRoutine | null) => void;
+  setMicroSessionStack: (stack: MicroSessionStack | null) => void;
   resetAnalysis: () => void;
 }
 
@@ -147,6 +159,10 @@ const initialState: SessionState = {
   currentDrill: null,
   drillRepHistory: [],
   drillImprovement: null,
+  isWarmingUp: false,
+  currentWarmupExercise: 0,
+  warmupRoutine: null,
+  microSessionStack: null,
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -320,6 +336,14 @@ export const useSessionStore = create<SessionStore>()(
       }),
 
     clearDrillRepHistory: () => set({ drillRepHistory: [], drillImprovement: null }),
+
+    setIsWarmingUp: (warming) => set({ isWarmingUp: warming }),
+
+    setCurrentWarmupExercise: (index) => set({ currentWarmupExercise: index }),
+
+    setWarmupRoutine: (routine) => set({ warmupRoutine: routine }),
+
+    setMicroSessionStack: (stack) => set({ microSessionStack: stack }),
 
     resetAnalysis: () =>
       set((state) => ({

@@ -61,6 +61,51 @@ export interface DrillGenerationRequest {
   previousDrillDescriptions?: string[];
 }
 
+// Story 5.7: Warm-Up and Micro-Session types
+
+export type WarmupDifficulty = 'easy' | 'moderate' | 'target';
+
+export interface WarmupExercise {
+  id: string;
+  title: string;
+  sequence: DrillSequence;
+  targetTempo: number;
+  durationSeconds: number;
+  difficulty: WarmupDifficulty;
+}
+
+export interface WarmupRoutine {
+  exercises: WarmupExercise[];
+  totalDurationSeconds: number;
+  basedOn: {
+    recentKeys: string[];
+    recentWeaknesses: string[];
+    upcomingFocus?: string;
+  };
+}
+
+export interface MicroSession {
+  id: string;
+  targetWeakness: string;
+  warmupReps: number;
+  challengeReps: number;
+  cooldownReps: number;
+  targetDurationSeconds: number;
+  drill: GeneratedDrill;
+}
+
+export interface MicroSessionStack {
+  sessions: MicroSession[];
+  totalDurationSeconds: number;
+  weaknessesTargeted: string[];
+}
+
+export interface SessionSummary {
+  key: string | null;
+  weaknesses: string[];
+  avgTempo: number | null;
+}
+
 export enum DrillPhase {
   Setup = 'Setup',
   Demonstrate = 'Demonstrate',
