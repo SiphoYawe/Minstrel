@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHarmonicOverlay } from './harmonic-overlay-renderer';
-import type { KeyCenter, HarmonicFunction, NoteAnalysis } from '@/features/analysis/analysis-types';
+import type { KeyCenter, NoteAnalysis } from '@/features/analysis/analysis-types';
 
 function createMockCtx(): CanvasRenderingContext2D {
   return {
@@ -44,19 +44,13 @@ describe('renderHarmonicOverlay', () => {
     expect(ctx.fillText).toHaveBeenCalledWith('Key: A Minor', 14, 12);
   });
 
-  it('renders roman numeral with background when harmonic function is provided', () => {
-    const fn: HarmonicFunction = { romanNumeral: 'IV', quality: 'Major', isSecondary: false };
-    renderHarmonicOverlay(ctx, W, H, null, fn, []);
-    expect(ctx.fillText).toHaveBeenCalledWith('IV', W / 2, 49);
-    // Background rect drawn before text
-    expect(ctx.fillRect).toHaveBeenCalledTimes(1);
-    expect(ctx.measureText).toHaveBeenCalledWith('IV');
-  });
-
-  it('resets textAlign after rendering roman numeral', () => {
-    const fn: HarmonicFunction = { romanNumeral: 'V', quality: 'Major', isSecondary: false };
-    renderHarmonicOverlay(ctx, W, H, null, fn, []);
-    expect(ctx.textAlign).toBe('start');
+  it('does not render chord label or roman numeral on canvas (handled by ChordHud)', () => {
+    const key: KeyCenter = { root: 'C', mode: 'major', confidence: 0.9 };
+    const fn = { romanNumeral: 'IV', quality: 'Major' as const, isSecondary: false };
+    renderHarmonicOverlay(ctx, W, H, key, fn, [], 'Fmaj', 'Major');
+    // Only key label text rendered, not chord label or numeral
+    expect(ctx.fillText).toHaveBeenCalledTimes(1);
+    expect(ctx.fillText).toHaveBeenCalledWith('Key: C Major', 14, 12);
   });
 
   it('renders chord-tone markers for notes with chord context', () => {

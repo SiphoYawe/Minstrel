@@ -235,7 +235,7 @@ export function ChordProgressionStrip() {
   if (detectedChords.length === 0) return null;
 
   return (
-    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[var(--z-overlay)]">
+    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-[var(--z-base)]">
       <canvas
         ref={canvasRef}
         className="block"
