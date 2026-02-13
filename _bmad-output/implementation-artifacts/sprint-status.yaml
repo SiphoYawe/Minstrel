@@ -1,4 +1,4 @@
-# generated: 2026-02-12
+# generated: 2026-02-13
 # project: Minstrel
 # project_key: NOKEY
 # tracking_system: file-system
@@ -33,7 +33,7 @@
 # - SM typically creates next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
-generated: 2026-02-12
+generated: 2026-02-13
 project: Minstrel
 project_key: NOKEY
 tracking_system: file-system
@@ -213,3 +213,61 @@ development_status:
   17-7-add-visual-chord-indicators: done
   17-8-add-midi-input-quality-feedback: done
   epic-17-retrospective: optional
+
+  # Epic 18: Critical Security & Data Integrity (P0 — Blocks Launch)
+  # Source: code-review-findings-epics-8-11.md — 17 CRITICAL findings
+  epic-18: in-progress
+  18-1-add-csrf-protection-to-all-api-routes: done
+  18-2-harden-encryption-key-validation: ready-for-dev
+  18-3-fix-session-buffer-data-loss-and-flush-reentrancy: ready-for-dev
+  18-4-fix-concurrent-xp-and-streak-race-conditions: ready-for-dev
+  18-5-fix-pattern-analysis-memory-leak: ready-for-dev
+  18-6-fix-ui-critical-landmarks-async-errors-memory-leaks: ready-for-dev
+  18-7-fix-token-extraction-and-growth-mindset-stream-filtering: ready-for-dev
+  18-8-fix-ai-security-prompt-injection-rate-limits: ready-for-dev
+  epic-18-retrospective: optional
+
+  # Epic 19: High Priority Fixes (P1 — Recommended before launch)
+  # Source: code-review-findings-epics-8-11.md — 27 HIGH findings
+  epic-19: in-progress
+  19-1-migrate-rate-limiting-to-distributed-store: ready-for-dev
+  19-2-fix-api-key-validation-non-charging-endpoints: ready-for-dev
+  19-3-fix-stale-closures-and-reentrancy-guards: ready-for-dev
+  19-4-add-atomic-indexeddb-transactions: ready-for-dev
+  19-5-fix-ai-token-budget-context-error-classification: ready-for-dev
+  19-6-fix-drill-replay-context-and-timeout: ready-for-dev
+  19-7-fix-dashboard-accessibility-aria-attributes: ready-for-dev
+  19-8-fix-chat-and-input-accessibility: ready-for-dev
+  19-9-fix-modal-focus-traps-and-keyboard-support: ready-for-dev
+  19-10-fix-banner-behavior-and-timeline-navigation: ready-for-dev
+  epic-19-retrospective: optional
+
+  # Epic 20: Medium Priority Polish (P2 — Post-launch acceptable)
+  # Source: code-review-findings-epics-8-11.md — 35 MEDIUM findings
+  epic-20: in-progress
+  20-1-fix-security-polish-ci-imports-errors: ready-for-dev
+  20-2-fix-timezone-bug-and-xp-error-handling: ready-for-dev
+  20-3-fix-drill-player-memory-leaks-and-race-conditions: ready-for-dev
+  20-4-fix-stale-closures-and-buffer-guards: ready-for-dev
+  20-5-fix-data-export-completeness: ready-for-dev
+  20-6-clean-up-dead-code-schema-mismatches-missing-context: ready-for-dev
+  20-7-fix-ai-observability-and-logging: ready-for-dev
+  20-8-fix-screen-reader-and-landmark-issues: ready-for-dev
+  20-9-fix-chat-ux-scroll-submit-color-logic: ready-for-dev
+  20-10-fix-animation-and-cleanup-accessibility: ready-for-dev
+  20-11-add-focus-traps-and-reduced-motion-support: ready-for-dev
+  20-12-add-virtualization-and-pagination: ready-for-dev
+  epic-20-retrospective: optional
+
+  # Epic 21: Low Priority Cleanup (P3 — Post-launch)
+  # Source: code-review-findings-epics-8-11.md — 20 LOW findings
+  epic-21: in-progress
+  21-1-harden-middleware-and-rls-verification: ready-for-dev
+  21-2-fix-dst-edge-case-and-accumulator-reset: ready-for-dev
+  21-3-fix-timer-and-subscription-cleanup: ready-for-dev
+  21-4-fix-session-cache-and-metadata: ready-for-dev
+  21-5-clean-up-dead-code-and-stale-pricing: ready-for-dev
+  21-6-fix-retry-logic-and-export-compression: ready-for-dev
+  21-7-expand-growth-mindset-rules: ready-for-dev
+  21-8-fix-ui-edge-cases-limits-magic-numbers-localstorage: ready-for-dev
+  epic-21-retrospective: optional

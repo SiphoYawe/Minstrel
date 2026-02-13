@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { encrypt } from '@/lib/crypto';
 import { validateApiKey } from './validate';
 import { checkRateLimit, recordRequest } from './rate-limit';
+import { validateCsrf } from '@/lib/middleware/csrf';
 import type { ApiResult } from '@/types/api';
 import type { ApiKeyMetadata } from '@/features/auth/auth-types';
 
@@ -38,6 +39,9 @@ async function getAuthenticatedUser() {
 }
 
 export async function POST(request: NextRequest) {
+  const csrfError = validateCsrf(request);
+  if (csrfError) return csrfError;
+
   try {
     const { user, supabase } = await getAuthenticatedUser();
     if (!user) {
@@ -164,6 +168,9 @@ export async function GET() {
 }
 
 export async function DELETE(request: NextRequest) {
+  const csrfError = validateCsrf(request);
+  if (csrfError) return csrfError;
+
   try {
     const { user, supabase } = await getAuthenticatedUser();
     if (!user) {

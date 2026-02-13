@@ -12,6 +12,7 @@ import {
   trimMessagesToFit,
 } from '@/features/coaching/context-length-manager';
 import { extractTokenUsage, recordTokenUsage } from '@/features/coaching/token-tracker';
+import { validateCsrf } from '@/lib/middleware/csrf';
 
 const MAX_RETRIES = 3;
 const RETRY_BASE_MS = 1_000;
@@ -70,6 +71,9 @@ async function streamWithRetry(
 }
 
 export async function POST(req: Request): Promise<Response> {
+  const csrfError = validateCsrf(req);
+  if (csrfError) return csrfError;
+
   // Parse and validate request body
   let body: unknown;
   try {

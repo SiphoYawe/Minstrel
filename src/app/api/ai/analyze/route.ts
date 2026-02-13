@@ -5,8 +5,12 @@ import { buildAnalysisSystemPrompt } from '@/lib/ai/prompts';
 import { authenticateAiRequest, withAiErrorHandling } from '@/lib/ai/route-helpers';
 import { AiError } from '@/lib/ai/errors';
 import { getPostHogClient } from '@/lib/posthog-server';
+import { validateCsrf } from '@/lib/middleware/csrf';
 
 export async function POST(req: Request): Promise<Response> {
+  const csrfError = validateCsrf(req);
+  if (csrfError) return csrfError;
+
   let body: unknown;
   try {
     body = await req.json();
