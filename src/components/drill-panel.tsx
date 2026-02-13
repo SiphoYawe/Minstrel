@@ -1,6 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { DrillNoteVisualizer } from '@/components/drill-note-visualizer';
+import { useDrillPreview } from '@/hooks/use-drill-preview';
 import type { GeneratedDrill } from '@/features/drills/drill-types';
 
 interface DrillPanelProps {
@@ -9,6 +11,7 @@ interface DrillPanelProps {
   error: string | null;
   onRetry: () => void;
   onDismiss: () => void;
+  onStart?: () => void;
 }
 
 function DifficultyDots({ level }: { level: number }) {
@@ -94,7 +97,9 @@ function ErrorCard({
   );
 }
 
-function DrillCard({ drill }: { drill: GeneratedDrill }) {
+function DrillCard({ drill, onStart }: { drill: GeneratedDrill; onStart?: () => void }) {
+  const preview = useDrillPreview(drill);
+
   const difficultyLevel = Math.round(
     ((drill.difficultyLevel.harmonicComplexity +
       drill.difficultyLevel.rhythmicDensity +
@@ -102,6 +107,9 @@ function DrillCard({ drill }: { drill: GeneratedDrill }) {
       3) *
       5
   );
+
+  const isPreviewPlaying = preview.state === 'playing';
+  const isPreviewFinished = preview.state === 'finished';
 
   return (
     <div className="border border-primary/20 bg-card p-5">
@@ -120,8 +128,17 @@ function DrillCard({ drill }: { drill: GeneratedDrill }) {
         {drill.instructions}
       </p>
 
+      {/* Note visualizer strip */}
+      <div className="mt-3">
+        <DrillNoteVisualizer
+          notes={drill.sequence.notes}
+          activeNoteIndex={preview.activeNoteIndex}
+          previewState={preview.state}
+        />
+      </div>
+
       {/* Metadata row */}
-      <div className="mt-4 flex items-center gap-4">
+      <div className="mt-3 flex items-center gap-4">
         <div className="flex items-center gap-1.5">
           <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             Tempo
@@ -165,18 +182,44 @@ function DrillCard({ drill }: { drill: GeneratedDrill }) {
           variant="outline"
           size="sm"
           className="flex-1 font-mono text-[11px] uppercase tracking-[0.1em]"
+          onClick={isPreviewPlaying ? preview.stop : preview.start}
+          aria-label={isPreviewPlaying ? 'Stop preview' : 'Preview drill'}
         >
-          Preview
+          {isPreviewPlaying ? 'Stop' : 'Preview'}
         </Button>
-        <Button size="sm" className="flex-1 font-mono text-[11px] uppercase tracking-[0.1em]">
+        <Button
+          size="sm"
+          className="flex-1 font-mono text-[11px] uppercase tracking-[0.1em]"
+          onClick={() => {
+            preview.stop();
+            onStart?.();
+          }}
+        >
           Start
         </Button>
       </div>
+
+      {/* Repeat demonstration link (shown after preview finishes) */}
+      {isPreviewFinished && (
+        <button
+          onClick={preview.repeat}
+          className="mt-3 w-full text-center font-mono text-[10px] uppercase tracking-[0.15em] text-primary/70 hover:text-primary transition-colors duration-150"
+        >
+          Repeat Demonstration
+        </button>
+      )}
     </div>
   );
 }
 
-export function DrillPanel({ drill, isGenerating, error, onRetry, onDismiss }: DrillPanelProps) {
+export function DrillPanel({
+  drill,
+  isGenerating,
+  error,
+  onRetry,
+  onDismiss,
+  onStart,
+}: DrillPanelProps) {
   if (isGenerating) {
     return <LoadingSkeleton />;
   }
@@ -186,7 +229,7 @@ export function DrillPanel({ drill, isGenerating, error, onRetry, onDismiss }: D
   }
 
   if (drill) {
-    return <DrillCard drill={drill} />;
+    return <DrillCard drill={drill} onStart={onStart} />;
   }
 
   return null;

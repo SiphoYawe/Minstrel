@@ -234,5 +234,36 @@ export function createDrillCycle(
   };
 }
 
+/** Velocity multiplier for demonstration/preview emphasis. Capped at 127. */
+const PREVIEW_VELOCITY_MULT = 1.2;
+
+export interface PreviewOptions {
+  onNotePlay?: NotePlayCallback;
+  onComplete?: () => void;
+}
+
+/**
+ * Preview a drill with emphasized velocity (1.2×, capped at 127).
+ * Uses the same scheduling engine as playDrill but applies the
+ * demonstration emphasis to every note for a clearer preview.
+ */
+export function previewDrill(
+  drill: GeneratedDrill,
+  output: DrillOutput,
+  options?: PreviewOptions
+): PlaybackHandle {
+  const emphasizedDrill: GeneratedDrill = {
+    ...drill,
+    sequence: {
+      ...drill.sequence,
+      notes: drill.sequence.notes.map((note) => ({
+        ...note,
+        velocity: Math.min(127, Math.round(note.velocity * PREVIEW_VELOCITY_MULT)),
+      })),
+    },
+  };
+  return playDrill(emphasizedDrill, output, options);
+}
+
 // Re-export for test access
-export { SCHEDULE_AHEAD_MS, LISTEN_PAUSE_MS };
+export { SCHEDULE_AHEAD_MS, LISTEN_PAUSE_MS, PREVIEW_VELOCITY_MULT };

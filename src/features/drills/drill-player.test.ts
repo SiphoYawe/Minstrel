@@ -1,6 +1,13 @@
 // @vitest-environment node
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { playDrill, createDrillCycle, SCHEDULE_AHEAD_MS, LISTEN_PAUSE_MS } from './drill-player';
+import {
+  playDrill,
+  createDrillCycle,
+  previewDrill,
+  SCHEDULE_AHEAD_MS,
+  LISTEN_PAUSE_MS,
+  PREVIEW_VELOCITY_MULT,
+} from './drill-player';
 import type { DrillOutput } from './drill-player';
 import { DrillPhase } from './drill-types';
 import type { GeneratedDrill } from './drill-types';
@@ -418,5 +425,91 @@ describe('createDrillCycle', () => {
     vi.advanceTimersByTime(500);
     await Promise.resolve();
     expect(phases).toContain(DrillPhase.Attempt);
+  });
+});
+
+describe('previewDrill', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('applies emphasized velocity (1.2×) to all notes', () => {
+    const { port, sentMessages } = createMockMIDIOutput();
+    const drill = makeDrill(); // velocity: 80 per note
+    const output: DrillOutput = { type: 'midi', port };
+
+    previewDrill(drill, output);
+
+    const noteOns = sentMessages.filter((m) => (m.data[0] & 0xf0) === 0x90);
+    const expectedVelocity = Math.min(127, Math.round(80 * PREVIEW_VELOCITY_MULT));
+    for (const msg of noteOns) {
+      expect(msg.data[2]).toBe(expectedVelocity);
+    }
+  });
+
+  it('caps velocity at 127 for loud notes', () => {
+    const { port, sentMessages } = createMockMIDIOutput();
+    const drill = makeDrill({
+      sequence: {
+        notes: [{ midiNote: 60, duration: 1, velocity: 120, startBeat: 0 }],
+        timeSignature: [4, 4] as [number, number],
+        measures: 1,
+      },
+    });
+    const output: DrillOutput = { type: 'midi', port };
+
+    previewDrill(drill, output);
+
+    const noteOns = sentMessages.filter((m) => (m.data[0] & 0xf0) === 0x90);
+    // 120 * 1.2 = 144 → capped at 127
+    expect(noteOns[0].data[2]).toBe(127);
+  });
+
+  it('does not mutate the original drill', () => {
+    const { port } = createMockMIDIOutput();
+    const drill = makeDrill();
+    const originalVelocity = drill.sequence.notes[0].velocity;
+    const output: DrillOutput = { type: 'midi', port };
+
+    previewDrill(drill, output);
+
+    expect(drill.sequence.notes[0].velocity).toBe(originalVelocity);
+  });
+
+  it('fires onNotePlay and onComplete callbacks', () => {
+    const { port } = createMockMIDIOutput();
+    const drill = makeDrill();
+    const output: DrillOutput = { type: 'midi', port };
+    const onNotePlay = vi.fn();
+    const onComplete = vi.fn();
+
+    previewDrill(drill, output, { onNotePlay, onComplete });
+
+    vi.advanceTimersByTime(SCHEDULE_AHEAD_MS + 1500 + 200);
+
+    expect(onNotePlay).toHaveBeenCalledTimes(3);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('stop() sends allNotesOff and cancels callbacks', () => {
+    const { port, sentMessages } = createMockMIDIOutput();
+    const drill = makeDrill();
+    const output: DrillOutput = { type: 'midi', port };
+    const onComplete = vi.fn();
+
+    const handle = previewDrill(drill, output, { onComplete });
+    const beforeStop = sentMessages.length;
+    handle.stop();
+
+    vi.advanceTimersByTime(10000);
+
+    // 128 noteOff messages from panic
+    const panicMessages = sentMessages.slice(beforeStop);
+    expect(panicMessages).toHaveLength(128);
+    expect(onComplete).not.toHaveBeenCalled();
   });
 });
