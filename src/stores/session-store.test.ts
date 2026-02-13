@@ -393,6 +393,62 @@ describe('useSessionStore', () => {
     expect(useSessionStore.getState().snapshots[1].id).toBe('snap-b');
   });
 
+  describe('addDrillRepResult (STATE-H5)', () => {
+    it('uses Zustand updater pattern so concurrent calls preserve all results', () => {
+      // Clear any prior drill rep history
+      useSessionStore.getState().clearDrillRepHistory();
+
+      const makeRep = (
+        repNumber: number
+      ): {
+        repNumber: number;
+        accuracy: number;
+        timingDeviationMs: number;
+        notesCorrect: number;
+        notesTotal: number;
+        tempoAchievedBpm: number | null;
+        completedAt: string;
+      } => ({
+        repNumber,
+        accuracy: 0.8 + repNumber * 0.01,
+        timingDeviationMs: 100 - repNumber * 5,
+        notesCorrect: 8,
+        notesTotal: 10,
+        tempoAchievedBpm: 120,
+        completedAt: new Date().toISOString(),
+      });
+
+      // Fire multiple addDrillRepResult calls synchronously
+      // If the store used read-then-write instead of updater pattern,
+      // these would clobber each other and only the last one would survive.
+      useSessionStore.getState().addDrillRepResult(makeRep(1));
+      useSessionStore.getState().addDrillRepResult(makeRep(2));
+      useSessionStore.getState().addDrillRepResult(makeRep(3));
+
+      const { drillRepHistory } = useSessionStore.getState();
+      expect(drillRepHistory).toHaveLength(3);
+      expect(drillRepHistory[0].repNumber).toBe(1);
+      expect(drillRepHistory[1].repNumber).toBe(2);
+      expect(drillRepHistory[2].repNumber).toBe(3);
+    });
+
+    it('clearDrillRepHistory resets to empty', () => {
+      useSessionStore.getState().addDrillRepResult({
+        repNumber: 1,
+        accuracy: 0.9,
+        timingDeviationMs: 50,
+        notesCorrect: 9,
+        notesTotal: 10,
+        tempoAchievedBpm: 120,
+        completedAt: new Date().toISOString(),
+      });
+
+      useSessionStore.getState().clearDrillRepHistory();
+      expect(useSessionStore.getState().drillRepHistory).toEqual([]);
+      expect(useSessionStore.getState().drillImprovement).toBeNull();
+    });
+  });
+
   it('resetAnalysis restores initial state including timing', () => {
     const note: DetectedNote = {
       name: 'C',

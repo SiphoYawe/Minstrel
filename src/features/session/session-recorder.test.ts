@@ -12,10 +12,16 @@ import {
   getBufferSize,
   getRetryQueueSize,
   resetRecorder,
+  cleanupOrphanSessions,
 } from './session-recorder';
 import type { MidiEvent } from '@/features/midi/midi-types';
 import type { InstantSnapshot } from '@/features/analysis/analysis-types';
 import { db } from '@/lib/dexie/db';
+
+vi.mock('@sentry/nextjs', () => ({
+  captureMessage: vi.fn(),
+  captureException: vi.fn(),
+}));
 
 // Dexie uses fake-indexeddb automatically in test environment (via vitest setup)
 
@@ -81,6 +87,21 @@ describe('session-recorder', () => {
       expect(id2).toBe(id1);
     });
 
+    it('concurrent double-start returns same session ID via async lock (STATE-M7)', async () => {
+      // Fire two startRecording calls concurrently without awaiting the first
+      const [id1, id2] = await Promise.all([
+        startRecording('freeform'),
+        startRecording('freeform'),
+      ]);
+
+      // Both should return the same session ID — only one session created
+      expect(id1).toBe(id2);
+
+      // Only one session should exist in Dexie
+      const sessionCount = await db.sessions.count();
+      expect(sessionCount).toBe(1);
+    });
+
     it('defaults inputSource to midi', async () => {
       const id = await startRecording('freeform');
       const session = await db.sessions.get(id);
@@ -104,11 +125,11 @@ describe('session-recorder', () => {
       expect(getBufferSize()).toBe(0);
     });
 
-    it('captures events into pending buffer before startRecording resolves', async () => {
+    it('captures events into pending buffer and writes them atomically with session', async () => {
       // Start recording but don't await — simulates the async gap
       const recordingPromise = startRecording('freeform');
 
-      // Record events while startRecording is still awaiting db.sessions.add
+      // Record events while startRecording is still awaiting the transaction
       // These would be lost without the pending buffer fix
       recordEvent(makeMidiEvent({ note: 60, timestamp: 1 }));
       recordEvent(makeMidiEvent({ note: 64, timestamp: 2 }));
@@ -116,11 +137,10 @@ describe('session-recorder', () => {
       // Now await the recording start
       const sessionId = await recordingPromise;
 
-      // Pending events should now be in the main buffer
-      expect(getBufferSize()).toBe(2);
+      // Pending events are now written atomically inside the transaction,
+      // so the main buffer should be empty and events should already be in Dexie
+      expect(getBufferSize()).toBe(0);
 
-      // Flush and verify they're persisted with the correct sessionId
-      await flush();
       const events = await db.midiEvents.where('sessionId').equals(sessionId).toArray();
       expect(events).toHaveLength(2);
       expect(events[0].note).toBe(60);
@@ -348,6 +368,32 @@ describe('session-recorder', () => {
       startMetadataSync(() => ({ key: 'changed', tempo: 999 }));
       // No error thrown = success; timer deduplication verified
     });
+
+    it('at most one metadata interval exists after rapid successive calls (STATE-H4)', async () => {
+      await startRecording('freeform');
+      const updateSpy = vi.spyOn(db.sessions, 'update');
+
+      // Call startMetadataSync multiple times rapidly — only first should create an interval
+      startMetadataSync(() => ({ key: 'A minor', tempo: 100 }));
+      startMetadataSync(() => ({ key: 'C major', tempo: 120 }));
+      startMetadataSync(() => ({ key: 'G major', tempo: 140 }));
+
+      // Wait for one metadata interval tick (METADATA_UPDATE_INTERVAL_MS = 10000ms by default)
+      // Since only 1 interval should exist, after one tick only the first getter should fire
+      await new Promise((r) => setTimeout(r, 11_000));
+
+      // All update calls should use 'A minor' / 100 (the first getter), not 'G major' / 140
+      const calls = updateSpy.mock.calls;
+      expect(calls.length).toBeGreaterThanOrEqual(1);
+      for (const call of calls) {
+        // call[1] is the update object { key, tempo }
+        const updateObj = call[1] as Record<string, unknown>;
+        expect(updateObj.key).toBe('A minor');
+        expect(updateObj.tempo).toBe(100);
+      }
+
+      updateSpy.mockRestore();
+    }, 15_000);
   });
 
   describe('stopRecording', () => {
@@ -432,6 +478,205 @@ describe('session-recorder', () => {
       expect(getActiveRecordingId()).toBeNull();
       expect(getBufferSize()).toBe(0);
       expect(getRetryQueueSize()).toBe(0);
+    });
+  });
+
+  describe('atomic transactions', () => {
+    it('session creation and pending events are written in a single transaction', async () => {
+      // Start recording but don't await — buffer events during async gap
+      const recordingPromise = startRecording('freeform');
+      recordEvent(makeMidiEvent({ note: 60, timestamp: 1 }));
+      recordEvent(makeMidiEvent({ note: 64, timestamp: 2 }));
+      recordEvent(makeMidiEvent({ note: 67, timestamp: 3 }));
+
+      const sessionId = await recordingPromise;
+
+      // Session AND events should both be in Dexie (written atomically)
+      const session = await db.sessions.get(sessionId);
+      expect(session).toBeDefined();
+      expect(session!.status).toBe('recording');
+
+      const events = await db.midiEvents.where('sessionId').equals(sessionId).toArray();
+      expect(events).toHaveLength(3);
+    });
+
+    it('transaction failure rolls back both session and events', async () => {
+      // Spy on db.transaction to simulate a transaction failure
+      const originalTransaction = db.transaction.bind(db);
+      vi.spyOn(db, 'transaction').mockImplementationOnce(() => {
+        throw new Error('Transaction failed');
+      });
+
+      // startRecording should throw
+      await expect(startRecording('freeform')).rejects.toThrow('Transaction failed');
+
+      // Neither session nor events should be written
+      const sessions = await db.sessions.count();
+      expect(sessions).toBe(0);
+      const events = await db.midiEvents.count();
+      expect(events).toBe(0);
+
+      // Active session should not be set
+      expect(getActiveRecordingId()).toBeNull();
+
+      // Restore original
+      vi.spyOn(db, 'transaction').mockImplementation(originalTransaction);
+    });
+
+    it('flush writes events inside a Dexie transaction', async () => {
+      const sessionId = await startRecording('freeform');
+      recordEvent(makeMidiEvent({ note: 60 }));
+      recordEvent(makeMidiEvent({ note: 64 }));
+
+      // Spy on db.transaction to verify it's called during flush
+      const transactionSpy = vi.spyOn(db, 'transaction');
+
+      await flush();
+
+      // transaction should have been called at least once during flush
+      expect(transactionSpy).toHaveBeenCalled();
+
+      // Verify events are persisted
+      const stored = await db.midiEvents.where('sessionId').equals(sessionId).toArray();
+      expect(stored).toHaveLength(2);
+
+      transactionSpy.mockRestore();
+    });
+  });
+
+  describe('cleanupOrphanSessions', () => {
+    it('detects and removes orphan sessions with zero events', async () => {
+      const Sentry = await import('@sentry/nextjs');
+
+      // Create a completed session with no events (orphan)
+      await db.sessions.add({
+        startedAt: 1000,
+        endedAt: 2000,
+        duration: 1,
+        inputSource: 'midi',
+        sessionType: 'freeform',
+        status: 'completed',
+        key: null,
+        tempo: null,
+        userId: null,
+        syncStatus: 'pending',
+        supabaseId: null,
+      });
+
+      const orphanCount = await cleanupOrphanSessions();
+      expect(orphanCount).toBe(1);
+
+      // Orphan should be deleted
+      const sessions = await db.sessions.count();
+      expect(sessions).toBe(0);
+
+      // Sentry should have been notified
+      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+        'Orphan sessions detected on startup',
+        expect.objectContaining({
+          level: 'warning',
+          tags: { feature: 'session-recorder' },
+        })
+      );
+    });
+
+    it('does not remove sessions that have events', async () => {
+      // Create a session with events (not an orphan)
+      const sessionId = (await db.sessions.add({
+        startedAt: 1000,
+        endedAt: 2000,
+        duration: 1,
+        inputSource: 'midi',
+        sessionType: 'freeform',
+        status: 'completed',
+        key: null,
+        tempo: null,
+        userId: null,
+        syncStatus: 'pending',
+        supabaseId: null,
+      })) as number;
+
+      await db.midiEvents.add({
+        sessionId,
+        type: 'note-on',
+        note: 60,
+        noteName: 'C4',
+        velocity: 100,
+        channel: 0,
+        timestamp: 1500,
+        source: 'midi',
+        userId: null,
+        syncStatus: 'pending',
+      });
+
+      const orphanCount = await cleanupOrphanSessions();
+      expect(orphanCount).toBe(0);
+
+      // Session should still exist
+      const sessions = await db.sessions.count();
+      expect(sessions).toBe(1);
+    });
+
+    it('does not remove sessions with status "recording"', async () => {
+      // Create a recording session with no events (not orphan — still active)
+      await db.sessions.add({
+        startedAt: Date.now(),
+        endedAt: null,
+        duration: null,
+        inputSource: 'midi',
+        sessionType: 'freeform',
+        status: 'recording',
+        key: null,
+        tempo: null,
+        userId: null,
+        syncStatus: 'pending',
+        supabaseId: null,
+      });
+
+      const orphanCount = await cleanupOrphanSessions();
+      expect(orphanCount).toBe(0);
+
+      const sessions = await db.sessions.count();
+      expect(sessions).toBe(1);
+    });
+
+    it('returns 0 when there are no orphan sessions', async () => {
+      const orphanCount = await cleanupOrphanSessions();
+      expect(orphanCount).toBe(0);
+    });
+
+    it('also cleans up analysis snapshots associated with orphan sessions', async () => {
+      // Create an orphan session with associated snapshots but no events
+      const sessionId = (await db.sessions.add({
+        startedAt: 1000,
+        endedAt: 2000,
+        duration: 1,
+        inputSource: 'midi',
+        sessionType: 'freeform',
+        status: 'completed',
+        key: null,
+        tempo: null,
+        userId: null,
+        syncStatus: 'pending',
+        supabaseId: null,
+      })) as number;
+
+      await db.analysisSnapshots.add({
+        sessionId,
+        createdAt: 1500,
+        data: { key: 'C' },
+        userId: null,
+        syncStatus: 'pending',
+      });
+
+      const orphanCount = await cleanupOrphanSessions();
+      expect(orphanCount).toBe(1);
+
+      // Both the session and its snapshots should be deleted
+      const sessions = await db.sessions.count();
+      expect(sessions).toBe(0);
+      const snapshots = await db.analysisSnapshots.count();
+      expect(snapshots).toBe(0);
     });
   });
 });

@@ -53,6 +53,14 @@ export function useDrillSession(drill: GeneratedDrill | null): DrillSessionState
   const attemptTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const unsubRef = useRef<(() => void) | null>(null);
 
+  // Synchronously-updated ref to avoid stale closure in `complete` callback.
+  // The `complete` useCallback captures `repHistory` from its closure, but
+  // if called after setRepHistory updates that haven't re-rendered yet,
+  // the closure holds stale data. This ref always has the latest value.
+  const repHistoryRef = useRef(repHistory);
+  // eslint-disable-next-line react-hooks/refs -- intentional render-phase sync to prevent stale closure in complete callback
+  repHistoryRef.current = repHistory;
+
   const resolveOutput = useCallback((): DrillOutput => {
     const port = useMidiStore.getState().outputPort;
     if (port) return { type: 'midi', port };
@@ -165,12 +173,18 @@ export function useDrillSession(drill: GeneratedDrill | null): DrillSessionState
     cleanup();
     setPhase(DrillPhase.Complete);
 
+    // Read latest repHistory from ref to avoid stale closure capture.
+    // The useCallback dependency array would require repHistory, but that
+    // causes the callback to be recreated on every rep, breaking stable references.
+    // Using the ref ensures we always read the freshest accumulated results.
+    const latestRepHistory = repHistoryRef.current;
+
     // Persist results to IndexedDB
-    if (drill && repHistory.length > 0) {
+    if (drill && latestRepHistory.length > 0) {
       const userId = useAppStore.getState().user?.id ?? 'guest';
-      saveDrillResults(drill.id, userId, repHistory, 'completed').catch(() => {});
+      saveDrillResults(drill.id, userId, latestRepHistory, 'completed').catch(() => {});
     }
-  }, [cleanup, drill, repHistory]);
+  }, [cleanup, drill]);
 
   // Cleanup on unmount
   useEffect(() => cleanup, [cleanup]);
