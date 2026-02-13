@@ -154,3 +154,62 @@ development_status:
   11-6-session-expiry-notification-api-key-validity: done
   11-7-data-export-gdpr-compliance: done
   epic-11-retrospective: optional
+
+  # Epic 12: Session Replay Resurrection (P0)
+  epic-12: done
+  12-1-build-replay-event-dispatcher: done
+  12-2-wire-replay-events-to-visualization-canvas: done
+  12-3-add-midi-output-playback-during-replay: done
+  12-4-populate-timeline-markers-from-session-data: done
+  12-5-add-replay-mode-visual-indicator: done
+  epic-12-retrospective: optional
+
+  # Epic 13: Navigation & Layout Overhaul (P0)
+  epic-13: done
+  13-1-add-persistent-app-navigation-sidebar: done
+  13-2-integrate-mode-switcher-into-layout-flow: done
+  13-3-fix-element-overlap-and-z-index-stacking: done
+  13-4-fix-replay-trackbar-and-panel-positioning: done
+  13-5-add-keyboard-navigation-and-focus-management: done
+  epic-13-retrospective: optional
+
+  # Epic 14: User Dashboard & Data Accuracy (P0/P1)
+  epic-14: in-progress
+  14-1-create-proper-user-dashboard-view: ready-for-dev
+  14-2-build-skill-profile-radar-visualization: ready-for-dev
+  14-3-fix-datacard-session-sync: ready-for-dev
+  14-4-fix-bpm-detection-accuracy: ready-for-dev
+  14-5-fix-snapshot-accuracy-and-enrich-content: ready-for-dev
+  14-6-fix-key-detection-confidence: ready-for-dev
+  14-7-fix-session-history-completeness: ready-for-dev
+  epic-14-retrospective: optional
+
+  # Epic 15: Drill System Overhaul (P0/P1)
+  epic-15: in-progress
+  15-1-route-drill-generation-to-structured-api: ready-for-dev
+  15-2-build-drill-preview-and-audio-playback: ready-for-dev
+  15-3-wire-drill-controller-with-full-phase-flow: ready-for-dev
+  15-4-add-drill-persistence-to-indexeddb: ready-for-dev
+  15-5-fix-drill-prompt-textarea: ready-for-dev
+  epic-15-retrospective: optional
+
+  # Epic 16: AI Chat & Visualization Enrichment (P1/P2)
+  epic-16: in-progress
+  16-1-increase-chord-and-note-visualization-sizing: ready-for-dev
+  16-2-build-rich-ai-response-components: ready-for-dev
+  16-3-fix-visual-hierarchy-and-typography: ready-for-dev
+  16-4-add-studio-engineer-visual-persona: ready-for-dev
+  16-5-add-canvas-visualization-legend: ready-for-dev
+  epic-16-retrospective: optional
+
+  # Epic 17: UX Polish & Missing Features (P2/P3)
+  epic-17: in-progress
+  17-1-surface-warm-up-drills-section: ready-for-dev
+  17-2-surface-progress-data-prominently: ready-for-dev
+  17-3-improve-mode-switching-ux: ready-for-dev
+  17-4-add-session-end-experience: ready-for-dev
+  17-5-design-better-empty-states: ready-for-dev
+  17-6-fix-color-usage-add-success-states: ready-for-dev
+  17-7-add-visual-chord-indicators: ready-for-dev
+  17-8-add-midi-input-quality-feedback: ready-for-dev
+  epic-17-retrospective: optional
