@@ -37,3 +37,7 @@ export const SNAPSHOT_FADE_OUT_MS = 200;
 export const MAX_BUFFER_SIZE = 10_000;
 export const AUTOSAVE_INTERVAL_MS = 30_000;
 export const METADATA_UPDATE_INTERVAL_MS = 10_000;
+
+// AI rate limiting constants (Story 4.1)
+export const RATE_LIMIT_MAX = 100;
+export const RATE_LIMIT_WINDOW_MS = 60_000;

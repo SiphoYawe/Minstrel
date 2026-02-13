@@ -1,6 +1,6 @@
 # Story 4.1: Vercel AI SDK Integration and Provider Setup
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -151,6 +151,7 @@ So that all AI features use a consistent, secure integration pattern.
 ### Project Structure Notes
 
 Files created or modified in this story:
+
 ```
 src/lib/ai/
   provider.ts           # Dynamic provider selection (NEW)

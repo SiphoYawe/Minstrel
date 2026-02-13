@@ -75,7 +75,7 @@ development_status:
 
   # Epic 4: AI Coaching & Dashboard Mode
   epic-4: in-progress
-  4-1-vercel-ai-sdk-integration-and-provider-setup: ready-for-dev
+  4-1-vercel-ai-sdk-integration-and-provider-setup: done
   4-2-dashboard-chat-mode-layout: ready-for-dev
   4-3-ai-coaching-chat-with-streaming-responses: ready-for-dev
   4-4-session-grounded-ai-responses: ready-for-dev
