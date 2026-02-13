@@ -176,7 +176,7 @@ development_status:
   # Epic 14: User Dashboard & Data Accuracy (P0/P1)
   epic-14: in-progress
   14-1-create-proper-user-dashboard-view: done
-  14-2-build-skill-profile-radar-visualization: ready-for-dev
+  14-2-build-skill-profile-radar-visualization: done
   14-3-fix-datacard-session-sync: ready-for-dev
   14-4-fix-bpm-detection-accuracy: ready-for-dev
   14-5-fix-snapshot-accuracy-and-enrich-content: ready-for-dev

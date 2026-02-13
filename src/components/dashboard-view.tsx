@@ -8,8 +8,8 @@ import { useStreak } from '@/features/engagement/use-streak';
 import { fetchAchievementDisplay } from '@/features/engagement/achievement-service';
 import { achievementRegistry } from '@/features/engagement/achievement-definitions';
 import { ProgressTrends } from '@/components/progress-trends';
+import { SkillRadarChart } from '@/components/skill-radar-chart';
 import {
-  SkillDimension,
   GrowthZoneStatus,
   type SkillProfile,
   type DifficultyState,
@@ -33,22 +33,6 @@ const ICON_MAP: Record<string, string> = {
   speed: '\u21E7',
   accuracy: '\u25C9',
   complexity: '\u2234',
-};
-
-const SKILL_DIMENSIONS: SkillDimension[] = [
-  SkillDimension.TimingAccuracy,
-  SkillDimension.HarmonicComplexity,
-  SkillDimension.TechniqueRange,
-  SkillDimension.Speed,
-  SkillDimension.GenreFamiliarity,
-];
-
-const DIMENSION_LABELS: Record<SkillDimension, string> = {
-  [SkillDimension.TimingAccuracy]: 'Timing',
-  [SkillDimension.HarmonicComplexity]: 'Harmony',
-  [SkillDimension.TechniqueRange]: 'Technique',
-  [SkillDimension.Speed]: 'Speed',
-  [SkillDimension.GenreFamiliarity]: 'Genre',
 };
 
 const MAX_RECENT_ACHIEVEMENTS = 5;
@@ -97,7 +81,7 @@ function StatCard({ value, label, mono = true }: { value: string; label: string;
   );
 }
 
-function SkillProfileCard({ skillProfile }: { skillProfile: SkillProfile | null }) {
+function SkillProfileSection({ skillProfile }: { skillProfile: SkillProfile | null }) {
   if (!skillProfile) {
     return (
       <div className="border border-surface-light bg-card px-5 py-8">
@@ -115,33 +99,7 @@ function SkillProfileCard({ skillProfile }: { skillProfile: SkillProfile | null 
     );
   }
 
-  return (
-    <div className="border border-surface-light bg-card px-5 py-4">
-      <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-4">
-        Skill Profile
-      </p>
-      <div className="space-y-3">
-        {SKILL_DIMENSIONS.map((dim) => {
-          const score = skillProfile.dimensions[dim];
-          const value = Math.round(score.value);
-          return (
-            <div key={dim}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-muted-foreground">{DIMENSION_LABELS[dim]}</span>
-                <span className="font-mono text-xs text-white">{value}</span>
-              </div>
-              <div className="h-1 w-full bg-surface-light">
-                <div
-                  className="h-full bg-primary transition-all duration-500"
-                  style={{ width: `${value}%` }}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+  return <SkillRadarChart skillProfile={skillProfile} />;
 }
 
 function DifficultyCard({ difficultyState }: { difficultyState: DifficultyState | null }) {
@@ -478,7 +436,7 @@ export function DashboardView() {
 
       {/* Section: Skill Profile + Difficulty Level */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SkillProfileCard skillProfile={skillProfile} />
+        <SkillProfileSection skillProfile={skillProfile} />
         <DifficultyCard difficultyState={difficultyState} />
       </section>
 
