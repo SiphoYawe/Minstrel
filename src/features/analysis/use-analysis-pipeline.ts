@@ -16,6 +16,7 @@ import {
 import { detectGenrePatterns } from './genre-detector';
 import { trackTendencies, detectAvoidance } from './tendency-tracker';
 import { generateSnapshot } from './snapshot-generator';
+import { startFreeformSession, resetSessionManager } from '@/features/session/session-manager';
 import type { DetectedNote, AnalysisAccumulator } from './analysis-types';
 import {
   SIMULTANEITY_WINDOW_MS,
@@ -163,39 +164,39 @@ export function useAnalysisPipeline() {
         clearTimeout(silenceTimerRef.current);
       }
       silenceTimerRef.current = setTimeout(() => {
-        const silenceStore = useSessionStore.getState();
-
         // Run pattern analysis first so snapshot captures latest genre/tendency data
         runPatternAnalysis();
 
         // Generate snapshot before resetting analysis state
         if (accumulator.totalNoteCount > 0) {
-          const updatedStore = useSessionStore.getState();
+          const store = useSessionStore.getState();
           const snapshot = generateSnapshot({
-            currentKey: updatedStore.currentKey,
-            detectedChords: updatedStore.detectedChords,
-            timingAccuracy: updatedStore.timingAccuracy,
-            currentTempo: updatedStore.currentTempo,
-            detectedGenres: updatedStore.detectedGenres,
-            playingTendencies: updatedStore.playingTendencies,
-            avoidancePatterns: updatedStore.avoidancePatterns,
+            currentKey: store.currentKey,
+            detectedChords: store.detectedChords,
+            timingAccuracy: store.timingAccuracy,
+            currentTempo: store.currentTempo,
+            detectedGenres: store.detectedGenres,
+            playingTendencies: store.playingTendencies,
+            avoidancePatterns: store.avoidancePatterns,
+            sessionType: store.sessionType,
           });
-          updatedStore.setCurrentSnapshot(snapshot);
-          updatedStore.addSnapshot(snapshot);
+          store.setCurrentSnapshot(snapshot);
+          store.addSnapshot(snapshot);
         }
 
-        silenceStore.setChordProgression(null);
+        // Reset phrase-level analysis state (session identity preserved)
+        const resetStore = useSessionStore.getState();
+        resetStore.setChordProgression(null);
         timingAnalysis.reset();
-        silenceStore.setTimingData({
+        resetStore.setTimingData({
           tempo: null,
           accuracy: 100,
           deviations: [],
           tempoHistory: [],
         });
-        // Reset harmonic state
-        silenceStore.setKeyCenter(null);
-        silenceStore.setHarmonicFunction(null);
-        silenceStore.setNoteAnalyses([]);
+        resetStore.setKeyCenter(null);
+        resetStore.setHarmonicFunction(null);
+        resetStore.setNoteAnalyses([]);
         // Reset accumulator so next phrase starts clean
         resetAccumulator();
         lastChord = null;
@@ -224,10 +225,11 @@ export function useAnalysisPipeline() {
         if (event.type === 'note-on' && event.velocity > 0) {
           const detected = detectNote(event.note, event.velocity, event.timestamp);
 
-          // Set session start timestamp on first note
+          // Set session start timestamp and freeform type on first note
           const noteStore = useSessionStore.getState();
           if (noteStore.sessionStartTimestamp === null) {
             noteStore.setSessionStartTimestamp(Date.now());
+            startFreeformSession();
           }
 
           // Clear snapshot on play resume (transition back to real-time mode)
@@ -320,6 +322,9 @@ export function useAnalysisPipeline() {
       analysisClusterRef.current = [];
       heldNotes.clear();
       timingAnalysis.reset();
+      // Order matters: resetSessionManager clears sessionType/interruptionsAllowed,
+      // then resetAnalysis preserves the now-cleared values (both become initial state)
+      resetSessionManager();
       useSessionStore.getState().resetAnalysis();
     };
   }, []);

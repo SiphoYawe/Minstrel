@@ -1,6 +1,6 @@
 # Story 2.7: Freeform Play Mode
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -101,6 +101,9 @@ so that I can warm up, noodle, or practice freely while Minstrel listens.
 ## Dev Agent Record
 
 ### Agent Model Used
+
 ### Debug Log References
+
 ### Completion Notes List
+
 ### File List

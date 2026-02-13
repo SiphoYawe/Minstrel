@@ -7,6 +7,7 @@ import type {
   InstantSnapshot,
   InsightCategory,
 } from './analysis-types';
+import type { SessionType } from '@/features/session/session-types';
 
 export interface SnapshotInput {
   currentKey: KeyCenter | null;
@@ -16,6 +17,7 @@ export interface SnapshotInput {
   detectedGenres: GenrePattern[];
   playingTendencies: PlayingTendencies | null;
   avoidancePatterns: AvoidancePatterns | null;
+  sessionType: SessionType | null;
 }
 
 const BANNED_WORDS = ['wrong', 'failed', 'bad', 'error'];
@@ -86,7 +88,11 @@ export function generateKeyInsight(input: SnapshotInput): {
   const tendencyInsight = generateTendencyInsight(input);
   if (tendencyInsight) return tendencyInsight;
 
-  // 4. General encouragement (fallback)
+  // 4. Freeform exploration observation
+  const freeformInsight = generateFreeformInsight(input);
+  if (freeformInsight) return freeformInsight;
+
+  // 5. General encouragement (fallback)
   return generateGeneralInsight(input);
 }
 
@@ -188,6 +194,44 @@ function generateTendencyInsight(
     return {
       insight: `Your melodic movement stays close — wider intervals could add expression`,
       category: 'TENDENCY',
+    };
+  }
+
+  return null;
+}
+
+function generateFreeformInsight(
+  input: SnapshotInput
+): { insight: string; category: InsightCategory } | null {
+  if (!input.sessionType || input.sessionType !== 'freeform') return null;
+
+  // Count unique keys explored
+  const uniqueKeys = new Set(input.detectedChords.map((c) => c.root));
+
+  if (uniqueKeys.size >= 4) {
+    return {
+      insight: `You explored ${uniqueKeys.size} different keys this session — your range is growing`,
+      category: 'GENERAL',
+    };
+  }
+
+  // Tempo range breadth
+  if (input.playingTendencies) {
+    const histogram = input.playingTendencies.tempoHistogram;
+    const activeBins = histogram.filter((count) => count > 0).length;
+    if (activeBins >= 3) {
+      return {
+        insight: `Your playing spanned multiple tempo zones — you're comfortable across speeds`,
+        category: 'GENERAL',
+      };
+    }
+  }
+
+  // Genre tendency
+  if (input.detectedGenres.length > 0) {
+    return {
+      insight: `Strong tendency toward ${input.detectedGenres[0].genre} patterns — your musical identity is developing`,
+      category: 'GENERAL',
     };
   }
 

@@ -16,10 +16,13 @@ import type {
   InstantSnapshot,
 } from '@/features/analysis/analysis-types';
 import type { SessionMode } from '@/features/modes/mode-types';
+import type { SessionType } from '@/features/session/session-types';
 
 interface SessionState {
   currentMode: SessionMode;
   sessionStartTimestamp: number | null;
+  sessionType: SessionType | null;
+  interruptionsAllowed: boolean;
   currentNotes: DetectedNote[];
   detectedChords: DetectedChord[];
   chordProgression: ChordProgression | null;
@@ -42,6 +45,8 @@ interface SessionState {
 interface SessionActions {
   setCurrentMode: (mode: SessionMode) => void;
   setSessionStartTimestamp: (ts: number | null) => void;
+  setSessionType: (type: SessionType | null) => void;
+  setInterruptionsAllowed: (allowed: boolean) => void;
   setCurrentNotes: (notes: DetectedNote[]) => void;
   addDetectedChord: (chord: DetectedChord, label: string) => void;
   setChordProgression: (progression: ChordProgression | null) => void;
@@ -68,6 +73,8 @@ type SessionStore = SessionState & SessionActions;
 const initialState: SessionState = {
   currentMode: 'silent-coach',
   sessionStartTimestamp: null,
+  sessionType: null,
+  interruptionsAllowed: false,
   currentNotes: [],
   detectedChords: [],
   chordProgression: null,
@@ -95,6 +102,9 @@ export const useSessionStore = create<SessionStore>()(
 
     setSessionStartTimestamp: (ts) => set({ sessionStartTimestamp: ts }),
 
+    setSessionType: (type) => set({ sessionType: type }),
+    setInterruptionsAllowed: (allowed) => set({ interruptionsAllowed: allowed }),
+
     setCurrentNotes: (notes) => set({ currentNotes: notes }),
 
     addDetectedChord: (chord, label) =>
@@ -120,9 +130,14 @@ export const useSessionStore = create<SessionStore>()(
     setKeyCenter: (key) => set({ currentKey: key }),
 
     addKeySegment: (segment) =>
-      set((state) => ({
-        keyHistory: [...state.keyHistory, segment],
-      })),
+      set((state) => {
+        const MAX_KEY_SEGMENTS = 100;
+        const segments =
+          state.keyHistory.length >= MAX_KEY_SEGMENTS
+            ? [...state.keyHistory.slice(-(MAX_KEY_SEGMENTS - 1)), segment]
+            : [...state.keyHistory, segment];
+        return { keyHistory: segments };
+      }),
 
     setHarmonicFunction: (fn) => set({ currentHarmonicFunction: fn }),
 
@@ -152,6 +167,8 @@ export const useSessionStore = create<SessionStore>()(
         // Preserve UI preferences and session identity across analysis resets
         currentMode: state.currentMode,
         sessionStartTimestamp: state.sessionStartTimestamp,
+        sessionType: state.sessionType,
+        interruptionsAllowed: state.interruptionsAllowed,
       })),
   }))
 );

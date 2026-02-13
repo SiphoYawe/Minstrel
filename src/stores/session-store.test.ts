@@ -31,6 +31,8 @@ describe('useSessionStore', () => {
     const state = useSessionStore.getState();
     expect(state.currentMode).toBe('silent-coach');
     expect(state.sessionStartTimestamp).toBeNull();
+    expect(state.sessionType).toBeNull();
+    expect(state.interruptionsAllowed).toBe(false);
     expect(state.currentNotes).toEqual([]);
     expect(state.detectedChords).toEqual([]);
     expect(state.chordProgression).toBeNull();
@@ -49,6 +51,22 @@ describe('useSessionStore', () => {
     expect(useSessionStore.getState().sessionStartTimestamp).toBe(12345);
     useSessionStore.getState().setSessionStartTimestamp(null);
     expect(useSessionStore.getState().sessionStartTimestamp).toBeNull();
+  });
+
+  it('setSessionType updates session type', () => {
+    useSessionStore.getState().setSessionType('freeform');
+    expect(useSessionStore.getState().sessionType).toBe('freeform');
+    useSessionStore.getState().setSessionType('drill');
+    expect(useSessionStore.getState().sessionType).toBe('drill');
+    useSessionStore.getState().setSessionType(null);
+    expect(useSessionStore.getState().sessionType).toBeNull();
+  });
+
+  it('setInterruptionsAllowed updates flag', () => {
+    useSessionStore.getState().setInterruptionsAllowed(true);
+    expect(useSessionStore.getState().interruptionsAllowed).toBe(true);
+    useSessionStore.getState().setInterruptionsAllowed(false);
+    expect(useSessionStore.getState().interruptionsAllowed).toBe(false);
   });
 
   it('setCurrentNotes updates the current notes', () => {
@@ -371,6 +389,8 @@ describe('useSessionStore', () => {
 
     useSessionStore.getState().setCurrentMode('dashboard-chat');
     useSessionStore.getState().setSessionStartTimestamp(99999);
+    useSessionStore.getState().setSessionType('freeform');
+    useSessionStore.getState().setInterruptionsAllowed(false);
     useSessionStore.getState().setCurrentNotes([note]);
     useSessionStore.getState().addDetectedChord(chord, 'Cmaj');
     useSessionStore
@@ -472,6 +492,8 @@ describe('useSessionStore', () => {
     // Mode and session timestamp are preserved across analysis resets
     expect(state.currentMode).toBe('dashboard-chat');
     expect(state.sessionStartTimestamp).toBe(99999);
+    expect(state.sessionType).toBe('freeform');
+    expect(state.interruptionsAllowed).toBe(false);
     expect(state.currentNotes).toEqual([]);
     expect(state.detectedChords).toEqual([]);
     expect(state.chordProgression).toBeNull();

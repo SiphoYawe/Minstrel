@@ -76,6 +76,7 @@ function fullInput(): SnapshotInput {
       avoidedTempoRanges: [],
       avoidedIntervals: [],
     } as AvoidancePatterns,
+    sessionType: null,
   };
 }
 
@@ -227,6 +228,66 @@ describe('generateKeyInsight', () => {
     expect(category).toBe('TENDENCY');
   });
 
+  it('returns freeform exploration insight when many keys explored', () => {
+    const input = fullInput();
+    input.timingAccuracy = 97;
+    input.sessionType = 'freeform';
+    input.currentKey = null;
+    input.detectedChords = [
+      chord('C', 'Major', 0),
+      chord('D', 'Minor', 500),
+      chord('E', 'Minor', 1000),
+      chord('F', 'Major', 1500),
+      chord('G', 'Major', 2000),
+    ];
+    input.avoidancePatterns = null;
+
+    const { insight, category } = generateKeyInsight(input);
+    expect(category).toBe('GENERAL');
+    expect(insight).toContain('5 different keys');
+    expect(insight).toContain('range is growing');
+  });
+
+  it('returns freeform tempo range insight when multiple tempo bins active', () => {
+    const input = fullInput();
+    input.timingAccuracy = 97;
+    input.sessionType = 'freeform';
+    input.currentKey = null;
+    input.detectedChords = [chord('C', 'Major', 0)];
+    input.avoidancePatterns = null;
+    const histogram = new Array(16).fill(0);
+    histogram[2] = 5;
+    histogram[5] = 3;
+    histogram[8] = 2;
+    input.playingTendencies = {
+      ...input.playingTendencies!,
+      tempoHistogram: histogram,
+    };
+
+    const { insight, category } = generateKeyInsight(input);
+    expect(category).toBe('GENERAL');
+    expect(insight).toContain('tempo zones');
+  });
+
+  it('does not trigger freeform insight for non-freeform sessions', () => {
+    const input = fullInput();
+    input.timingAccuracy = 97;
+    input.sessionType = 'drill';
+    input.currentKey = null;
+    input.detectedChords = [
+      chord('C', 'Major', 0),
+      chord('D', 'Minor', 500),
+      chord('E', 'Minor', 1000),
+      chord('F', 'Major', 1500),
+      chord('G', 'Major', 2000),
+    ];
+    input.avoidancePatterns = null;
+
+    const { category } = generateKeyInsight(input);
+    // Should fall through to GENERAL, not freeform-specific
+    expect(category).toBe('GENERAL');
+  });
+
   it('returns general insight as fallback when no specific data', () => {
     const input: SnapshotInput = {
       currentKey: { root: 'G', mode: 'major', confidence: 0.8 },
@@ -236,6 +297,7 @@ describe('generateKeyInsight', () => {
       detectedGenres: [],
       playingTendencies: null,
       avoidancePatterns: null,
+      sessionType: null,
     };
 
     const { insight, category } = generateKeyInsight(input);
