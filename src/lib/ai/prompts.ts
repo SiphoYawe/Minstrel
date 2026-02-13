@@ -1,5 +1,6 @@
 import type { SessionContext } from './schemas';
 import type { DataSufficiency } from '@/features/coaching/context-builder';
+import { getGenreTerminologyHints } from '@/features/coaching/genre-terminology';
 
 const STUDIO_ENGINEER_BASE = `You are the Studio Engineer — Minstrel's AI coaching companion for musicians.
 
@@ -72,7 +73,14 @@ function formatGenreSection(genre: string | null): string {
   };
 
   const instructions = genreInstructions[genre] || `Genre: ${genre}. Use appropriate terminology.`;
-  return `GENRE CONTEXT: ${genre}\n${instructions}\nConstrain advice to ${genre} conventions. Do not suggest techniques from unrelated genres unless explicitly asked.`;
+  const hints = getGenreTerminologyHints(genre);
+  const parts = [
+    `GENRE CONTEXT: ${genre}`,
+    instructions,
+    `Constrain advice to ${genre} conventions. Do not suggest techniques from unrelated genres unless explicitly asked.`,
+  ];
+  if (hints) parts.push(hints);
+  return parts.join('\n');
 }
 
 function formatSufficiencySection(sufficiency?: DataSufficiency): string {

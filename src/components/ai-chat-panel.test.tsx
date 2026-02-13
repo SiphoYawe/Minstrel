@@ -62,7 +62,10 @@ describe('AIChatPanel', () => {
   it('renders messages', () => {
     renderPanel({ messages: createMockMessages() });
     expect(screen.getByText('How is my timing?')).toBeInTheDocument();
-    expect(screen.getByText('Your timing is at 73%.')).toBeInTheDocument();
+    // Assistant text is segmented with highlights, so use a function matcher
+    expect(
+      screen.getByText((_, element) => element?.textContent === 'Your timing is at 73%.')
+    ).toBeInTheDocument();
   });
 
   it('shows typing indicator when loading', () => {
@@ -95,7 +98,9 @@ describe('AIChatPanel', () => {
   it('styles user messages differently from assistant messages', () => {
     renderPanel({ messages: createMockMessages() });
     const userMsg = screen.getByText('How is my timing?').closest('div');
-    const aiMsg = screen.getByText('Your timing is at 73%.').closest('div');
+    const aiMsg = screen
+      .getByText((_, element) => element?.textContent === 'Your timing is at 73%.')
+      .closest('div');
     expect(userMsg?.className).toContain('self-end');
     expect(aiMsg?.className).toContain('self-start');
   });

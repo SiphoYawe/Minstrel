@@ -107,6 +107,19 @@ describe('prompts', () => {
       expect(prompt).toContain('jazz terminology');
     });
 
+    it('includes genre terminology hints for Jazz', () => {
+      const context = createMockSessionContext({ genre: 'Jazz' });
+      const prompt = buildChatSystemPrompt(context);
+      expect(prompt).toContain('tritone substitution');
+      expect(prompt).toContain('ii-V-I');
+    });
+
+    it('includes genre terminology hints for Blues', () => {
+      const context = createMockSessionContext({ genre: 'Blues' });
+      const prompt = buildChatSystemPrompt(context);
+      expect(prompt).toContain('12-bar blues');
+    });
+
     it('includes tendencies — avoided keys', () => {
       const context = createMockSessionContext({
         tendencies: { avoidedKeys: ['Bb major'], avoidedChordTypes: [], commonIntervals: [] },

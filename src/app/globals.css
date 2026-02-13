@@ -86,3 +86,17 @@
     @apply outline-2 outline-offset-2 outline-primary;
   }
 }
+
+/* Growth mindset color utilities — "Amber, Not Red" principle (UX9) */
+@layer utilities {
+  .text-progress {
+    color: #d4a43c;
+  }
+  .text-achieved {
+    color: #7cb9e8;
+  }
+  .text-metric {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    color: #7cb9e8;
+  }
+}

@@ -1,10 +1,18 @@
 'use client';
 
-import { useRef, useEffect, type FormEvent, type KeyboardEvent, type ChangeEvent } from 'react';
+import {
+  useRef,
+  useEffect,
+  useMemo,
+  type FormEvent,
+  type KeyboardEvent,
+  type ChangeEvent,
+} from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/stores/app-store';
 import type { ChatErrorInfo } from '@/features/coaching/coaching-types';
+import { segmentResponseText, type TextSegment } from '@/features/coaching/response-processor';
 import type { UIMessage } from 'ai';
 
 interface AIChatPanelProps {
@@ -15,6 +23,36 @@ interface AIChatPanelProps {
   isLoading: boolean;
   error: ChatErrorInfo | null;
   setInput: (input: string) => void;
+}
+
+const HIGHLIGHT_CLASSES: Record<string, string> = {
+  metric: 'text-metric',
+  timing: 'text-metric',
+  chord: 'text-achieved',
+  key: 'text-achieved',
+};
+
+function HighlightedMessage({ parts }: { parts: UIMessage['parts'] }) {
+  const textContent = parts
+    .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+    .map((part) => part.text)
+    .join('');
+
+  const segments = useMemo(() => segmentResponseText(textContent), [textContent]);
+
+  return (
+    <>
+      {segments.map((seg: TextSegment, i: number) =>
+        seg.highlight ? (
+          <span key={i} className={HIGHLIGHT_CLASSES[seg.highlight] ?? ''}>
+            {seg.text}
+          </span>
+        ) : (
+          <span key={i}>{seg.text}</span>
+        )
+      )}
+    </>
+  );
 }
 
 export function AIChatPanel({
@@ -93,11 +131,13 @@ export function AIChatPanel({
                   : 'self-start bg-[#141414] text-foreground font-mono text-xs'
               }`}
             >
-              {msg.parts
-                .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
-                .map((part, i) => (
-                  <span key={i}>{part.text}</span>
-                ))}
+              {msg.role === 'assistant' ? (
+                <HighlightedMessage parts={msg.parts} />
+              ) : (
+                msg.parts
+                  .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+                  .map((part, i) => <span key={i}>{part.text}</span>)
+              )}
             </div>
           ))}
           {error && (
