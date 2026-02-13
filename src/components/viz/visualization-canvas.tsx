@@ -16,6 +16,7 @@ import type {
   HarmonicFunction,
   NoteAnalysis,
   InstantSnapshot,
+  ChordQuality,
 } from '@/features/analysis/analysis-types';
 import type { SessionMode } from '@/features/modes/mode-types';
 
@@ -31,6 +32,7 @@ export function VisualizationCanvas() {
   const sizeRef = useRef({ w: 0, h: 0 });
   const dirtyRef = useRef(true); // Start dirty to render initial blank canvas
   const chordLabelRef = useRef<string | null>(null);
+  const chordQualityRef = useRef<ChordQuality | null>(null);
   const tempoRef = useRef<number | null>(null);
   const timingDeviationsRef = useRef<TimingEvent[]>([]);
   const keyRef = useRef<KeyCenter | null>(null);
@@ -117,6 +119,15 @@ export function VisualizationCanvas() {
       (state) => state.currentChordLabel,
       (label) => {
         chordLabelRef.current = label;
+        dirtyRef.current = true;
+      }
+    );
+
+    // --- Zustand vanilla subscription for chord quality (last detected chord) ---
+    const unsubChordQuality = useSessionStore.subscribe(
+      (state) => state.detectedChords,
+      (chords) => {
+        chordQualityRef.current = chords.length > 0 ? chords[chords.length - 1].quality : null;
         dirtyRef.current = true;
       }
     );
@@ -310,14 +321,16 @@ export function VisualizationCanvas() {
         // Render timing grid in bottom band (separate vertical region)
         renderTimingGrid(c, logicalW, logicalH, tempoRef.current, timingDeviationsRef.current);
 
-        // Render harmonic overlay (key label, roman numeral, chord-tone markers)
+        // Render harmonic overlay (key label, chord block, roman numeral, chord-tone markers)
         renderHarmonicOverlay(
           c,
           logicalW,
           logicalH,
           keyRef.current,
           harmonicFnRef.current,
-          noteAnalysesRef.current
+          noteAnalysesRef.current,
+          chordLabelRef.current,
+          chordQualityRef.current
         );
 
         // Snapshot transition animation (instant if reduced motion)
@@ -405,6 +418,7 @@ export function VisualizationCanvas() {
       cancelAnimationFrame(rafRef.current);
       unsubMidi();
       unsubSession();
+      unsubChordQuality();
       unsubTempo();
       unsubDeviations();
       unsubKey();

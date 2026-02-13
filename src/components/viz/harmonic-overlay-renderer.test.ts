@@ -32,7 +32,7 @@ describe('renderHarmonicOverlay', () => {
   it('renders key label with background when key is provided', () => {
     const key: KeyCenter = { root: 'C', mode: 'major', confidence: 0.9 };
     renderHarmonicOverlay(ctx, W, H, key, null, []);
-    expect(ctx.fillText).toHaveBeenCalledWith('Key: C Major', 12, 12);
+    expect(ctx.fillText).toHaveBeenCalledWith('Key: C Major', 14, 12);
     // Background rect drawn before text
     expect(ctx.fillRect).toHaveBeenCalledTimes(1);
     expect(ctx.measureText).toHaveBeenCalledWith('Key: C Major');
@@ -41,13 +41,13 @@ describe('renderHarmonicOverlay', () => {
   it('renders minor key label correctly', () => {
     const key: KeyCenter = { root: 'A', mode: 'minor', confidence: 0.85 };
     renderHarmonicOverlay(ctx, W, H, key, null, []);
-    expect(ctx.fillText).toHaveBeenCalledWith('Key: A Minor', 12, 12);
+    expect(ctx.fillText).toHaveBeenCalledWith('Key: A Minor', 14, 12);
   });
 
   it('renders roman numeral with background when harmonic function is provided', () => {
     const fn: HarmonicFunction = { romanNumeral: 'IV', quality: 'Major', isSecondary: false };
     renderHarmonicOverlay(ctx, W, H, null, fn, []);
-    expect(ctx.fillText).toHaveBeenCalledWith('IV', W / 2, 44);
+    expect(ctx.fillText).toHaveBeenCalledWith('IV', W / 2, 49);
     // Background rect drawn before text
     expect(ctx.fillRect).toHaveBeenCalledTimes(1);
     expect(ctx.measureText).toHaveBeenCalledWith('IV');
