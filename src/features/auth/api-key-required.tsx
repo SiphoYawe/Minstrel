@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { KeyRound } from 'lucide-react';
+import { KeyRound, ChevronRight } from 'lucide-react';
 import { useAppStore } from '@/stores/app-store';
 
 interface ApiKeyRequiredProps {
@@ -36,7 +36,8 @@ export function ApiKeyRequired({ feature, children }: ApiKeyRequiredProps) {
             href="/settings#api-keys"
             className="mt-2 inline-block font-mono text-[13px] text-primary transition-colors duration-150 hover:brightness-110"
           >
-            Go to Settings &rarr;
+            Go to Settings{' '}
+            <ChevronRight className="inline h-3 w-3" strokeWidth={1.5} aria-hidden="true" />
           </Link>
           <p className="mt-3 font-sans text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
             Minstrel uses a Bring-Your-Own-Key model &mdash; your key, your data.

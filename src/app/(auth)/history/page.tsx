@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { ChevronLeft } from 'lucide-react';
 import { SessionHistoryList } from '@/components/session-history-list';
 
 export default function HistoryPage() {
@@ -14,9 +15,10 @@ export default function HistoryPage() {
         <div className="flex items-center justify-between">
           <Link
             href="/session"
-            className="text-xs text-muted-foreground transition-colors duration-150 hover:text-primary"
+            className="flex items-center gap-0.5 text-xs text-muted-foreground transition-colors duration-150 hover:text-primary"
           >
-            &larr; Back to practice
+            <ChevronLeft className="h-3 w-3" strokeWidth={1.5} aria-hidden="true" />
+            Back to practice
           </Link>
           <Link href="/" className="transition-opacity duration-150 hover:opacity-70">
             <Image
