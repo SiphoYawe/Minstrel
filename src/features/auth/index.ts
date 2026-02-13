@@ -6,3 +6,5 @@ export type { ApiKeyMetadata, ApiKeyProvider, ApiKeySubmitData } from './auth-ty
 export { apiKeySubmitSchema } from './auth-types';
 export { ApiKeyPrompt } from './api-key-prompt';
 export { submitApiKey, getApiKeyMetadata, deleteApiKey } from './api-key-manager';
+export { ApiKeyRequired } from './api-key-required';
+export { useAiAvailable } from './use-ai-available';

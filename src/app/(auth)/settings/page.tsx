@@ -160,7 +160,7 @@ export default function SettingsPage() {
         </section>
 
         {/* API Keys section */}
-        <section className="mt-4 border border-border p-6">
+        <section id="api-keys" className="mt-4 scroll-mt-8 border border-border p-6">
           <h2 className="font-mono text-caption uppercase tracking-wider text-muted-foreground">
             API Keys
           </h2>

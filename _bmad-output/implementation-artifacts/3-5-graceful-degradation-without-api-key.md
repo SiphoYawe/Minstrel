@@ -1,6 +1,6 @@
 # Story 3.5: Graceful Degradation Without API Key
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -86,6 +86,7 @@ So that I can still use the core product.
 ### Project Structure Notes
 
 Files created/modified in this story:
+
 ```
 src/features/auth/api-key-required.tsx      (create)
 src/features/auth/use-ai-available.ts       (create)
