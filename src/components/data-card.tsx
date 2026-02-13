@@ -162,7 +162,7 @@ export function DataCard({ sessionMode = 'live' }: DataCardProps) {
         </div>
         <div className="flex items-center gap-1.5">
           <span
-            className="font-mono text-sm text-foreground"
+            className="font-mono text-2xl text-foreground"
             aria-label={`Current key: ${summary.predominantKey}${summary.keyConfidence !== null ? `, ${getKeyConfidenceLabel(summary.keyConfidence)}` : ''}`}
           >
             {summary.predominantKey}
@@ -195,11 +195,11 @@ export function DataCard({ sessionMode = 'live' }: DataCardProps) {
           {isLive ? 'Tempo' : 'Avg Tempo'}
         </span>
         <span
-          className="block font-mono text-sm text-foreground"
+          className="block font-mono text-2xl text-foreground"
           aria-label={`Tempo: ${summary.averageTempo} BPM ${summary.tempoRange}`}
         >
           {summary.averageTempo}{' '}
-          <span className="text-muted-foreground text-[10px]">BPM {summary.tempoRange}</span>
+          <span className="text-muted-foreground text-xs">BPM {summary.tempoRange}</span>
         </span>
       </Card>
 
@@ -210,7 +210,7 @@ export function DataCard({ sessionMode = 'live' }: DataCardProps) {
         </span>
         <div className="flex items-baseline gap-1.5">
           <span
-            className={`font-mono text-sm ${getAccuracyColor(summary.timingTrend.value)}`}
+            className={`font-mono text-base ${getAccuracyColor(summary.timingTrend.value)}`}
             aria-label={`Timing accuracy: ${formatAccuracy(summary.timingTrend.value)}, ${summary.timingTrend.direction}`}
           >
             {formatAccuracy(summary.timingTrend.value)}
@@ -234,7 +234,7 @@ export function DataCard({ sessionMode = 'live' }: DataCardProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <span
-                className="block font-mono text-xs text-foreground truncate cursor-default"
+                className="block font-mono text-base text-foreground truncate cursor-default"
                 aria-label={`Recent chords: ${chordText}`}
               >
                 {chordText}
@@ -253,7 +253,7 @@ export function DataCard({ sessionMode = 'live' }: DataCardProps) {
           Notes Played
         </span>
         <span
-          className="block font-mono text-sm text-foreground"
+          className="block font-mono text-base text-foreground"
           aria-label={`Total notes played: ${summary.totalNotes}`}
         >
           {summary.totalNotes.toLocaleString()}

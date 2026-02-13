@@ -35,6 +35,13 @@
     /* 0px border radius everywhere */
     --radius: 0rem;
 
+    /* Typography scale */
+    --font-size-metric-primary: 24px;
+    --font-size-metric-secondary: 16px;
+    --font-size-heading: 18px;
+    --font-size-body: 14px;
+    --font-size-label: 10px;
+
     /* Z-index scale */
     --z-base: 0;
     --z-overlay: 10;

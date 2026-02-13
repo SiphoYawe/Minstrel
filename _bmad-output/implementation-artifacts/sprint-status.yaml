@@ -197,7 +197,7 @@ development_status:
   epic-16: in-progress
   16-1-increase-chord-and-note-visualization-sizing: done
   16-2-build-rich-ai-response-components: done
-  16-3-fix-visual-hierarchy-and-typography: ready-for-dev
+  16-3-fix-visual-hierarchy-and-typography: done
   16-4-add-studio-engineer-visual-persona: ready-for-dev
   16-5-add-canvas-visualization-legend: ready-for-dev
   epic-16-retrospective: optional
