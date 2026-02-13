@@ -26,6 +26,8 @@ import type {
   RecalibrationResult,
 } from '@/features/difficulty/difficulty-types';
 import { GrowthZoneStatus } from '@/features/difficulty/difficulty-types';
+import type { GeneratedDrill } from '@/features/drills/drill-types';
+import { DrillPhase } from '@/features/drills/drill-types';
 import {
   initializeDifficulty,
   computeAdjustment,
@@ -62,6 +64,8 @@ interface SessionState {
   difficultyState: DifficultyState | null;
   overloadStrategy: OverloadStrategy | null;
   recalibrationResult: RecalibrationResult | null;
+  currentDrillPhase: DrillPhase | null;
+  currentDrill: GeneratedDrill | null;
 }
 
 interface SessionActions {
@@ -97,6 +101,8 @@ interface SessionActions {
   applyPendingAdjustment: () => void;
   setOverloadStrategy: (strategy: OverloadStrategy | null) => void;
   setRecalibrationResult: (result: RecalibrationResult | null) => void;
+  setDrillPhase: (phase: DrillPhase | null) => void;
+  setCurrentDrill: (drill: GeneratedDrill | null) => void;
   resetAnalysis: () => void;
 }
 
@@ -131,6 +137,8 @@ const initialState: SessionState = {
   difficultyState: null,
   overloadStrategy: null,
   recalibrationResult: null,
+  currentDrillPhase: null,
+  currentDrill: null,
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -267,6 +275,10 @@ export const useSessionStore = create<SessionStore>()(
     setOverloadStrategy: (strategy) => set({ overloadStrategy: strategy }),
 
     setRecalibrationResult: (result) => set({ recalibrationResult: result }),
+
+    setDrillPhase: (phase) => set({ currentDrillPhase: phase }),
+
+    setCurrentDrill: (drill) => set({ currentDrill: drill }),
 
     resetAnalysis: () =>
       set((state) => ({

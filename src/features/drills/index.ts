@@ -15,3 +15,11 @@ export {
   mapLlmResponseToDrill,
   requestDrill,
 } from './drill-generator';
+export type {
+  NotePlayCallback,
+  DrillOutput,
+  DrillPlayerOptions,
+  PlaybackHandle,
+  DrillCycleController,
+} from './drill-player';
+export { playDrill, createDrillCycle } from './drill-player';

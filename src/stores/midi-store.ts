@@ -5,6 +5,7 @@ import type {
   MidiDeviceInfo,
   MidiEvent,
   MidiEventStore,
+  DemonstrationNote,
 } from '@/features/midi/midi-types';
 
 const MAX_EVENT_BUFFER = 500;
@@ -29,6 +30,11 @@ export const useMidiStore = create<MidiEventStore>()(
     showTroubleshooting: false,
     detectedChannel: null as number | null,
 
+    // Output state (Story 5.5)
+    outputPort: null as MIDIOutput | null,
+    hasOutputCapability: false,
+    demonstrationNote: null as DemonstrationNote | null,
+
     // Connection actions
     setConnectionStatus: (status) => set({ connectionStatus: status }),
     setActiveDevice: (device) => set({ activeDevice: device }),
@@ -41,6 +47,11 @@ export const useMidiStore = create<MidiEventStore>()(
     // Troubleshooting actions
     setShowTroubleshooting: (show) => set({ showTroubleshooting: show }),
     setDetectedChannel: (channel) => set({ detectedChannel: channel }),
+
+    // Output actions (Story 5.5)
+    setOutputPort: (port) => set({ outputPort: port }),
+    setHasOutputCapability: (has) => set({ hasOutputCapability: has }),
+    setDemonstrationNote: (note) => set({ demonstrationNote: note }),
 
     // Event actions
     addEvent: (event) =>
@@ -104,6 +115,9 @@ export const useMidiStore = create<MidiEventStore>()(
         inputSource: 'none',
         showTroubleshooting: false,
         detectedChannel: null,
+        outputPort: null,
+        hasOutputCapability: false,
+        demonstrationNote: null,
       }),
   }))
 );

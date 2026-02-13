@@ -15,6 +15,9 @@ export type {
   AudioModeStoreActions,
   TroubleshootingStoreState,
   TroubleshootingStoreActions,
+  DemonstrationNote,
+  MidiOutputStoreState,
+  MidiOutputStoreActions,
 } from './midi-types';
 
 // Engine
@@ -39,6 +42,16 @@ export { detectPitch, frequencyToMidiNote } from './pitch-detector';
 export type { PitchResult } from './pitch-detector';
 export type { DisabledFeature } from './audio-mode-limits';
 export { getDisabledFeatures, isFeatureDisabledInAudioMode } from './audio-mode-limits';
+
+// Output
+export {
+  sendNoteOn,
+  sendNoteOff,
+  sendAllNotesOff,
+  detectOutputCapability,
+  getFirstOutputPort,
+  midiNoteToFrequency,
+} from './midi-output';
 
 // Utils
 export { isMidiSupported } from './midi-utils';

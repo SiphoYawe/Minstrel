@@ -80,6 +80,26 @@ export interface TroubleshootingStoreActions {
   setDetectedChannel: (channel: number | null) => void;
 }
 
+// --- MIDI Output State (Story 5.5) ---
+
+export interface DemonstrationNote {
+  midiNote: number;
+  index: number;
+  total: number;
+}
+
+export interface MidiOutputStoreState {
+  outputPort: MIDIOutput | null;
+  hasOutputCapability: boolean;
+  demonstrationNote: DemonstrationNote | null;
+}
+
+export interface MidiOutputStoreActions {
+  setOutputPort: (port: MIDIOutput | null) => void;
+  setHasOutputCapability: (has: boolean) => void;
+  setDemonstrationNote: (note: DemonstrationNote | null) => void;
+}
+
 export type MidiEventStore = MidiStoreState &
   MidiStoreActions &
   MidiEventStoreState &
@@ -87,4 +107,6 @@ export type MidiEventStore = MidiStoreState &
   AudioModeStoreState &
   AudioModeStoreActions &
   TroubleshootingStoreState &
-  TroubleshootingStoreActions;
+  TroubleshootingStoreActions &
+  MidiOutputStoreState &
+  MidiOutputStoreActions;
