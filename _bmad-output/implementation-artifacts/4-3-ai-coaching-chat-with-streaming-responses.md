@@ -97,6 +97,7 @@ So that conversation feels natural.
 ## Dev Notes
 
 - **Vercel AI SDK `useChat` Pattern**: The `useChat` hook from `ai/react` is the primary client-side integration point. It manages the message array, handles streaming, provides input binding, and manages loading state. Configuration:
+
   ```typescript
   const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
     api: '/api/ai/chat',
@@ -138,6 +139,7 @@ So that conversation feels natural.
 ### Project Structure Notes
 
 Files created or modified in this story:
+
 ```
 src/features/coaching/
   coaching-client.ts              # useCoachingChat hook wrapping useChat (NEW)

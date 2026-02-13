@@ -41,7 +41,13 @@ So I keep improving without hitting plateaus.
   - [ ] Define Zod schema for `RecalibrationResult` in `src/lib/ai/schemas.ts`:
     ```typescript
     const RecalibrationResultSchema = z.object({
-      recommendedFocus: z.enum(['timing_accuracy', 'harmonic_complexity', 'technique_range', 'speed', 'genre_familiarity']),
+      recommendedFocus: z.enum([
+        'timing_accuracy',
+        'harmonic_complexity',
+        'technique_range',
+        'speed',
+        'genre_familiarity',
+      ]),
       parameterAdjustments: z.object({
         tempo: z.number().optional(),
         harmonicComplexity: z.number().optional(),
@@ -87,6 +93,7 @@ So I keep improving without hitting plateaus.
 - **Architecture Layer**: This story spans Layers 3 and 4. `progressive-overload.ts` core logic (plateau detection, overload computation, focus selection) is Layer 3 domain logic — pure functions. The `/api/ai/analyze` route is Layer 4 infrastructure. The Supabase/Dexie sync is Layer 4. Session initialization wiring is Layer 2.
 
 - **Cross-Session Recalibration via LLM**: The LLM is used for nuanced pattern analysis that rules-based code struggles with. For example, detecting that a user plays great timing in C major but terrible timing in Ab major (key-dependent weakness). The LLM receives:
+
   ```typescript
   const recalibrationPrompt = {
     skillProfileHistory: last5ProfileSnapshots,
@@ -95,9 +102,11 @@ So I keep improving without hitting plateaus.
     currentOverloadStrategy: currentStrategy,
   };
   ```
+
   The system prompt instructs the LLM to act as a music pedagogy expert and return structured recommendations.
 
 - **Zod Schema for `generateObject`**: The schema is defined in `src/lib/ai/schemas.ts` and shared between the API route (server-side validation) and the client (type inference). Example usage with Vercel AI SDK 6.x:
+
   ```typescript
   import { generateObject } from 'ai';
   import { RecalibrationResultSchema } from '@/lib/ai/schemas';
@@ -111,6 +120,7 @@ So I keep improving without hitting plateaus.
   ```
 
 - **Recalibration System Prompt** (for `src/lib/ai/prompts.ts`):
+
   ```
   You are a music pedagogy expert and practice coach. Analyze the musician's
   skill profile history and recent sessions. Identify:
@@ -124,14 +134,15 @@ So I keep improving without hitting plateaus.
   ```
 
 - **Progressive Overload Increment Logic**:
+
   ```typescript
   // Base increment per dimension (per session)
   const BASE_INCREMENTS = {
-    tempo: 3,                    // +3 BPM per session
-    harmonicComplexity: 0.03,    // +3% complexity
-    keyDifficulty: 0.05,         // Slightly harder key
-    rhythmicDensity: 0.03,       // +3% density
-    noteRange: 0.02,             // Slightly wider range
+    tempo: 3, // +3 BPM per session
+    harmonicComplexity: 0.03, // +3% complexity
+    keyDifficulty: 0.05, // Slightly harder key
+    rhythmicDensity: 0.03, // +3% density
+    noteRange: 0.02, // Slightly wider range
   };
 
   // Scale by growth zone stability (0.0 to 1.5x)
@@ -141,9 +152,10 @@ So I keep improving without hitting plateaus.
   ```
 
 - **Plateau Detection**: A dimension is considered plateaued when:
+
   ```typescript
   const PLATEAU_THRESHOLD = 0.02; // <2% improvement
-  const PLATEAU_SESSIONS = 3;     // Over 3 sessions
+  const PLATEAU_SESSIONS = 3; // Over 3 sessions
 
   function isPlateaued(history: DimensionScore[]): boolean {
     if (history.length < PLATEAU_SESSIONS) return false;
@@ -154,13 +166,19 @@ So I keep improving without hitting plateaus.
   ```
 
 - **API Route Pattern**: Follow the architecture's standard API route structure:
+
   ```typescript
   export async function POST(request: Request) {
     try {
       const supabase = await createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-        return Response.json({ data: null, error: { code: 'UNAUTHORIZED', message: 'Sign in to continue.' } }, { status: 401 });
+        return Response.json(
+          { data: null, error: { code: 'UNAUTHORIZED', message: 'Sign in to continue.' } },
+          { status: 401 }
+        );
       }
       // ... decrypt key, call LLM, return result
       return Response.json({ data: result, error: null });

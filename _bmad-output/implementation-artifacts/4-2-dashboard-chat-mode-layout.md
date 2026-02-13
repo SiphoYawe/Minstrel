@@ -111,8 +111,12 @@ So I can see playing data and ask questions side by side.
 - **Two-Layer Rendering Preserved**: The Canvas/WebGL layer must remain mounted and rendering independently of mode switches. The key architectural pattern (AR13) is that Canvas subscribes to `midiStore` via vanilla Zustand `subscribe`, completely bypassing React. Mode switching should only change the Canvas container width, never unmount/remount the Canvas element.
 
 - **Layout Strategy**: Use CSS Grid for the Dashboard + Chat layout. The Canvas component should be a sibling or child that is always rendered, with its container width controlled by the active mode. Consider a structure like:
+
   ```tsx
-  <div className="grid" style={{ gridTemplateColumns: mode === 'dashboard-chat' ? '3fr 2fr' : '1fr' }}>
+  <div
+    className="grid"
+    style={{ gridTemplateColumns: mode === 'dashboard-chat' ? '3fr 2fr' : '1fr' }}
+  >
     <VisualizationCanvas />
     {mode === 'dashboard-chat' && <DashboardPanel />}
   </div>
@@ -136,6 +140,7 @@ So I can see playing data and ask questions side by side.
 ### Project Structure Notes
 
 Files created or modified in this story:
+
 ```
 src/features/modes/
   dashboard-chat.tsx          # Dashboard + Chat mode layout (NEW)

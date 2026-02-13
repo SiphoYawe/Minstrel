@@ -68,9 +68,11 @@ So that challenges are calibrated to my actual abilities.
 - **Architecture Layer**: This is Domain Logic (Layer 3). `skill-assessor.ts` must be a pure function module with no framework imports, no UI, no infrastructure. It receives `SessionPerformanceData` and returns `SkillProfile`. The `sessionStore` integration (Layer 2) and Supabase persistence (Layer 4) are separate concerns wired in by the application layer.
 
 - **Exponentially Weighted Moving Average (EWMA)**: The blending formula for each dimension is:
+
   ```typescript
   newValue = alpha * sessionScore + (1 - alpha) * existingScore;
   ```
+
   Where `alpha = 0.3` by default. This means 30% weight to the most recent session, 70% to history. This prevents a single bad session from destroying a built-up profile while still being responsive to real improvement.
 
 - **Continuous Scale Design**: The 0.0 to 1.0 scale is intentional — the Difficulty Engine (Story 5.2) uses these continuous values for smooth difficulty curves. Discrete levels would create jarring jumps. The mapping is:
@@ -78,13 +80,15 @@ So that challenges are calibrated to my actual abilities.
   - `0.2 - 0.5` — developing
   - `0.5 - 0.75` — competent
   - `0.75 - 1.0` — advanced
-  These labels are NEVER shown to the user — they are internal references only.
+    These labels are NEVER shown to the user — they are internal references only.
 
 - **Confidence Tracking**: Each dimension has a `confidence` value that approaches 1.0 asymptotically:
+
   ```typescript
   confidence = 1 - Math.exp(-dataPoints / CONFIDENCE_RATE);
   // CONFIDENCE_RATE = 10 means ~63% confidence after 10 data points, ~95% after 30
   ```
+
   The Difficulty Engine (Story 5.2) uses confidence to determine how aggressively to adjust — low confidence = more cautious adjustments.
 
 - **Dependency on Epic 2 analysis outputs**: `SessionPerformanceData` is assembled from:
@@ -95,6 +99,7 @@ So that challenges are calibrated to my actual abilities.
   - `tendency-tracker.ts` (Story 2.4) — comfort zones and avoidance patterns
 
 - **Supabase `progress_metrics` table**: This table may already exist from Story 3.1. If so, add columns via migration. If not, create the table. Key schema:
+
   ```sql
   -- progress_metrics table (may already exist)
   ALTER TABLE progress_metrics
@@ -112,6 +117,7 @@ So that challenges are calibrated to my actual abilities.
   ```
 
 - **Zustand Pattern**: Use selective selectors when reading from `sessionStore`:
+
   ```typescript
   const skillProfile = useSessionStore((s) => s.skillProfile);
   ```

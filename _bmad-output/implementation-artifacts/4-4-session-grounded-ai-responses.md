@@ -161,6 +161,7 @@ So that coaching is specific and trustworthy.
 ### Project Structure Notes
 
 Files created or modified in this story:
+
 ```
 src/features/coaching/
   context-builder.ts              # Session context assembly (NEW)

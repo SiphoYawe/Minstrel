@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 
 const features = [
@@ -6,76 +7,155 @@ const features = [
     label: 'Ear-First',
     description:
       'No sheet music. Develop your musical ear through real-time MIDI analysis and instant feedback on what you play.',
+    tag: 'FR8–13',
   },
   {
     label: 'AI Coaching',
     description:
       'A studio engineer that listens, analyzes, and guides your practice with genre-aware, growth-mindset coaching.',
+    tag: 'FR24–28',
   },
   {
     label: 'Adaptive Difficulty',
     description:
       'Intelligent drill generation that meets you exactly where you are and pushes you exactly where you need to go.',
+    tag: 'FR14–23',
+  },
+];
+
+const modes = [
+  {
+    key: '1',
+    name: 'Silent Coach',
+    description: 'Full-screen immersive visualization. Play freely with real-time visual feedback.',
+  },
+  {
+    key: '2',
+    name: 'Dashboard',
+    description: 'Split view with live data cards and conversational AI coaching.',
+  },
+  {
+    key: '3',
+    name: 'Replay Studio',
+    description: 'Timeline scrubbing, tabbed analysis, and moment-specific AI insight.',
   },
 ];
 
 export default function MarketingPage() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-8">
+    <main className="flex flex-1 flex-col items-center">
       <div className="mx-auto w-full max-w-content">
         {/* Hero */}
-        <section className="flex flex-col items-center py-24 text-center lg:py-40">
-          <p className="text-ui-label uppercase tracking-[0.2em] text-primary">
+        <section className="flex flex-col items-center px-8 py-32 text-center lg:py-44">
+          {/* Icon mark — the three bars from the logo */}
+          <div className="mb-8 flex items-end gap-[6px]" aria-hidden="true">
+            <div className="h-10 w-[5px] bg-[#7CB9E8]/40" />
+            <div className="h-14 w-[5px] bg-[#7CB9E8]/60" />
+            <div className="h-10 w-[5px] bg-[#7CB9E8]/40" />
+          </div>
+
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#7CB9E8]">
             Practice Companion
           </p>
 
-          <h1 className="mt-6 max-w-3xl text-5xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-            Minstrel
+          <h1 className="mt-6 max-w-3xl text-5xl font-semibold leading-[1.08] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+            Your instrument
+            <br />
+            <span className="text-[#7CB9E8]">hears back.</span>
           </h1>
 
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            AI-powered real-time MIDI practice companion. Plug in your instrument, play, and let
-            intelligence shape your growth.
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#A3A3A3] sm:text-xl">
+            AI-powered real-time MIDI analysis. Plug in, play, and let intelligence shape your
+            growth.
           </p>
 
           <div className="mt-10 flex gap-4">
             <Link
               href="/play"
-              className="inline-flex h-12 items-center bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors duration-micro hover:brightness-110 active:brightness-90"
+              className="inline-flex h-12 items-center bg-[#7CB9E8] px-8 text-sm font-medium text-[#0F0F0F] transition-all duration-150 hover:brightness-110 active:brightness-90"
             >
               Start Playing
             </Link>
             <Link
               href="/signup"
-              className="inline-flex h-12 items-center border border-border bg-transparent px-8 text-sm font-medium text-foreground transition-colors duration-micro hover:bg-surface-light"
+              className="inline-flex h-12 items-center border border-[#2A2A2A] bg-transparent px-8 text-sm font-medium text-foreground transition-colors duration-150 hover:border-[#444] hover:bg-[#171717]"
             >
               Create Account
             </Link>
           </div>
+
+          <p className="mt-6 font-mono text-[11px] tracking-wider text-[#555]">
+            No payment required. Bring your own API key.
+          </p>
         </section>
 
-        <Separator />
+        <Separator className="bg-[#1A1A1A]" />
 
         {/* Features */}
-        <section className="grid gap-px border border-border sm:grid-cols-3">
-          {features.map((feature) => (
-            <div
-              key={feature.label}
-              className="border border-border bg-card p-8 transition-colors duration-micro hover:bg-surface-light"
-            >
-              <p className="text-ui-label font-mono uppercase tracking-[0.15em] text-primary">
-                {feature.label}
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {feature.description}
-              </p>
-            </div>
-          ))}
+        <section className="px-8 py-20 lg:py-28">
+          <div className="mb-12">
+            <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#7CB9E8]">
+              Capabilities
+            </p>
+            <div className="mt-2 h-px w-8 bg-[#7CB9E8]" />
+          </div>
+
+          <div className="grid gap-px border border-[#1A1A1A] sm:grid-cols-3">
+            {features.map((feature) => (
+              <div
+                key={feature.label}
+                className="border border-[#1A1A1A] bg-[#0F0F0F] p-8 transition-colors duration-150 hover:bg-[#141414]"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-[#7CB9E8]">
+                    {feature.label}
+                  </p>
+                  <span className="font-mono text-[9px] tracking-wider text-[#333]">
+                    {feature.tag}
+                  </span>
+                </div>
+                <p className="mt-4 text-sm leading-relaxed text-[#A3A3A3]">{feature.description}</p>
+              </div>
+            ))}
+          </div>
         </section>
 
-        {/* Footer tagline */}
-        <section className="py-16 text-center lg:py-24">
-          <p className="text-caption text-muted-foreground">
+        <Separator className="bg-[#1A1A1A]" />
+
+        {/* Modes */}
+        <section className="px-8 py-20 lg:py-28">
+          <div className="mb-12">
+            <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#7CB9E8]">
+              Three Modes
+            </p>
+            <div className="mt-2 h-px w-8 bg-[#7CB9E8]" />
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-3">
+            {modes.map((mode) => (
+              <div key={mode.key} className="group">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-mono text-[32px] font-semibold leading-none text-[#7CB9E8]/20 transition-colors duration-150 group-hover:text-[#7CB9E8]/40">
+                    {mode.key}
+                  </span>
+                  <h3 className="text-base font-medium text-foreground">{mode.name}</h3>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-[#666]">{mode.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Footer */}
+        <section className="border-t border-[#1A1A1A] px-8 py-16 text-center lg:py-20">
+          <Image
+            src="/minstrel-logo-white.svg"
+            alt="Minstrel"
+            width={100}
+            height={25}
+            className="mx-auto mb-4 h-5 w-auto opacity-20"
+          />
+          <p className="font-mono text-[11px] tracking-wider text-[#333]">
             Your instrument. Your ears. Your pace.
           </p>
         </section>

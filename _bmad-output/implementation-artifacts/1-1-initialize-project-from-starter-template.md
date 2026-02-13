@@ -133,6 +133,7 @@ So that all subsequent stories have a consistent, working codebase to build upon
 - **Package Manager**: Use `pnpm` throughout the project as specified by the starter template.
 - **TypeScript Strict Mode**: The starter may already have `strict: true` in tsconfig. Verify and enable if not. This is mandatory per architecture.
 - **Zustand 5.x Store Pattern**: Empty stores should export typed hooks following the convention:
+
   ```typescript
   import { create } from 'zustand';
 
@@ -144,6 +145,7 @@ So that all subsequent stories have a consistent, working codebase to build upon
     // Initial state TBD
   }));
   ```
+
 - **ApiResponse Envelope** (from Architecture): Must define in `src/types/api.ts`:
   ```typescript
   type ApiResponse<T> = { data: T; error: null };
@@ -197,6 +199,7 @@ So that all subsequent stories have a consistent, working codebase to build upon
 ### File List
 
 **Config files (root):**
+
 - next.config.ts (Sentry-wrapped)
 - eslint.config.mjs (flat config, next@16 native)
 - tailwind.config.ts (content paths, ESM import for tailwindcss-animate)
@@ -212,6 +215,7 @@ So that all subsequent stories have a consistent, working codebase to build upon
 - package.json (pinned deps, scripts, lint-staged)
 
 **Source files:**
+
 - src/stores/midi-store.ts (skeleton Zustand store)
 - src/stores/session-store.ts (skeleton Zustand store)
 - src/stores/app-store.ts (skeleton Zustand store)
@@ -227,6 +231,7 @@ So that all subsequent stories have a consistent, working codebase to build upon
 - src/test-utils/render.tsx (custom render with AllProviders)
 
 **Test files:**
+
 - src/stores/midi-store.test.ts
 - src/stores/session-store.test.ts
 - src/stores/app-store.test.ts
@@ -236,10 +241,12 @@ So that all subsequent stories have a consistent, working codebase to build upon
 - src/scaffold.test.ts (52 directory/file existence checks + 12 package.json checks)
 
 **E2E fixtures:**
+
 - e2e/fixtures/mock-midi-device.ts (placeholder)
 - e2e/fixtures/mock-ai-responses.ts (placeholder)
 
 **Feature directories (with .gitkeep):**
+
 - src/features/{midi,analysis,session,auth,engagement,difficulty,drills,coaching,modes}
 - src/components/viz
 - src/lib/{dexie,ai}

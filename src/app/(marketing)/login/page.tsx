@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,6 @@ function LoginForm() {
         setError(result.error);
         setIsLoading(false);
       }
-      // On success, signIn navigates away — don't reset loading (component unmounts)
     } catch {
       setError('Something went wrong — please try again.');
       setIsLoading(false);
@@ -37,14 +37,28 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center px-6">
+    <div className="flex min-h-[calc(100svh-3.5rem)] w-full items-center justify-center px-6">
       <div className="w-full max-w-sm">
-        {/* Header — equipment-label style */}
+        {/* Logo */}
+        <Link
+          href="/"
+          className="mb-12 inline-block transition-opacity duration-150 hover:opacity-70"
+        >
+          <Image
+            src="/minstrel-logo-white.svg"
+            alt="Minstrel"
+            width={100}
+            height={25}
+            className="h-5 w-auto opacity-40"
+          />
+        </Link>
+
+        {/* Header */}
         <div className="mb-8">
-          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-primary">
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#7CB9E8]">
             Session Login
           </p>
-          <div className="mt-2 h-px w-12 bg-primary" />
+          <div className="mt-2 h-px w-12 bg-[#7CB9E8]" />
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -70,7 +84,7 @@ function LoginForm() {
               </Label>
               <Link
                 href="/auth/forgot-password"
-                className="text-caption text-muted-foreground transition-colors duration-micro hover:text-primary"
+                className="text-caption text-muted-foreground transition-colors duration-150 hover:text-[#7CB9E8]"
               >
                 Forgot password?
               </Link>
@@ -107,7 +121,7 @@ function LoginForm() {
           No account yet?{' '}
           <Link
             href="/signup"
-            className="text-primary transition-colors duration-micro hover:brightness-110"
+            className="text-[#7CB9E8] transition-colors duration-150 hover:brightness-110"
           >
             Create one
           </Link>
@@ -121,7 +135,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-svh items-center justify-center">
+        <div className="flex min-h-[calc(100svh-3.5rem)] items-center justify-center">
           <span className="font-mono text-caption text-muted-foreground">Loading...</span>
         </div>
       }

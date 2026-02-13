@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
+import { capture } from '@/lib/analytics';
 import { useAppStore } from '@/stores/app-store';
 import type { ChatErrorInfo } from '@/features/coaching/coaching-types';
 import { segmentResponseText, type TextSegment } from '@/features/coaching/response-processor';
@@ -90,6 +91,16 @@ export function AIChatPanel({
     const el = e.target;
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }
+
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    if (input.trim()) {
+      capture('ai_chat_message_sent', {
+        message_length: input.trim().length,
+        conversation_turn: messages.length + 1,
+      });
+    }
+    onSubmit(e);
   }
 
   if (!hasApiKey) {
@@ -175,7 +186,7 @@ export function AIChatPanel({
         </div>
       </ScrollArea>
 
-      <form onSubmit={onSubmit} className="flex items-end gap-2 p-3 border-t border-[#1A1A1A]">
+      <form onSubmit={handleSubmit} className="flex items-end gap-2 p-3 border-t border-[#1A1A1A]">
         <textarea
           ref={textareaRef}
           value={input}

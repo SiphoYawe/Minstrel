@@ -95,6 +95,9 @@ so that my effort is quantified and I can see cumulative progress.
 ## Dev Agent Record
 
 ### Agent Model Used
+
 ### Debug Log References
+
 ### Completion Notes List
+
 ### File List

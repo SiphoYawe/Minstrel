@@ -36,13 +36,13 @@ Musicians at every level — from self-taught beginners to gigging professionals
 
 ### Why Existing Solutions Fall Short
 
-| Solution | Limitation |
-|----------|-----------|
-| **Yousician / Simply Piano** | Sheet-music-dependent, static difficulty, gamification over substance |
-| **YouTube tutorials** | Passive watching, no feedback, no personalization |
-| **Private tutors** | $50-100/hr, limited availability, inconsistent quality |
-| **Metronomes / theory books** | Boring, no analysis, musicians avoid using them |
-| **Self-practice** | No feedback loop, can't hear own mistakes, blind repetition |
+| Solution                      | Limitation                                                            |
+| ----------------------------- | --------------------------------------------------------------------- |
+| **Yousician / Simply Piano**  | Sheet-music-dependent, static difficulty, gamification over substance |
+| **YouTube tutorials**         | Passive watching, no feedback, no personalization                     |
+| **Private tutors**            | $50-100/hr, limited availability, inconsistent quality                |
+| **Metronomes / theory books** | Boring, no analysis, musicians avoid using them                       |
+| **Self-practice**             | No feedback loop, can't hear own mistakes, blind repetition           |
 
 None of these listen to you play, understand what you're doing, and adapt in real time.
 
@@ -71,6 +71,7 @@ The experience is ear-first (no sheet music), dynamically generated (no pre-buil
 ### Primary Users
 
 **Segment 1: "Jake" — The Self-Taught Beginner**
+
 - **Profile:** Ages 15-30, self-taught through YouTube and tabs, plays guitar or keyboard
 - **Skill Level:** Can play basic chords and simple songs but lacks structure and understanding
 - **Theory:** Minimal — knows a few chord names, maybe a scale or two, but can't connect theory to practice
@@ -80,6 +81,7 @@ The experience is ear-first (no sheet music), dynamically generated (no pre-buil
 - **Success Vision:** "I can feel myself getting better every week. I know exactly what to work on and I can hear the difference."
 
 **Segment 2: "Aisha" — The Intermediate Player Hitting a Wall**
+
 - **Profile:** Ages 20-45, has some formal training or years of self-teaching, plays piano, guitar, or another MIDI instrument
 - **Skill Level:** Technically competent — can play pieces, knows theory basics, but stuck at a plateau
 - **Theory:** Knows scales, chords, keys, basic harmony — but can't apply theory to improvisation or creative playing fluently
@@ -102,13 +104,13 @@ None. Minstrel is built exclusively for the individual player. No teacher mode, 
 
 **Discovery → Onboarding → Aha → Core Loop → Long-Term**
 
-| Stage | Experience |
-|-------|-----------|
-| **Discovery** | User is searching for help ("how to get better at piano"), frustrated after YouTube tutorials, hears about Minstrel from a music community (Reddit/Discord), or gets recommended by a teacher |
-| **Onboarding** | Plug in MIDI → Free Play mode → Minstrel listens silently → Quick skill assessment → First guided challenge. Seamless flow, no forms or curriculum selection. |
-| **Aha Moment** | First real-time feedback — the user plays something and Minstrel immediately shows what they played, including a mistake they didn't notice. "It actually HEARS me." |
-| **Core Loop** | Micro-sessions (3-5 min) or freeform play → Minstrel analyzes → Generates targeted drills from mistakes → Tracks progress → Adjusts difficulty. Streaks and achievements maintain daily habit. |
-| **Long-Term** | Style DNA Profile grows. Skill trees branch out. Personal records accumulate. The player sees concrete data proving they've improved. Minstrel becomes the daily practice ritual. |
+| Stage          | Experience                                                                                                                                                                                     |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Discovery**  | User is searching for help ("how to get better at piano"), frustrated after YouTube tutorials, hears about Minstrel from a music community (Reddit/Discord), or gets recommended by a teacher  |
+| **Onboarding** | Plug in MIDI → Free Play mode → Minstrel listens silently → Quick skill assessment → First guided challenge. Seamless flow, no forms or curriculum selection.                                  |
+| **Aha Moment** | First real-time feedback — the user plays something and Minstrel immediately shows what they played, including a mistake they didn't notice. "It actually HEARS me."                           |
+| **Core Loop**  | Micro-sessions (3-5 min) or freeform play → Minstrel analyzes → Generates targeted drills from mistakes → Tracks progress → Adjusts difficulty. Streaks and achievements maintain daily habit. |
+| **Long-Term**  | Style DNA Profile grows. Skill trees branch out. Personal records accumulate. The player sees concrete data proving they've improved. Minstrel becomes the daily practice ritual.              |
 
 ---
 
@@ -116,43 +118,46 @@ None. Minstrel is built exclusively for the individual player. No teacher mode, 
 
 ### User Success Metrics
 
-| Metric | What It Measures | Target |
-|--------|-----------------|--------|
-| **Skill Improvement Rate** | Measurable improvement in accuracy, speed, or complexity over time | Users show statistically significant improvement within 30 days of regular use |
-| **Practice Consistency** | Frequency and regularity of practice sessions | 3+ sessions per week for active users |
-| **Breakthrough Milestones** | First improv, first song by ear, first clean speed run — moments users couldn't achieve before | At least 1 breakthrough milestone per user per month |
-| **Frustration Reduction** | Users report knowing what to work on and feeling appropriately challenged | Session completion rate >80% (users don't abandon mid-practice out of frustration) |
-| **Session Duration** | Time spent in active practice per session | Average 15+ minutes per session (indicates engagement, not obligation) |
+| Metric                      | What It Measures                                                                               | Target                                                                             |
+| --------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Skill Improvement Rate**  | Measurable improvement in accuracy, speed, or complexity over time                             | Users show statistically significant improvement within 30 days of regular use     |
+| **Practice Consistency**    | Frequency and regularity of practice sessions                                                  | 3+ sessions per week for active users                                              |
+| **Breakthrough Milestones** | First improv, first song by ear, first clean speed run — moments users couldn't achieve before | At least 1 breakthrough milestone per user per month                               |
+| **Frustration Reduction**   | Users report knowing what to work on and feeling appropriately challenged                      | Session completion rate >80% (users don't abandon mid-practice out of frustration) |
+| **Session Duration**        | Time spent in active practice per session                                                      | Average 15+ minutes per session (indicates engagement, not obligation)             |
 
 ### Business Objectives
 
 **Business Model:** Free with BYOK (Bring Your Own Key)
+
 - **All features available to all users** — no feature gating or tiers at launch
 - **Users provide their own LLM API keys** (OpenAI, Anthropic, etc.) to power AI coaching and drill generation
 - **Monetization deferred to Phase 2** — premium subscriptions and managed API access planned for a future phase
 
 **3-Month Objectives:**
+
 - Launch MVP with complete Listen → Analyze → Coach → Drill → Challenge loop
 - Acquire first 500 registered users through music communities and organic channels
 - Validate that the product delivers measurable improvement
 - Validate BYOK model — users successfully configure and use their own API keys
 
 **12-Month Objectives:**
+
 - 10,000+ active players practicing 3x+ per week
 - Known in musician communities as "the tool that actually makes you better"
 - Evaluate and launch premium subscription model (managed API access) based on user feedback
 
 ### Key Performance Indicators
 
-| KPI | Measurement | Target | Timeframe |
-|-----|------------|--------|-----------|
-| **Weekly Active Users (WAU)** | Users with 1+ sessions per week | 10,000 | 12 months |
-| **Weekly Retention Rate** | % of users returning within 7 days | >70% | Ongoing |
-| **API Key Activation Rate** | % of registered users who configure an LLM API key | >60% | Ongoing |
-| **Skill Improvement Signal** | % of 30-day users showing measurable improvement | >60% | Ongoing |
-| **Organic Referral Rate** | % of new users coming from word-of-mouth | >20% | 6 months |
-| **Net Promoter Score (NPS)** | User satisfaction and likelihood to recommend | >50 | 6 months |
-| **Session Completion Rate** | % of started sessions completed (not abandoned) | >80% | Ongoing |
+| KPI                           | Measurement                                        | Target | Timeframe |
+| ----------------------------- | -------------------------------------------------- | ------ | --------- |
+| **Weekly Active Users (WAU)** | Users with 1+ sessions per week                    | 10,000 | 12 months |
+| **Weekly Retention Rate**     | % of users returning within 7 days                 | >70%   | Ongoing   |
+| **API Key Activation Rate**   | % of registered users who configure an LLM API key | >60%   | Ongoing   |
+| **Skill Improvement Signal**  | % of 30-day users showing measurable improvement   | >60%   | Ongoing   |
+| **Organic Referral Rate**     | % of new users coming from word-of-mouth           | >20%   | 6 months  |
+| **Net Promoter Score (NPS)**  | User satisfaction and likelihood to recommend      | >50    | 6 months  |
+| **Session Completion Rate**   | % of started sessions completed (not abandoned)    | >80%   | Ongoing   |
 
 ### Leading Indicators (Early Signals of Success)
 
@@ -168,12 +173,14 @@ None. Minstrel is built exclusively for the individual player. No teacher mode, 
 ### Core Features
 
 **1. MIDI + Basic Audio Engine (Bidirectional)**
+
 - MIDI input: capture every note, chord, progression, velocity, and timing
 - MIDI output: play demonstrations back through the user's instrument speakers (Demonstrate → Listen → Attempt → Analyze loop)
 - Basic audio capture via laptop mic for dynamics and volume detection
 - Web MIDI API integration for browser-based access
 
 **2. Real-Time Analysis**
+
 - Note/chord/progression detection and display
 - Timing accuracy measurement
 - Harmonic analysis (key detection, chord quality, progression mapping)
@@ -181,18 +188,21 @@ None. Minstrel is built exclusively for the individual player. No teacher mode, 
 - Genre-aware analysis context
 
 **3. The Difficulty Engine**
+
 - Unified system governing all challenge levels across the platform
 - Progressive overload — incremental difficulty increases (tempo, complexity, key)
 - Growth zone detection — always keeping the player between boredom and frustration
 - Adaptive difficulty that responds to real-time performance
 
 **4. AI Drill Generation + MIDI Demonstration**
+
 - Custom exercises generated from the player's actual mistakes and weaknesses
 - Minstrel demonstrates each drill through the instrument's speakers first — player hears how it should sound before attempting
 - Never the same drill twice — dynamically generated, infinitely varied
 - Targeted: each drill addresses a specific weakness identified in the session
 
 **5. AI Coaching Chat**
+
 - Conversational AI that answers questions about the player's playing
 - Session-aware context — every answer grounded in what the player actually played
 - Genre-aware — constrains all advice to the relevant musical style
@@ -200,42 +210,46 @@ None. Minstrel is built exclusively for the individual player. No teacher mode, 
 - Growth mindset framing — "not yet", never "wrong"
 
 **6. Three Interaction Modes**
+
 - **Silent Coach** — real-time data visualization during play, AI speaks only when asked
 - **Dashboard + Chat** — split screen with live data and conversational AI for active questioning
 - **Replay Studio** — post-session timeline scrubbing, ask AI about any moment in the recording
 
 **7. Session Structure**
+
 - Freeform play mode — just play, Minstrel listens and interrupts only when it notices something worth addressing
 - Micro-sessions — 3-5 minute focused bursts on one specific skill, stackable
 - Auto-generated warm-ups based on what the player is about to work on
 - Personal records tracking ("Fastest clean arpeggio: 140 BPM on Jan 5")
 
 **8. Engagement & Habit Building**
+
 - Daily practice streaks (meaningful practice, not just app opens)
 - XP system for practice time and accuracy
 - Achievement badges ("First Jazz Voicing", "Perfect Timing 10x", "100 Day Streak")
 - Progress data — concrete numbers showing improvement over time
 
 **9. Platform**
+
 - **Web application (browser-based)** using Web MIDI API
 - No install required — broadest reach, fastest to ship
 - Desktop-class experience in the browser
 
 ### Out of Scope for MVP
 
-| Feature | Rationale | Target Version |
-|---------|-----------|---------------|
-| **Skill trees** | Complex visual system — use simpler progress tracking at MVP | v2 |
-| **Advanced audio analysis** | Full tone quality, vibrato, articulation via mic — basic audio sufficient for MVP | v2 |
-| **Song completion** | "Play a melody, get arrangements" — powerful but not core to the practice loop | v2 |
-| **Style transfer** | "Hear your passage as bossa nova" — creative feature, defer to post-MVP | v2 |
-| **Style DNA Profile** | Musical personality mapping — needs significant data before it's useful | v2 |
-| **Margin Notes mode** | Post-session annotated view — Replay Studio covers this need at MVP | v2 |
-| **Social features** | None planned — Minstrel is a solo practice tool | Never (by design) |
-| **Sheet music display** | Ear-first philosophy — no visual notation | Never (by design) |
-| **Pre-built curriculum** | Every path is dynamically generated | Never (by design) |
-| **Video content** | YouTube exists — Minstrel is interactive, not passive | Never (by design) |
-| **Competitive scoring** | Progress is personal, not performative | Never (by design) |
+| Feature                     | Rationale                                                                         | Target Version    |
+| --------------------------- | --------------------------------------------------------------------------------- | ----------------- |
+| **Skill trees**             | Complex visual system — use simpler progress tracking at MVP                      | v2                |
+| **Advanced audio analysis** | Full tone quality, vibrato, articulation via mic — basic audio sufficient for MVP | v2                |
+| **Song completion**         | "Play a melody, get arrangements" — powerful but not core to the practice loop    | v2                |
+| **Style transfer**          | "Hear your passage as bossa nova" — creative feature, defer to post-MVP           | v2                |
+| **Style DNA Profile**       | Musical personality mapping — needs significant data before it's useful           | v2                |
+| **Margin Notes mode**       | Post-session annotated view — Replay Studio covers this need at MVP               | v2                |
+| **Social features**         | None planned — Minstrel is a solo practice tool                                   | Never (by design) |
+| **Sheet music display**     | Ear-first philosophy — no visual notation                                         | Never (by design) |
+| **Pre-built curriculum**    | Every path is dynamically generated                                               | Never (by design) |
+| **Video content**           | YouTube exists — Minstrel is interactive, not passive                             | Never (by design) |
+| **Competitive scoring**     | Progress is personal, not performative                                            | Never (by design) |
 
 ### MVP Success Criteria
 
@@ -249,6 +263,7 @@ The MVP is successful and worth scaling when ALL of the following are met:
 ### Future Vision (Post-MVP Roadmap)
 
 **v2 — The Creative Companion:**
+
 - Song completion engine — play a melody, get chord progressions and arrangements
 - Style transfer — hear your playing rendered in different genres
 - Style DNA Profile — musical personality mapping with opt-in style discovery
@@ -256,6 +271,7 @@ The MVP is successful and worth scaling when ALL of the following are met:
 - Skill trees — visual branching progression maps
 
 **v3 — The Intelligent Studio:**
+
 - AI jam partner — real-time backing tracks that react to your playing
 - Composition scratchpad — Minstrel extracts best licks from practice into songwriting tools
 - Advanced analytics — timing accuracy to milliseconds, harmonic tendency mapping

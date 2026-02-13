@@ -1,1185 +1,2150 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Minstrel — Design Direction Exploration</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minstrel — Design Direction Exploration</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-  :root {
-    --bg-primary: #0F0F0F;
-    --bg-secondary: #171717;
-    --bg-tertiary: #1F1F1F;
-    --bg-quaternary: #262626;
-    --border-subtle: #2A2A2A;
-    --border-default: #333333;
-    --text-primary: #FFFFFF;
-    --text-secondary: #A3A3A3;
-    --text-tertiary: #666666;
-    --accent-primary: #7CB9E8;
-    --accent-primary-muted: rgba(124, 185, 232, 0.15);
-    --accent-secondary: #B4A7D6;
-    --accent-tertiary: #A8D5BA;
-    --accent-warm: #E8C77B;
-    --accent-success: #81C995;
-    --accent-error: #E88B8B;
-  }
+      :root {
+        --bg-primary: #0f0f0f;
+        --bg-secondary: #171717;
+        --bg-tertiary: #1f1f1f;
+        --bg-quaternary: #262626;
+        --border-subtle: #2a2a2a;
+        --border-default: #333333;
+        --text-primary: #ffffff;
+        --text-secondary: #a3a3a3;
+        --text-tertiary: #666666;
+        --accent-primary: #7cb9e8;
+        --accent-primary-muted: rgba(124, 185, 232, 0.15);
+        --accent-secondary: #b4a7d6;
+        --accent-tertiary: #a8d5ba;
+        --accent-warm: #e8c77b;
+        --accent-success: #81c995;
+        --accent-error: #e88b8b;
+      }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-  body {
-    font-family: 'Inter', -apple-system, sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    line-height: 1.5;
-  }
+      body {
+        font-family:
+          'Inter',
+          -apple-system,
+          sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.5;
+      }
 
-  .mono { font-family: 'JetBrains Mono', monospace; }
+      .mono {
+        font-family: 'JetBrains Mono', monospace;
+      }
 
-  /* Header */
-  .page-header {
-    padding: 48px 40px 32px;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-  .page-header h1 {
-    font-size: 28px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    margin-bottom: 8px;
-  }
-  .page-header p {
-    font-size: 14px;
-    color: var(--text-secondary);
-    max-width: 700px;
-  }
+      /* Header */
+      .page-header {
+        padding: 48px 40px 32px;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .page-header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin-bottom: 8px;
+      }
+      .page-header p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        max-width: 700px;
+      }
 
-  /* Navigation */
-  .direction-nav {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--bg-primary);
-    border-bottom: 1px solid var(--border-subtle);
-    padding: 12px 40px;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .direction-nav button {
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 8px 16px;
-    border-radius: 6px;
-    border: 1px solid var(--border-default);
-    background: var(--bg-secondary);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 150ms;
-  }
-  .direction-nav button:hover {
-    border-color: var(--accent-primary);
-    color: var(--text-primary);
-  }
-  .direction-nav button.active {
-    background: var(--accent-primary-muted);
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
-  }
+      /* Navigation */
+      .direction-nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--bg-primary);
+        border-bottom: 1px solid var(--border-subtle);
+        padding: 12px 40px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .direction-nav button {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: 6px;
+        border: 1px solid var(--border-default);
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 150ms;
+      }
+      .direction-nav button:hover {
+        border-color: var(--accent-primary);
+        color: var(--text-primary);
+      }
+      .direction-nav button.active {
+        background: var(--accent-primary-muted);
+        border-color: var(--accent-primary);
+        color: var(--accent-primary);
+      }
 
-  /* Section */
-  .direction-section {
-    display: none;
-    padding: 40px;
-  }
-  .direction-section.active { display: block; }
+      /* Section */
+      .direction-section {
+        display: none;
+        padding: 40px;
+      }
+      .direction-section.active {
+        display: block;
+      }
 
-  .direction-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    letter-spacing: -0.01em;
-  }
-  .direction-subtitle {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-bottom: 24px;
-  }
-  .direction-desc {
-    font-size: 13px;
-    color: var(--text-tertiary);
-    margin-bottom: 32px;
-    max-width: 600px;
-    line-height: 1.6;
-  }
+      .direction-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        letter-spacing: -0.01em;
+      }
+      .direction-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+      }
+      .direction-desc {
+        font-size: 13px;
+        color: var(--text-tertiary);
+        margin-bottom: 32px;
+        max-width: 600px;
+        line-height: 1.6;
+      }
 
-  /* Mockup Frame */
-  .mockup-frame {
-    border: 1px solid var(--border-default);
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--bg-primary);
-    margin-bottom: 32px;
-  }
+      /* Mockup Frame */
+      .mockup-frame {
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        overflow: hidden;
+        background: var(--bg-primary);
+        margin-bottom: 32px;
+      }
 
-  /* Shared Components */
-  .status-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 16px;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-subtle);
-    font-size: 12px;
-    color: var(--text-secondary);
-  }
-  .status-bar .left, .status-bar .right { display: flex; align-items: center; gap: 16px; }
-  .status-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--accent-success);
-    display: inline-block;
-    margin-right: 6px;
-  }
-  .status-dot.disconnected { background: var(--text-tertiary); }
+      /* Shared Components */
+      .status-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 16px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-subtle);
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+      .status-bar .left,
+      .status-bar .right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-success);
+        display: inline-block;
+        margin-right: 6px;
+      }
+      .status-dot.disconnected {
+        background: var(--text-tertiary);
+      }
 
-  .mode-switcher {
-    display: flex;
-    gap: 2px;
-    background: var(--bg-tertiary);
-    border-radius: 6px;
-    padding: 2px;
-  }
-  .mode-btn {
-    font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 4px 12px;
-    border-radius: 4px;
-    border: none;
-    background: transparent;
-    color: var(--text-tertiary);
-    cursor: pointer;
-    transition: all 150ms;
-  }
-  .mode-btn.active {
-    background: var(--bg-quaternary);
-    color: var(--text-primary);
-  }
+      .mode-switcher {
+        display: flex;
+        gap: 2px;
+        background: var(--bg-tertiary);
+        border-radius: 6px;
+        padding: 2px;
+      }
+      .mode-btn {
+        font-family: 'Inter', sans-serif;
+        font-size: 11px;
+        font-weight: 500;
+        padding: 4px 12px;
+        border-radius: 4px;
+        border: none;
+        background: transparent;
+        color: var(--text-tertiary);
+        cursor: pointer;
+        transition: all 150ms;
+      }
+      .mode-btn.active {
+        background: var(--bg-quaternary);
+        color: var(--text-primary);
+      }
 
-  /* Canvas Placeholder */
-  .canvas-area {
-    position: relative;
-    background: var(--bg-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-  .canvas-viz {
-    width: 100%;
-    height: 100%;
-    position: relative;
-  }
+      /* Canvas Placeholder */
+      .canvas-area {
+        position: relative;
+        background: var(--bg-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .canvas-viz {
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
 
-  /* Visualization Elements */
-  .viz-note {
-    position: absolute;
-    border-radius: 3px;
-    opacity: 0.8;
-  }
-  .viz-pulse {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, transparent 0%, var(--accent-primary) 30%, var(--accent-primary) 70%, transparent 100%);
-    opacity: 0.4;
-  }
-  .viz-key-indicator {
-    position: absolute;
-    top: 12px;
-    left: 16px;
-    font-size: 11px;
-    color: var(--text-tertiary);
-    background: rgba(15, 15, 15, 0.8);
-    padding: 4px 10px;
-    border-radius: 4px;
-    backdrop-filter: blur(8px);
-  }
-  .viz-tempo {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text-tertiary);
-    background: rgba(15, 15, 15, 0.8);
-    padding: 4px 10px;
-    border-radius: 4px;
-  }
+      /* Visualization Elements */
+      .viz-note {
+        position: absolute;
+        border-radius: 3px;
+        opacity: 0.8;
+      }
+      .viz-pulse {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          var(--accent-primary) 30%,
+          var(--accent-primary) 70%,
+          transparent 100%
+        );
+        opacity: 0.4;
+      }
+      .viz-key-indicator {
+        position: absolute;
+        top: 12px;
+        left: 16px;
+        font-size: 11px;
+        color: var(--text-tertiary);
+        background: rgba(15, 15, 15, 0.8);
+        padding: 4px 10px;
+        border-radius: 4px;
+        backdrop-filter: blur(8px);
+      }
+      .viz-tempo {
+        position: absolute;
+        top: 12px;
+        right: 16px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: var(--text-tertiary);
+        background: rgba(15, 15, 15, 0.8);
+        padding: 4px 10px;
+        border-radius: 4px;
+      }
 
-  /* Data Cards */
-  .data-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-subtle);
-    border-radius: 8px;
-    padding: 16px;
-  }
-  .data-card-header {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-tertiary);
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .data-card-value {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--text-primary);
-    line-height: 1.1;
-  }
-  .data-card-value.small {
-    font-size: 16px;
-  }
-  .data-card-delta {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--accent-success);
-    margin-top: 4px;
-  }
+      /* Data Cards */
+      .data-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 16px;
+      }
+      .data-card-header {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-tertiary);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .data-card-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-primary);
+        line-height: 1.1;
+      }
+      .data-card-value.small {
+        font-size: 16px;
+      }
+      .data-card-delta {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: var(--accent-success);
+        margin-top: 4px;
+      }
 
-  /* Snapshot Panel */
-  .snapshot-panel {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-subtle);
-    border-radius: 8px;
-    padding: 20px;
-  }
-  .snapshot-insight {
-    background: var(--bg-tertiary);
-    border-left: 3px solid var(--accent-warm);
-    padding: 12px 16px;
-    border-radius: 0 6px 6px 0;
-    margin: 12px 0;
-  }
-  .snapshot-insight p {
-    font-size: 13px;
-    color: var(--text-primary);
-    line-height: 1.5;
-  }
-  .snapshot-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: var(--accent-primary-muted);
-    border: 1px solid rgba(124, 185, 232, 0.3);
-    border-radius: 6px;
-    color: var(--accent-primary);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    margin-top: 12px;
-    transition: all 150ms;
-  }
-  .snapshot-action:hover {
-    background: rgba(124, 185, 232, 0.25);
-  }
+      /* Snapshot Panel */
+      .snapshot-panel {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 20px;
+      }
+      .snapshot-insight {
+        background: var(--bg-tertiary);
+        border-left: 3px solid var(--accent-warm);
+        padding: 12px 16px;
+        border-radius: 0 6px 6px 0;
+        margin: 12px 0;
+      }
+      .snapshot-insight p {
+        font-size: 13px;
+        color: var(--text-primary);
+        line-height: 1.5;
+      }
+      .snapshot-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: var(--accent-primary-muted);
+        border: 1px solid rgba(124, 185, 232, 0.3);
+        border-radius: 6px;
+        color: var(--accent-primary);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        margin-top: 12px;
+        transition: all 150ms;
+      }
+      .snapshot-action:hover {
+        background: rgba(124, 185, 232, 0.25);
+      }
 
-  /* Chat */
-  .chat-panel {
-    background: var(--bg-secondary);
-    border-left: 1px solid var(--border-subtle);
-    display: flex;
-    flex-direction: column;
-  }
-  .chat-header {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-subtle);
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-  }
-  .chat-messages {
-    flex: 1;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    overflow-y: auto;
-  }
-  .chat-msg {
-    font-size: 13px;
-    line-height: 1.5;
-    padding: 10px 14px;
-    border-radius: 8px;
-    max-width: 85%;
-  }
-  .chat-msg.ai {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    align-self: flex-start;
-  }
-  .chat-msg.user {
-    background: var(--accent-primary-muted);
-    color: var(--accent-primary);
-    align-self: flex-end;
-  }
-  .chat-input {
-    padding: 12px 16px;
-    border-top: 1px solid var(--border-subtle);
-  }
-  .chat-input input {
-    width: 100%;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-default);
-    border-radius: 6px;
-    padding: 8px 12px;
-    color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    outline: none;
-  }
-  .chat-input input:focus {
-    border-color: var(--accent-primary);
-  }
-  .chat-input input::placeholder { color: var(--text-tertiary); }
+      /* Chat */
+      .chat-panel {
+        background: var(--bg-secondary);
+        border-left: 1px solid var(--border-subtle);
+        display: flex;
+        flex-direction: column;
+      }
+      .chat-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-subtle);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+      .chat-messages {
+        flex: 1;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        overflow-y: auto;
+      }
+      .chat-msg {
+        font-size: 13px;
+        line-height: 1.5;
+        padding: 10px 14px;
+        border-radius: 8px;
+        max-width: 85%;
+      }
+      .chat-msg.ai {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        align-self: flex-start;
+      }
+      .chat-msg.user {
+        background: var(--accent-primary-muted);
+        color: var(--accent-primary);
+        align-self: flex-end;
+      }
+      .chat-input {
+        padding: 12px 16px;
+        border-top: 1px solid var(--border-subtle);
+      }
+      .chat-input input {
+        width: 100%;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 6px;
+        padding: 8px 12px;
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        outline: none;
+      }
+      .chat-input input:focus {
+        border-color: var(--accent-primary);
+      }
+      .chat-input input::placeholder {
+        color: var(--text-tertiary);
+      }
 
-  /* Session Summary */
-  .session-summary {
-    display: grid;
-    gap: 12px;
-  }
-  .summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-subtle);
-    font-size: 13px;
-  }
-  .summary-row:last-child { border-bottom: none; }
-  .summary-label { color: var(--text-secondary); }
-  .summary-value { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+      /* Session Summary */
+      .session-summary {
+        display: grid;
+        gap: 12px;
+      }
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-subtle);
+        font-size: 13px;
+      }
+      .summary-row:last-child {
+        border-bottom: none;
+      }
+      .summary-label {
+        color: var(--text-secondary);
+      }
+      .summary-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 500;
+      }
 
-  /* Streak */
-  .streak-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    background: var(--bg-tertiary);
-    border-radius: 4px;
-    font-size: 12px;
-    color: var(--text-secondary);
-  }
-  .streak-number {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 600;
-    color: var(--accent-warm);
-  }
+      /* Streak */
+      .streak-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        background: var(--bg-tertiary);
+        border-radius: 4px;
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+      .streak-number {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 600;
+        color: var(--accent-warm);
+      }
 
-  /* Progress Bar */
-  .progress-bar {
-    height: 4px;
-    background: var(--bg-tertiary);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-top: 8px;
-  }
-  .progress-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 300ms ease;
-  }
+      /* Progress Bar */
+      .progress-bar {
+        height: 4px;
+        background: var(--bg-tertiary);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 8px;
+      }
+      .progress-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 300ms ease;
+      }
 
-  /* Timeline */
-  .timeline-bar {
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border-subtle);
-    padding: 12px 16px;
-  }
-  .timeline-track {
-    height: 32px;
-    background: var(--bg-tertiary);
-    border-radius: 4px;
-    position: relative;
-    overflow: hidden;
-  }
-  .timeline-segment {
-    position: absolute;
-    top: 4px;
-    bottom: 4px;
-    border-radius: 2px;
-    opacity: 0.6;
-  }
-  .timeline-playhead {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--accent-primary);
-  }
-  .timeline-labels {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--text-tertiary);
-  }
+      /* Timeline */
+      .timeline-bar {
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border-subtle);
+        padding: 12px 16px;
+      }
+      .timeline-track {
+        height: 32px;
+        background: var(--bg-tertiary);
+        border-radius: 4px;
+        position: relative;
+        overflow: hidden;
+      }
+      .timeline-segment {
+        position: absolute;
+        top: 4px;
+        bottom: 4px;
+        border-radius: 2px;
+        opacity: 0.6;
+      }
+      .timeline-playhead {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--accent-primary);
+      }
+      .timeline-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        color: var(--text-tertiary);
+      }
 
-  /* Evaluation Tags */
-  .eval-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 16px;
-    margin-bottom: 32px;
-  }
-  .eval-tag {
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 4px;
-    border: 1px solid var(--border-default);
-    color: var(--text-secondary);
-  }
-  .eval-tag.pro { border-color: var(--accent-success); color: var(--accent-success); }
-  .eval-tag.con { border-color: var(--accent-warm); color: var(--accent-warm); }
+      /* Evaluation Tags */
+      .eval-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+        margin-bottom: 32px;
+      }
+      .eval-tag {
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 4px;
+        border: 1px solid var(--border-default);
+        color: var(--text-secondary);
+      }
+      .eval-tag.pro {
+        border-color: var(--accent-success);
+        color: var(--accent-success);
+      }
+      .eval-tag.con {
+        border-color: var(--accent-warm);
+        color: var(--accent-warm);
+      }
 
-  /* Direction 1: Immersive Canvas */
-  .d1-layout {
-    height: 560px;
-    position: relative;
-  }
-  .d1-canvas {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(180deg, var(--bg-primary) 0%, #0a0a0a 100%);
-    position: relative;
-  }
-  .d1-floating-panel {
-    position: absolute;
-    background: rgba(23, 23, 23, 0.85);
-    border: 1px solid var(--border-subtle);
-    border-radius: 8px;
-    backdrop-filter: blur(12px);
-    padding: 16px;
-  }
-  .d1-bottom-bar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(23, 23, 23, 0.9);
-    border-top: 1px solid var(--border-subtle);
-    backdrop-filter: blur(12px);
-    padding: 12px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+      /* Direction 1: Immersive Canvas */
+      .d1-layout {
+        height: 560px;
+        position: relative;
+      }
+      .d1-canvas {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(180deg, var(--bg-primary) 0%, #0a0a0a 100%);
+        position: relative;
+      }
+      .d1-floating-panel {
+        position: absolute;
+        background: rgba(23, 23, 23, 0.85);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        backdrop-filter: blur(12px);
+        padding: 16px;
+      }
+      .d1-bottom-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(23, 23, 23, 0.9);
+        border-top: 1px solid var(--border-subtle);
+        backdrop-filter: blur(12px);
+        padding: 12px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
 
-  /* Direction 2: Split Panel Dashboard */
-  .d2-layout {
-    height: 560px;
-    display: grid;
-    grid-template-columns: 1fr 360px;
-  }
-  .d2-main {
-    display: flex;
-    flex-direction: column;
-  }
-  .d2-canvas { flex: 1; background: var(--bg-primary); position: relative; }
-  .d2-sidebar {
-    background: var(--bg-secondary);
-    border-left: 1px solid var(--border-subtle);
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-  }
-  .d2-sidebar-section {
-    padding: 16px;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-  .d2-sidebar-section h3 {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 12px;
-  }
+      /* Direction 2: Split Panel Dashboard */
+      .d2-layout {
+        height: 560px;
+        display: grid;
+        grid-template-columns: 1fr 360px;
+      }
+      .d2-main {
+        display: flex;
+        flex-direction: column;
+      }
+      .d2-canvas {
+        flex: 1;
+        background: var(--bg-primary);
+        position: relative;
+      }
+      .d2-sidebar {
+        background: var(--bg-secondary);
+        border-left: 1px solid var(--border-subtle);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      .d2-sidebar-section {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .d2-sidebar-section h3 {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 12px;
+      }
 
-  /* Direction 3: Card Grid */
-  .d3-layout {
-    min-height: 560px;
-    padding: 16px;
-    display: grid;
-    grid-template-columns: 1fr 1fr 320px;
-    grid-template-rows: auto 1fr auto;
-    gap: 12px;
-  }
-  .d3-canvas-card {
-    grid-column: 1 / 3;
-    grid-row: 1 / 3;
-  }
-  .d3-metrics {
-    grid-column: 3;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
+      /* Direction 3: Card Grid */
+      .d3-layout {
+        min-height: 560px;
+        padding: 16px;
+        display: grid;
+        grid-template-columns: 1fr 1fr 320px;
+        grid-template-rows: auto 1fr auto;
+        gap: 12px;
+      }
+      .d3-canvas-card {
+        grid-column: 1 / 3;
+        grid-row: 1 / 3;
+      }
+      .d3-metrics {
+        grid-column: 3;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
 
-  /* Direction 4: Command Center */
-  .d4-layout {
-    height: 560px;
-    display: grid;
-    grid-template-columns: 240px 1fr 240px;
-    grid-template-rows: 1fr;
-  }
-  .d4-left, .d4-right {
-    background: var(--bg-secondary);
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    overflow-y: auto;
-  }
-  .d4-left { border-right: 1px solid var(--border-subtle); }
-  .d4-right { border-left: 1px solid var(--border-subtle); }
-  .d4-center {
-    position: relative;
-    background: var(--bg-primary);
-  }
+      /* Direction 4: Command Center */
+      .d4-layout {
+        height: 560px;
+        display: grid;
+        grid-template-columns: 240px 1fr 240px;
+        grid-template-rows: 1fr;
+      }
+      .d4-left,
+      .d4-right {
+        background: var(--bg-secondary);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        overflow-y: auto;
+      }
+      .d4-left {
+        border-right: 1px solid var(--border-subtle);
+      }
+      .d4-right {
+        border-left: 1px solid var(--border-subtle);
+      }
+      .d4-center {
+        position: relative;
+        background: var(--bg-primary);
+      }
 
-  /* Direction 5: Minimal Focus */
-  .d5-layout {
-    height: 560px;
-    display: flex;
-    flex-direction: column;
-  }
-  .d5-canvas {
-    flex: 1;
-    position: relative;
-    background: var(--bg-primary);
-  }
-  .d5-bottom {
-    display: flex;
-    gap: 12px;
-    padding: 16px;
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border-subtle);
-  }
-  .d5-mini-card {
-    flex: 1;
-    background: var(--bg-tertiary);
-    border-radius: 6px;
-    padding: 12px;
-    text-align: center;
-  }
+      /* Direction 5: Minimal Focus */
+      .d5-layout {
+        height: 560px;
+        display: flex;
+        flex-direction: column;
+      }
+      .d5-canvas {
+        flex: 1;
+        position: relative;
+        background: var(--bg-primary);
+      }
+      .d5-bottom {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border-subtle);
+      }
+      .d5-mini-card {
+        flex: 1;
+        background: var(--bg-tertiary);
+        border-radius: 6px;
+        padding: 12px;
+        text-align: center;
+      }
 
-  /* Direction 6: Tabbed Workspace */
-  .d6-layout {
-    height: 560px;
-    display: flex;
-    flex-direction: column;
-  }
-  .d6-tab-bar {
-    display: flex;
-    gap: 0;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-subtle);
-  }
-  .d6-tab {
-    padding: 10px 20px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-tertiary);
-    border-bottom: 2px solid transparent;
-    cursor: pointer;
-    transition: all 150ms;
-  }
-  .d6-tab.active {
-    color: var(--accent-primary);
-    border-bottom-color: var(--accent-primary);
-  }
-  .d6-content {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 1fr 380px;
-  }
-  .d6-canvas { position: relative; background: var(--bg-primary); }
-  .d6-detail {
-    background: var(--bg-secondary);
-    border-left: 1px solid var(--border-subtle);
-    padding: 16px;
-    overflow-y: auto;
-  }
+      /* Direction 6: Tabbed Workspace */
+      .d6-layout {
+        height: 560px;
+        display: flex;
+        flex-direction: column;
+      }
+      .d6-tab-bar {
+        display: flex;
+        gap: 0;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .d6-tab {
+        padding: 10px 20px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-tertiary);
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        transition: all 150ms;
+      }
+      .d6-tab.active {
+        color: var(--accent-primary);
+        border-bottom-color: var(--accent-primary);
+      }
+      .d6-content {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 380px;
+      }
+      .d6-canvas {
+        position: relative;
+        background: var(--bg-primary);
+      }
+      .d6-detail {
+        background: var(--bg-secondary);
+        border-left: 1px solid var(--border-subtle);
+        padding: 16px;
+        overflow-y: auto;
+      }
 
-  /* Viz Notes for all mockups */
-  .note-block {
-    position: absolute;
-    border-radius: 3px;
-    opacity: 0.7;
-  }
-</style>
-</head>
-<body>
-
-<div class="page-header">
-  <h1>Minstrel — Design Direction Exploration</h1>
-  <p>Six visual approaches for Minstrel's interface. Same design foundation (colors, typography, tokens), different layout strategies. Evaluate based on: layout intuitiveness, visual weight, canvas prominence, and alignment with the "professional readiness + instant accessibility" goal.</p>
-</div>
-
-<nav class="direction-nav">
-  <button class="active" onclick="showDirection(1)">1. Immersive Canvas</button>
-  <button onclick="showDirection(2)">2. Split Dashboard</button>
-  <button onclick="showDirection(3)">3. Card Grid</button>
-  <button onclick="showDirection(4)">4. Command Center</button>
-  <button onclick="showDirection(5)">5. Minimal Focus</button>
-  <button onclick="showDirection(6)">6. Tabbed Workspace</button>
-</nav>
-
-<!-- Direction 1: Immersive Canvas -->
-<section class="direction-section active" id="dir-1">
-  <h2 class="direction-title">Direction 1: Immersive Canvas</h2>
-  <p class="direction-subtitle">Silent Coach Mode — Maximum visualization, floating overlays</p>
-  <p class="direction-desc">The visualization canvas takes 100% of the viewport. UI elements float as translucent overlays with backdrop blur. Closest to the "flow state" ideal — the musician sees their music filling the screen. Data panels appear on hover or pause.</p>
-  <div class="eval-tags">
-    <span class="eval-tag pro">+ Maximum immersion</span>
-    <span class="eval-tag pro">+ Flow state optimized</span>
-    <span class="eval-tag pro">+ Dramatic first impression</span>
-    <span class="eval-tag con">~ Floating panels may feel unstable</span>
-    <span class="eval-tag con">~ Data access requires interaction</span>
-  </div>
-  <div class="mockup-frame">
-    <div class="status-bar">
-      <div class="left">
-        <span><span class="status-dot"></span>MIDI-KBD-01 Connected</span>
-        <div class="mode-switcher">
-          <button class="mode-btn active">Silent Coach</button>
-          <button class="mode-btn">Dashboard</button>
-          <button class="mode-btn">Replay</button>
-        </div>
-      </div>
-      <div class="right">
-        <span class="streak-badge"><span class="streak-number">Day 12</span></span>
-        <span class="mono" style="font-size: 11px;">14:32</span>
-      </div>
+      /* Viz Notes for all mockups */
+      .note-block {
+        position: absolute;
+        border-radius: 3px;
+        opacity: 0.7;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-header">
+      <h1>Minstrel — Design Direction Exploration</h1>
+      <p>
+        Six visual approaches for Minstrel's interface. Same design foundation (colors, typography,
+        tokens), different layout strategies. Evaluate based on: layout intuitiveness, visual
+        weight, canvas prominence, and alignment with the "professional readiness + instant
+        accessibility" goal.
+      </p>
     </div>
-    <div class="d1-layout">
-      <div class="d1-canvas">
-        <!-- Visualization -->
-        <div class="viz-key-indicator">Key: C Major</div>
-        <div class="viz-tempo">96 BPM</div>
-        <!-- Note blocks representing a piano roll style viz -->
-        <div class="note-block" style="left:8%;top:30%;width:60px;height:14px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:14%;top:42%;width:45px;height:14px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:19%;top:35%;width:55px;height:14px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:26%;top:50%;width:40px;height:14px;background:var(--accent-secondary)"></div>
-        <div class="note-block" style="left:31%;top:38%;width:65px;height:14px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:39%;top:28%;width:50px;height:14px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:45%;top:45%;width:35px;height:14px;background:var(--accent-tertiary)"></div>
-        <div class="note-block" style="left:50%;top:33%;width:70px;height:14px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:58%;top:48%;width:42px;height:14px;background:var(--accent-secondary)"></div>
-        <div class="note-block" style="left:64%;top:36%;width:55px;height:14px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:71%;top:40%;width:48px;height:14px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:78%;top:30%;width:60px;height:14px;background:var(--accent-tertiary)"></div>
-        <div class="viz-pulse"></div>
 
-        <!-- Floating insight panel (appears on pause) -->
-        <div class="d1-floating-panel" style="bottom:80px;right:24px;width:320px;">
-          <div class="data-card-header">Key Insight</div>
-          <div class="snapshot-insight" style="margin:8px 0;">
-            <p>Your C→Am transition averages <span class="mono" style="color:var(--accent-warm)">380ms</span> — 2x slower than your other transitions.</p>
+    <nav class="direction-nav">
+      <button class="active" onclick="showDirection(1)">1. Immersive Canvas</button>
+      <button onclick="showDirection(2)">2. Split Dashboard</button>
+      <button onclick="showDirection(3)">3. Card Grid</button>
+      <button onclick="showDirection(4)">4. Command Center</button>
+      <button onclick="showDirection(5)">5. Minimal Focus</button>
+      <button onclick="showDirection(6)">6. Tabbed Workspace</button>
+    </nav>
+
+    <!-- Direction 1: Immersive Canvas -->
+    <section class="direction-section active" id="dir-1">
+      <h2 class="direction-title">Direction 1: Immersive Canvas</h2>
+      <p class="direction-subtitle">Silent Coach Mode — Maximum visualization, floating overlays</p>
+      <p class="direction-desc">
+        The visualization canvas takes 100% of the viewport. UI elements float as translucent
+        overlays with backdrop blur. Closest to the "flow state" ideal — the musician sees their
+        music filling the screen. Data panels appear on hover or pause.
+      </p>
+      <div class="eval-tags">
+        <span class="eval-tag pro">+ Maximum immersion</span>
+        <span class="eval-tag pro">+ Flow state optimized</span>
+        <span class="eval-tag pro">+ Dramatic first impression</span>
+        <span class="eval-tag con">~ Floating panels may feel unstable</span>
+        <span class="eval-tag con">~ Data access requires interaction</span>
+      </div>
+      <div class="mockup-frame">
+        <div class="status-bar">
+          <div class="left">
+            <span><span class="status-dot"></span>MIDI-KBD-01 Connected</span>
+            <div class="mode-switcher">
+              <button class="mode-btn active">Silent Coach</button>
+              <button class="mode-btn">Dashboard</button>
+              <button class="mode-btn">Replay</button>
+            </div>
           </div>
-          <div class="snapshot-action">Generate 30s drill</div>
+          <div class="right">
+            <span class="streak-badge"><span class="streak-number">Day 12</span></span>
+            <span class="mono" style="font-size: 11px">14:32</span>
+          </div>
         </div>
-      </div>
-      <div class="d1-bottom-bar">
-        <div style="display:flex;gap:24px;align-items:center;">
-          <span style="font-size:12px;color:var(--text-tertiary)">Session: <span class="mono" style="color:var(--text-secondary)">12:47</span></span>
-          <span style="font-size:12px;color:var(--text-tertiary)">Timing: <span class="mono" style="color:var(--accent-tertiary)">78%</span></span>
-          <span style="font-size:12px;color:var(--text-tertiary)">Chords: <span class="mono" style="color:var(--accent-secondary)">C Am F G</span></span>
-        </div>
-        <div style="font-size:11px;color:var(--text-tertiary)">Press <span style="color:var(--text-secondary)">Space</span> to pause · <span style="color:var(--text-secondary)">Tab</span> to switch mode</div>
-      </div>
-    </div>
-  </div>
-</section>
+        <div class="d1-layout">
+          <div class="d1-canvas">
+            <!-- Visualization -->
+            <div class="viz-key-indicator">Key: C Major</div>
+            <div class="viz-tempo">96 BPM</div>
+            <!-- Note blocks representing a piano roll style viz -->
+            <div
+              class="note-block"
+              style="
+                left: 8%;
+                top: 30%;
+                width: 60px;
+                height: 14px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 14%;
+                top: 42%;
+                width: 45px;
+                height: 14px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 19%;
+                top: 35%;
+                width: 55px;
+                height: 14px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 26%;
+                top: 50%;
+                width: 40px;
+                height: 14px;
+                background: var(--accent-secondary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 31%;
+                top: 38%;
+                width: 65px;
+                height: 14px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 39%;
+                top: 28%;
+                width: 50px;
+                height: 14px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 45%;
+                top: 45%;
+                width: 35px;
+                height: 14px;
+                background: var(--accent-tertiary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 50%;
+                top: 33%;
+                width: 70px;
+                height: 14px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 58%;
+                top: 48%;
+                width: 42px;
+                height: 14px;
+                background: var(--accent-secondary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 64%;
+                top: 36%;
+                width: 55px;
+                height: 14px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 71%;
+                top: 40%;
+                width: 48px;
+                height: 14px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 78%;
+                top: 30%;
+                width: 60px;
+                height: 14px;
+                background: var(--accent-tertiary);
+              "
+            ></div>
+            <div class="viz-pulse"></div>
 
-<!-- Direction 2: Split Dashboard -->
-<section class="direction-section" id="dir-2">
-  <h2 class="direction-title">Direction 2: Split Dashboard</h2>
-  <p class="direction-subtitle">Dashboard + Chat Mode — Canvas left, data right</p>
-  <p class="direction-desc">Classic split-panel layout. Visualization canvas takes 60% left, structured data panel takes 40% right. Clean separation of concerns. Most familiar layout pattern — immediately understandable. Epidemic Sound-style card organization in the sidebar.</p>
-  <div class="eval-tags">
-    <span class="eval-tag pro">+ Instantly understandable layout</span>
-    <span class="eval-tag pro">+ Data always visible</span>
-    <span class="eval-tag pro">+ Clean information hierarchy</span>
-    <span class="eval-tag con">~ Less canvas space than immersive</span>
-    <span class="eval-tag con">~ May feel like a generic dashboard</span>
-  </div>
-  <div class="mockup-frame">
-    <div class="status-bar">
-      <div class="left">
-        <span><span class="status-dot"></span>Yamaha P-125 Connected</span>
-        <div class="mode-switcher">
-          <button class="mode-btn">Silent Coach</button>
-          <button class="mode-btn active">Dashboard</button>
-          <button class="mode-btn">Replay</button>
+            <!-- Floating insight panel (appears on pause) -->
+            <div class="d1-floating-panel" style="bottom: 80px; right: 24px; width: 320px">
+              <div class="data-card-header">Key Insight</div>
+              <div class="snapshot-insight" style="margin: 8px 0">
+                <p>
+                  Your C→Am transition averages
+                  <span class="mono" style="color: var(--accent-warm)">380ms</span> — 2x slower than
+                  your other transitions.
+                </p>
+              </div>
+              <div class="snapshot-action">Generate 30s drill</div>
+            </div>
+          </div>
+          <div class="d1-bottom-bar">
+            <div style="display: flex; gap: 24px; align-items: center">
+              <span style="font-size: 12px; color: var(--text-tertiary)"
+                >Session: <span class="mono" style="color: var(--text-secondary)">12:47</span></span
+              >
+              <span style="font-size: 12px; color: var(--text-tertiary)"
+                >Timing: <span class="mono" style="color: var(--accent-tertiary)">78%</span></span
+              >
+              <span style="font-size: 12px; color: var(--text-tertiary)"
+                >Chords:
+                <span class="mono" style="color: var(--accent-secondary)">C Am F G</span></span
+              >
+            </div>
+            <div style="font-size: 11px; color: var(--text-tertiary)">
+              Press <span style="color: var(--text-secondary)">Space</span> to pause ·
+              <span style="color: var(--text-secondary)">Tab</span> to switch mode
+            </div>
+          </div>
         </div>
       </div>
-      <div class="right">
-        <span class="streak-badge"><span class="streak-number">Day 12</span></span>
-        <span class="mono" style="font-size: 11px;">14:32</span>
+    </section>
+
+    <!-- Direction 2: Split Dashboard -->
+    <section class="direction-section" id="dir-2">
+      <h2 class="direction-title">Direction 2: Split Dashboard</h2>
+      <p class="direction-subtitle">Dashboard + Chat Mode — Canvas left, data right</p>
+      <p class="direction-desc">
+        Classic split-panel layout. Visualization canvas takes 60% left, structured data panel takes
+        40% right. Clean separation of concerns. Most familiar layout pattern — immediately
+        understandable. Epidemic Sound-style card organization in the sidebar.
+      </p>
+      <div class="eval-tags">
+        <span class="eval-tag pro">+ Instantly understandable layout</span>
+        <span class="eval-tag pro">+ Data always visible</span>
+        <span class="eval-tag pro">+ Clean information hierarchy</span>
+        <span class="eval-tag con">~ Less canvas space than immersive</span>
+        <span class="eval-tag con">~ May feel like a generic dashboard</span>
       </div>
-    </div>
-    <div class="d2-layout">
-      <div class="d2-main">
-        <div class="d2-canvas">
-          <div class="viz-key-indicator">Key: C Major</div>
-          <div class="viz-tempo">96 BPM</div>
-          <div class="note-block" style="left:5%;top:25%;width:55px;height:12px;background:var(--accent-primary)"></div>
-          <div class="note-block" style="left:12%;top:40%;width:45px;height:12px;background:var(--accent-primary)"></div>
-          <div class="note-block" style="left:18%;top:32%;width:60px;height:12px;background:var(--accent-secondary)"></div>
-          <div class="note-block" style="left:26%;top:50%;width:38px;height:12px;background:var(--accent-primary)"></div>
-          <div class="note-block" style="left:33%;top:35%;width:50px;height:12px;background:var(--accent-tertiary)"></div>
-          <div class="note-block" style="left:42%;top:45%;width:42px;height:12px;background:var(--accent-primary)"></div>
-          <div class="note-block" style="left:50%;top:28%;width:65px;height:12px;background:var(--accent-primary)"></div>
-          <div class="note-block" style="left:60%;top:38%;width:48px;height:12px;background:var(--accent-secondary)"></div>
-          <div class="note-block" style="left:70%;top:42%;width:55px;height:12px;background:var(--accent-primary)"></div>
-          <div class="note-block" style="left:80%;top:30%;width:40px;height:12px;background:var(--accent-tertiary)"></div>
-          <div class="viz-pulse"></div>
+      <div class="mockup-frame">
+        <div class="status-bar">
+          <div class="left">
+            <span><span class="status-dot"></span>Yamaha P-125 Connected</span>
+            <div class="mode-switcher">
+              <button class="mode-btn">Silent Coach</button>
+              <button class="mode-btn active">Dashboard</button>
+              <button class="mode-btn">Replay</button>
+            </div>
+          </div>
+          <div class="right">
+            <span class="streak-badge"><span class="streak-number">Day 12</span></span>
+            <span class="mono" style="font-size: 11px">14:32</span>
+          </div>
+        </div>
+        <div class="d2-layout">
+          <div class="d2-main">
+            <div class="d2-canvas">
+              <div class="viz-key-indicator">Key: C Major</div>
+              <div class="viz-tempo">96 BPM</div>
+              <div
+                class="note-block"
+                style="
+                  left: 5%;
+                  top: 25%;
+                  width: 55px;
+                  height: 12px;
+                  background: var(--accent-primary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 12%;
+                  top: 40%;
+                  width: 45px;
+                  height: 12px;
+                  background: var(--accent-primary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 18%;
+                  top: 32%;
+                  width: 60px;
+                  height: 12px;
+                  background: var(--accent-secondary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 26%;
+                  top: 50%;
+                  width: 38px;
+                  height: 12px;
+                  background: var(--accent-primary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 33%;
+                  top: 35%;
+                  width: 50px;
+                  height: 12px;
+                  background: var(--accent-tertiary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 42%;
+                  top: 45%;
+                  width: 42px;
+                  height: 12px;
+                  background: var(--accent-primary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 50%;
+                  top: 28%;
+                  width: 65px;
+                  height: 12px;
+                  background: var(--accent-primary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 60%;
+                  top: 38%;
+                  width: 48px;
+                  height: 12px;
+                  background: var(--accent-secondary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 70%;
+                  top: 42%;
+                  width: 55px;
+                  height: 12px;
+                  background: var(--accent-primary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 80%;
+                  top: 30%;
+                  width: 40px;
+                  height: 12px;
+                  background: var(--accent-tertiary);
+                "
+              ></div>
+              <div class="viz-pulse"></div>
+            </div>
+          </div>
+          <div class="d2-sidebar">
+            <div class="d2-sidebar-section">
+              <h3>Session</h3>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+                <div class="data-card" style="padding: 12px">
+                  <div class="data-card-header" style="font-size: 10px">Duration</div>
+                  <div class="data-card-value small mono">12:47</div>
+                </div>
+                <div class="data-card" style="padding: 12px">
+                  <div class="data-card-header" style="font-size: 10px">Timing</div>
+                  <div class="data-card-value small mono" style="color: var(--accent-tertiary)">
+                    78%
+                  </div>
+                  <div class="data-card-delta">+4% vs last</div>
+                </div>
+              </div>
+            </div>
+            <div class="d2-sidebar-section">
+              <h3>Key Insight</h3>
+              <div class="snapshot-insight">
+                <p>
+                  Your C→Am transition averages
+                  <span class="mono" style="color: var(--accent-warm)">380ms</span> — 2x slower than
+                  your other transitions.
+                </p>
+              </div>
+              <div class="snapshot-action" style="margin-top: 12px">Generate 30s drill</div>
+            </div>
+            <div class="d2-sidebar-section" style="flex: 1">
+              <h3>AI Coach</h3>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <div class="chat-msg ai">
+                  Your voice leading between the ii and V has improved — parallel fifths down from
+                  40% to 18% this week.
+                </div>
+                <div class="chat-msg user">Why did that last phrase sound jazzy?</div>
+                <div class="chat-msg ai">
+                  You used a b9 over the V chord — that's a common bebop tension. It resolved to the
+                  root of the I. Want to explore more altered dominant tensions?
+                </div>
+              </div>
+              <div class="chat-input" style="padding: 12px 0 0">
+                <input type="text" placeholder="Ask about your playing..." />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="d2-sidebar">
-        <div class="d2-sidebar-section">
-          <h3>Session</h3>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div class="data-card" style="padding:12px;">
-              <div class="data-card-header" style="font-size:10px;">Duration</div>
+    </section>
+
+    <!-- Direction 3: Card Grid -->
+    <section class="direction-section" id="dir-3">
+      <h2 class="direction-title">Direction 3: Card Grid</h2>
+      <p class="direction-subtitle">Modular layout — Everything in organized cards</p>
+      <p class="direction-desc">
+        Every piece of information lives in its own card. Canvas is the largest card. Metrics,
+        insights, and controls are separate cards arranged in a grid. Most Epidemic Sound-aligned of
+        all directions. Clean, modular, easy to scan.
+      </p>
+      <div class="eval-tags">
+        <span class="eval-tag pro">+ Most Epidemic Sound-like</span>
+        <span class="eval-tag pro">+ Clear information boundaries</span>
+        <span class="eval-tag pro">+ Scannable at a glance</span>
+        <span class="eval-tag con">~ Canvas shares space with cards</span>
+        <span class="eval-tag con">~ May feel more like analytics than studio</span>
+      </div>
+      <div class="mockup-frame">
+        <div class="status-bar">
+          <div class="left">
+            <span><span class="status-dot"></span>Yamaha P-125 Connected</span>
+            <div class="mode-switcher">
+              <button class="mode-btn">Silent Coach</button>
+              <button class="mode-btn active">Dashboard</button>
+              <button class="mode-btn">Replay</button>
+            </div>
+          </div>
+          <div class="right">
+            <span class="streak-badge"><span class="streak-number">Day 12</span></span>
+          </div>
+        </div>
+        <div class="d3-layout">
+          <div
+            class="data-card d3-canvas-card"
+            style="padding: 0; overflow: hidden; position: relative"
+          >
+            <div style="height: 100%; position: relative; background: var(--bg-primary)">
+              <div class="viz-key-indicator">Key: C Major</div>
+              <div class="viz-tempo">96 BPM</div>
+              <div
+                class="note-block"
+                style="
+                  left: 6%;
+                  top: 20%;
+                  width: 50px;
+                  height: 11px;
+                  background: var(--accent-primary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 13%;
+                  top: 35%;
+                  width: 40px;
+                  height: 11px;
+                  background: var(--accent-secondary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 19%;
+                  top: 28%;
+                  width: 55px;
+                  height: 11px;
+                  background: var(--accent-primary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 27%;
+                  top: 45%;
+                  width: 35px;
+                  height: 11px;
+                  background: var(--accent-primary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 34%;
+                  top: 30%;
+                  width: 48px;
+                  height: 11px;
+                  background: var(--accent-tertiary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 43%;
+                  top: 40%;
+                  width: 42px;
+                  height: 11px;
+                  background: var(--accent-primary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 52%;
+                  top: 25%;
+                  width: 60px;
+                  height: 11px;
+                  background: var(--accent-secondary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 62%;
+                  top: 38%;
+                  width: 38px;
+                  height: 11px;
+                  background: var(--accent-primary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 70%;
+                  top: 32%;
+                  width: 52px;
+                  height: 11px;
+                  background: var(--accent-primary);
+                "
+              ></div>
+              <div
+                class="note-block"
+                style="
+                  left: 80%;
+                  top: 42%;
+                  width: 45px;
+                  height: 11px;
+                  background: var(--accent-tertiary);
+                "
+              ></div>
+              <div class="viz-pulse"></div>
+            </div>
+          </div>
+          <div class="d3-metrics">
+            <div class="data-card">
+              <div class="data-card-header">Timing Accuracy</div>
+              <div class="data-card-value mono" style="color: var(--accent-tertiary)">78%</div>
+              <div class="data-card-delta">+4% vs last session</div>
+              <div class="progress-bar">
+                <div
+                  class="progress-fill"
+                  style="width: 78%; background: var(--accent-tertiary)"
+                ></div>
+              </div>
+            </div>
+            <div class="data-card">
+              <div class="data-card-header">Session Duration</div>
+              <div class="data-card-value mono">12:47</div>
+            </div>
+            <div class="data-card">
+              <div class="data-card-header">Chords Detected</div>
+              <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap">
+                <span
+                  style="
+                    padding: 3px 8px;
+                    background: var(--accent-primary-muted);
+                    border-radius: 4px;
+                    font-size: 12px;
+                    color: var(--accent-primary);
+                    font-weight: 500;
+                  "
+                  >C</span
+                >
+                <span
+                  style="
+                    padding: 3px 8px;
+                    background: var(--accent-primary-muted);
+                    border-radius: 4px;
+                    font-size: 12px;
+                    color: var(--accent-primary);
+                    font-weight: 500;
+                  "
+                  >Am</span
+                >
+                <span
+                  style="
+                    padding: 3px 8px;
+                    background: var(--accent-primary-muted);
+                    border-radius: 4px;
+                    font-size: 12px;
+                    color: var(--accent-primary);
+                    font-weight: 500;
+                  "
+                  >F</span
+                >
+                <span
+                  style="
+                    padding: 3px 8px;
+                    background: var(--accent-primary-muted);
+                    border-radius: 4px;
+                    font-size: 12px;
+                    color: var(--accent-primary);
+                    font-weight: 500;
+                  "
+                  >G</span
+                >
+              </div>
+            </div>
+            <div class="data-card" style="border-left: 3px solid var(--accent-warm)">
+              <div class="data-card-header">Key Insight</div>
+              <p style="font-size: 13px; color: var(--text-primary); margin-top: 4px">
+                C→Am transition:
+                <span class="mono" style="color: var(--accent-warm)">380ms</span> avg
+              </p>
+              <div
+                class="snapshot-action"
+                style="font-size: 11px; padding: 6px 12px; margin-top: 8px"
+              >
+                Drill this
+              </div>
+            </div>
+          </div>
+          <div class="data-card" style="grid-column: 1/3">
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <div class="data-card-header" style="margin: 0">This Week's Progress</div>
+              <span style="font-size: 11px; color: var(--text-tertiary)"
+                >5 sessions · 1h 12m total</span
+              >
+            </div>
+            <div style="display: flex; gap: 16px; margin-top: 12px">
+              <div style="flex: 1; text-align: center">
+                <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px">
+                  Mon
+                </div>
+                <div
+                  style="
+                    height: 40px;
+                    background: var(--bg-tertiary);
+                    border-radius: 3px;
+                    position: relative;
+                    overflow: hidden;
+                  "
+                >
+                  <div
+                    style="
+                      position: absolute;
+                      bottom: 0;
+                      left: 0;
+                      right: 0;
+                      height: 60%;
+                      background: var(--accent-primary);
+                      opacity: 0.5;
+                      border-radius: 3px;
+                    "
+                  ></div>
+                </div>
+              </div>
+              <div style="flex: 1; text-align: center">
+                <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px">
+                  Tue
+                </div>
+                <div
+                  style="
+                    height: 40px;
+                    background: var(--bg-tertiary);
+                    border-radius: 3px;
+                    position: relative;
+                    overflow: hidden;
+                  "
+                >
+                  <div
+                    style="
+                      position: absolute;
+                      bottom: 0;
+                      left: 0;
+                      right: 0;
+                      height: 85%;
+                      background: var(--accent-primary);
+                      opacity: 0.5;
+                      border-radius: 3px;
+                    "
+                  ></div>
+                </div>
+              </div>
+              <div style="flex: 1; text-align: center">
+                <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px">
+                  Wed
+                </div>
+                <div
+                  style="
+                    height: 40px;
+                    background: var(--bg-tertiary);
+                    border-radius: 3px;
+                    position: relative;
+                    overflow: hidden;
+                  "
+                >
+                  <div
+                    style="
+                      position: absolute;
+                      bottom: 0;
+                      left: 0;
+                      right: 0;
+                      height: 45%;
+                      background: var(--accent-primary);
+                      opacity: 0.5;
+                      border-radius: 3px;
+                    "
+                  ></div>
+                </div>
+              </div>
+              <div style="flex: 1; text-align: center">
+                <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px">
+                  Thu
+                </div>
+                <div
+                  style="
+                    height: 40px;
+                    background: var(--bg-tertiary);
+                    border-radius: 3px;
+                    position: relative;
+                    overflow: hidden;
+                  "
+                >
+                  <div
+                    style="
+                      position: absolute;
+                      bottom: 0;
+                      left: 0;
+                      right: 0;
+                      height: 75%;
+                      background: var(--accent-primary);
+                      opacity: 0.7;
+                      border-radius: 3px;
+                    "
+                  ></div>
+                </div>
+              </div>
+              <div style="flex: 1; text-align: center">
+                <div
+                  style="
+                    font-size: 11px;
+                    color: var(--accent-primary);
+                    margin-bottom: 4px;
+                    font-weight: 500;
+                  "
+                >
+                  Today
+                </div>
+                <div
+                  style="
+                    height: 40px;
+                    background: var(--bg-tertiary);
+                    border-radius: 3px;
+                    position: relative;
+                    overflow: hidden;
+                    border: 1px solid var(--accent-primary-muted);
+                  "
+                >
+                  <div
+                    style="
+                      position: absolute;
+                      bottom: 0;
+                      left: 0;
+                      right: 0;
+                      height: 50%;
+                      background: var(--accent-primary);
+                      opacity: 0.7;
+                      border-radius: 3px;
+                    "
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Direction 4: Command Center -->
+    <section class="direction-section" id="dir-4">
+      <h2 class="direction-title">Direction 4: Command Center</h2>
+      <p class="direction-subtitle">Three-panel layout — Data flanking the canvas</p>
+      <p class="direction-desc">
+        Canvas in the center, flanked by data panels on both sides. Left panel shows
+        session/performance data. Right panel shows AI insights and chat. Cockpit-style layout. Most
+        information-dense option.
+      </p>
+      <div class="eval-tags">
+        <span class="eval-tag pro">+ Maximum data visibility</span>
+        <span class="eval-tag pro">+ Symmetric, balanced feel</span>
+        <span class="eval-tag pro">+ Everything accessible at once</span>
+        <span class="eval-tag con">~ Reduced canvas size</span>
+        <span class="eval-tag con">~ May overwhelm minimal-tech users</span>
+        <span class="eval-tag con">~ Dense for first-time experience</span>
+      </div>
+      <div class="mockup-frame">
+        <div class="status-bar">
+          <div class="left">
+            <span><span class="status-dot"></span>Yamaha P-125 Connected</span>
+            <div class="mode-switcher">
+              <button class="mode-btn">Silent Coach</button>
+              <button class="mode-btn active">Dashboard</button>
+              <button class="mode-btn">Replay</button>
+            </div>
+          </div>
+          <div class="right">
+            <span class="streak-badge"><span class="streak-number">Day 12</span></span>
+          </div>
+        </div>
+        <div class="d4-layout">
+          <div class="d4-left">
+            <div class="data-card" style="padding: 12px">
+              <div class="data-card-header" style="font-size: 10px">Key</div>
+              <div class="data-card-value small">C Major</div>
+            </div>
+            <div class="data-card" style="padding: 12px">
+              <div class="data-card-header" style="font-size: 10px">Tempo</div>
+              <div class="data-card-value small mono">
+                96 <span style="font-size: 12px; color: var(--text-tertiary)">BPM</span>
+              </div>
+            </div>
+            <div class="data-card" style="padding: 12px">
+              <div class="data-card-header" style="font-size: 10px">Timing</div>
+              <div class="data-card-value small mono" style="color: var(--accent-tertiary)">
+                78%
+              </div>
+              <div class="data-card-delta">+4%</div>
+              <div class="progress-bar">
+                <div
+                  class="progress-fill"
+                  style="width: 78%; background: var(--accent-tertiary)"
+                ></div>
+              </div>
+            </div>
+            <div class="data-card" style="padding: 12px">
+              <div class="data-card-header" style="font-size: 10px">Chords</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px">
+                <span
+                  style="
+                    padding: 2px 6px;
+                    background: var(--accent-primary-muted);
+                    border-radius: 3px;
+                    font-size: 11px;
+                    color: var(--accent-primary);
+                  "
+                  >C</span
+                >
+                <span
+                  style="
+                    padding: 2px 6px;
+                    background: var(--accent-primary-muted);
+                    border-radius: 3px;
+                    font-size: 11px;
+                    color: var(--accent-primary);
+                  "
+                  >Am</span
+                >
+                <span
+                  style="
+                    padding: 2px 6px;
+                    background: var(--accent-primary-muted);
+                    border-radius: 3px;
+                    font-size: 11px;
+                    color: var(--accent-primary);
+                  "
+                  >F</span
+                >
+                <span
+                  style="
+                    padding: 2px 6px;
+                    background: var(--accent-primary-muted);
+                    border-radius: 3px;
+                    font-size: 11px;
+                    color: var(--accent-primary);
+                  "
+                  >G</span
+                >
+              </div>
+            </div>
+            <div class="data-card" style="padding: 12px">
+              <div class="data-card-header" style="font-size: 10px">Session</div>
               <div class="data-card-value small mono">12:47</div>
             </div>
-            <div class="data-card" style="padding:12px;">
-              <div class="data-card-header" style="font-size:10px;">Timing</div>
-              <div class="data-card-value small mono" style="color:var(--accent-tertiary)">78%</div>
-              <div class="data-card-delta">+4% vs last</div>
-            </div>
           </div>
-        </div>
-        <div class="d2-sidebar-section">
-          <h3>Key Insight</h3>
-          <div class="snapshot-insight">
-            <p>Your C→Am transition averages <span class="mono" style="color:var(--accent-warm)">380ms</span> — 2x slower than your other transitions.</p>
+          <div class="d4-center">
+            <div
+              class="note-block"
+              style="
+                left: 8%;
+                top: 25%;
+                width: 45px;
+                height: 10px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 16%;
+                top: 40%;
+                width: 35px;
+                height: 10px;
+                background: var(--accent-secondary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 23%;
+                top: 30%;
+                width: 50px;
+                height: 10px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 33%;
+                top: 50%;
+                width: 30px;
+                height: 10px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 40%;
+                top: 35%;
+                width: 42px;
+                height: 10px;
+                background: var(--accent-tertiary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 50%;
+                top: 45%;
+                width: 38px;
+                height: 10px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 58%;
+                top: 28%;
+                width: 55px;
+                height: 10px;
+                background: var(--accent-secondary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 68%;
+                top: 38%;
+                width: 40px;
+                height: 10px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 78%;
+                top: 42%;
+                width: 48px;
+                height: 10px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div class="viz-pulse"></div>
           </div>
-          <div class="snapshot-action" style="margin-top:12px;">Generate 30s drill</div>
-        </div>
-        <div class="d2-sidebar-section" style="flex:1;">
-          <h3>AI Coach</h3>
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <div class="chat-msg ai">Your voice leading between the ii and V has improved — parallel fifths down from 40% to 18% this week.</div>
-            <div class="chat-msg user">Why did that last phrase sound jazzy?</div>
-            <div class="chat-msg ai">You used a b9 over the V chord — that's a common bebop tension. It resolved to the root of the I. Want to explore more altered dominant tensions?</div>
-          </div>
-          <div class="chat-input" style="padding:12px 0 0;">
-            <input type="text" placeholder="Ask about your playing...">
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Direction 3: Card Grid -->
-<section class="direction-section" id="dir-3">
-  <h2 class="direction-title">Direction 3: Card Grid</h2>
-  <p class="direction-subtitle">Modular layout — Everything in organized cards</p>
-  <p class="direction-desc">Every piece of information lives in its own card. Canvas is the largest card. Metrics, insights, and controls are separate cards arranged in a grid. Most Epidemic Sound-aligned of all directions. Clean, modular, easy to scan.</p>
-  <div class="eval-tags">
-    <span class="eval-tag pro">+ Most Epidemic Sound-like</span>
-    <span class="eval-tag pro">+ Clear information boundaries</span>
-    <span class="eval-tag pro">+ Scannable at a glance</span>
-    <span class="eval-tag con">~ Canvas shares space with cards</span>
-    <span class="eval-tag con">~ May feel more like analytics than studio</span>
-  </div>
-  <div class="mockup-frame">
-    <div class="status-bar">
-      <div class="left">
-        <span><span class="status-dot"></span>Yamaha P-125 Connected</span>
-        <div class="mode-switcher">
-          <button class="mode-btn">Silent Coach</button>
-          <button class="mode-btn active">Dashboard</button>
-          <button class="mode-btn">Replay</button>
-        </div>
-      </div>
-      <div class="right">
-        <span class="streak-badge"><span class="streak-number">Day 12</span></span>
-      </div>
-    </div>
-    <div class="d3-layout">
-      <div class="data-card d3-canvas-card" style="padding:0;overflow:hidden;position:relative;">
-        <div style="height:100%;position:relative;background:var(--bg-primary);">
-          <div class="viz-key-indicator">Key: C Major</div>
-          <div class="viz-tempo">96 BPM</div>
-          <div class="note-block" style="left:6%;top:20%;width:50px;height:11px;background:var(--accent-primary)"></div>
-          <div class="note-block" style="left:13%;top:35%;width:40px;height:11px;background:var(--accent-secondary)"></div>
-          <div class="note-block" style="left:19%;top:28%;width:55px;height:11px;background:var(--accent-primary)"></div>
-          <div class="note-block" style="left:27%;top:45%;width:35px;height:11px;background:var(--accent-primary)"></div>
-          <div class="note-block" style="left:34%;top:30%;width:48px;height:11px;background:var(--accent-tertiary)"></div>
-          <div class="note-block" style="left:43%;top:40%;width:42px;height:11px;background:var(--accent-primary)"></div>
-          <div class="note-block" style="left:52%;top:25%;width:60px;height:11px;background:var(--accent-secondary)"></div>
-          <div class="note-block" style="left:62%;top:38%;width:38px;height:11px;background:var(--accent-primary)"></div>
-          <div class="note-block" style="left:70%;top:32%;width:52px;height:11px;background:var(--accent-primary)"></div>
-          <div class="note-block" style="left:80%;top:42%;width:45px;height:11px;background:var(--accent-tertiary)"></div>
-          <div class="viz-pulse"></div>
-        </div>
-      </div>
-      <div class="d3-metrics">
-        <div class="data-card">
-          <div class="data-card-header">Timing Accuracy</div>
-          <div class="data-card-value mono" style="color:var(--accent-tertiary)">78%</div>
-          <div class="data-card-delta">+4% vs last session</div>
-          <div class="progress-bar"><div class="progress-fill" style="width:78%;background:var(--accent-tertiary)"></div></div>
-        </div>
-        <div class="data-card">
-          <div class="data-card-header">Session Duration</div>
-          <div class="data-card-value mono">12:47</div>
-        </div>
-        <div class="data-card">
-          <div class="data-card-header">Chords Detected</div>
-          <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-            <span style="padding:3px 8px;background:var(--accent-primary-muted);border-radius:4px;font-size:12px;color:var(--accent-primary);font-weight:500;">C</span>
-            <span style="padding:3px 8px;background:var(--accent-primary-muted);border-radius:4px;font-size:12px;color:var(--accent-primary);font-weight:500;">Am</span>
-            <span style="padding:3px 8px;background:var(--accent-primary-muted);border-radius:4px;font-size:12px;color:var(--accent-primary);font-weight:500;">F</span>
-            <span style="padding:3px 8px;background:var(--accent-primary-muted);border-radius:4px;font-size:12px;color:var(--accent-primary);font-weight:500;">G</span>
-          </div>
-        </div>
-        <div class="data-card" style="border-left:3px solid var(--accent-warm);">
-          <div class="data-card-header">Key Insight</div>
-          <p style="font-size:13px;color:var(--text-primary);margin-top:4px;">C→Am transition: <span class="mono" style="color:var(--accent-warm)">380ms</span> avg</p>
-          <div class="snapshot-action" style="font-size:11px;padding:6px 12px;margin-top:8px;">Drill this</div>
-        </div>
-      </div>
-      <div class="data-card" style="grid-column:1/3;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div class="data-card-header" style="margin:0;">This Week's Progress</div>
-          <span style="font-size:11px;color:var(--text-tertiary);">5 sessions · 1h 12m total</span>
-        </div>
-        <div style="display:flex;gap:16px;margin-top:12px;">
-          <div style="flex:1;text-align:center;">
-            <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px;">Mon</div>
-            <div style="height:40px;background:var(--bg-tertiary);border-radius:3px;position:relative;overflow:hidden;">
-              <div style="position:absolute;bottom:0;left:0;right:0;height:60%;background:var(--accent-primary);opacity:0.5;border-radius:3px;"></div>
-            </div>
-          </div>
-          <div style="flex:1;text-align:center;">
-            <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px;">Tue</div>
-            <div style="height:40px;background:var(--bg-tertiary);border-radius:3px;position:relative;overflow:hidden;">
-              <div style="position:absolute;bottom:0;left:0;right:0;height:85%;background:var(--accent-primary);opacity:0.5;border-radius:3px;"></div>
-            </div>
-          </div>
-          <div style="flex:1;text-align:center;">
-            <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px;">Wed</div>
-            <div style="height:40px;background:var(--bg-tertiary);border-radius:3px;position:relative;overflow:hidden;">
-              <div style="position:absolute;bottom:0;left:0;right:0;height:45%;background:var(--accent-primary);opacity:0.5;border-radius:3px;"></div>
-            </div>
-          </div>
-          <div style="flex:1;text-align:center;">
-            <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px;">Thu</div>
-            <div style="height:40px;background:var(--bg-tertiary);border-radius:3px;position:relative;overflow:hidden;">
-              <div style="position:absolute;bottom:0;left:0;right:0;height:75%;background:var(--accent-primary);opacity:0.7;border-radius:3px;"></div>
-            </div>
-          </div>
-          <div style="flex:1;text-align:center;">
-            <div style="font-size:11px;color:var(--accent-primary);margin-bottom:4px;font-weight:500;">Today</div>
-            <div style="height:40px;background:var(--bg-tertiary);border-radius:3px;position:relative;overflow:hidden;border:1px solid var(--accent-primary-muted);">
-              <div style="position:absolute;bottom:0;left:0;right:0;height:50%;background:var(--accent-primary);opacity:0.7;border-radius:3px;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Direction 4: Command Center -->
-<section class="direction-section" id="dir-4">
-  <h2 class="direction-title">Direction 4: Command Center</h2>
-  <p class="direction-subtitle">Three-panel layout — Data flanking the canvas</p>
-  <p class="direction-desc">Canvas in the center, flanked by data panels on both sides. Left panel shows session/performance data. Right panel shows AI insights and chat. Cockpit-style layout. Most information-dense option.</p>
-  <div class="eval-tags">
-    <span class="eval-tag pro">+ Maximum data visibility</span>
-    <span class="eval-tag pro">+ Symmetric, balanced feel</span>
-    <span class="eval-tag pro">+ Everything accessible at once</span>
-    <span class="eval-tag con">~ Reduced canvas size</span>
-    <span class="eval-tag con">~ May overwhelm minimal-tech users</span>
-    <span class="eval-tag con">~ Dense for first-time experience</span>
-  </div>
-  <div class="mockup-frame">
-    <div class="status-bar">
-      <div class="left">
-        <span><span class="status-dot"></span>Yamaha P-125 Connected</span>
-        <div class="mode-switcher">
-          <button class="mode-btn">Silent Coach</button>
-          <button class="mode-btn active">Dashboard</button>
-          <button class="mode-btn">Replay</button>
-        </div>
-      </div>
-      <div class="right">
-        <span class="streak-badge"><span class="streak-number">Day 12</span></span>
-      </div>
-    </div>
-    <div class="d4-layout">
-      <div class="d4-left">
-        <div class="data-card" style="padding:12px;">
-          <div class="data-card-header" style="font-size:10px;">Key</div>
-          <div class="data-card-value small">C Major</div>
-        </div>
-        <div class="data-card" style="padding:12px;">
-          <div class="data-card-header" style="font-size:10px;">Tempo</div>
-          <div class="data-card-value small mono">96 <span style="font-size:12px;color:var(--text-tertiary)">BPM</span></div>
-        </div>
-        <div class="data-card" style="padding:12px;">
-          <div class="data-card-header" style="font-size:10px;">Timing</div>
-          <div class="data-card-value small mono" style="color:var(--accent-tertiary)">78%</div>
-          <div class="data-card-delta">+4%</div>
-          <div class="progress-bar"><div class="progress-fill" style="width:78%;background:var(--accent-tertiary)"></div></div>
-        </div>
-        <div class="data-card" style="padding:12px;">
-          <div class="data-card-header" style="font-size:10px;">Chords</div>
-          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">
-            <span style="padding:2px 6px;background:var(--accent-primary-muted);border-radius:3px;font-size:11px;color:var(--accent-primary);">C</span>
-            <span style="padding:2px 6px;background:var(--accent-primary-muted);border-radius:3px;font-size:11px;color:var(--accent-primary);">Am</span>
-            <span style="padding:2px 6px;background:var(--accent-primary-muted);border-radius:3px;font-size:11px;color:var(--accent-primary);">F</span>
-            <span style="padding:2px 6px;background:var(--accent-primary-muted);border-radius:3px;font-size:11px;color:var(--accent-primary);">G</span>
-          </div>
-        </div>
-        <div class="data-card" style="padding:12px;">
-          <div class="data-card-header" style="font-size:10px;">Session</div>
-          <div class="data-card-value small mono">12:47</div>
-        </div>
-      </div>
-      <div class="d4-center">
-        <div class="note-block" style="left:8%;top:25%;width:45px;height:10px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:16%;top:40%;width:35px;height:10px;background:var(--accent-secondary)"></div>
-        <div class="note-block" style="left:23%;top:30%;width:50px;height:10px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:33%;top:50%;width:30px;height:10px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:40%;top:35%;width:42px;height:10px;background:var(--accent-tertiary)"></div>
-        <div class="note-block" style="left:50%;top:45%;width:38px;height:10px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:58%;top:28%;width:55px;height:10px;background:var(--accent-secondary)"></div>
-        <div class="note-block" style="left:68%;top:38%;width:40px;height:10px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:78%;top:42%;width:48px;height:10px;background:var(--accent-primary)"></div>
-        <div class="viz-pulse"></div>
-      </div>
-      <div class="d4-right">
-        <div class="data-card" style="padding:12px;border-left:3px solid var(--accent-warm);">
-          <div class="data-card-header" style="font-size:10px;">Key Insight</div>
-          <p style="font-size:12px;color:var(--text-primary);margin-top:4px;line-height:1.5;">C→Am transition: <span class="mono" style="color:var(--accent-warm)">380ms</span> avg</p>
-          <div class="snapshot-action" style="font-size:11px;padding:5px 10px;margin-top:8px;">Drill this</div>
-        </div>
-        <div style="flex:1;display:flex;flex-direction:column;">
-          <div style="font-size:11px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">AI Coach</div>
-          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-            <div class="chat-msg ai" style="font-size:12px;padding:8px 10px;">Voice leading parallel fifths down from 40% to 18% this week.</div>
-            <div class="chat-msg user" style="font-size:12px;padding:8px 10px;">Why did that sound jazzy?</div>
-            <div class="chat-msg ai" style="font-size:12px;padding:8px 10px;">You used a b9 over the V chord — common bebop tension.</div>
-          </div>
-          <div style="margin-top:8px;">
-            <input type="text" placeholder="Ask..." style="width:100%;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:4px;padding:6px 10px;color:var(--text-primary);font-family:'Inter',sans-serif;font-size:12px;outline:none;">
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Direction 5: Minimal Focus -->
-<section class="direction-section" id="dir-5">
-  <h2 class="direction-title">Direction 5: Minimal Focus</h2>
-  <p class="direction-subtitle">Silent Coach Mode — Almost pure canvas, mini data strip</p>
-  <p class="direction-desc">The most minimal approach. Canvas takes nearly all space. A thin data strip at the bottom shows only essential metrics as compact mini-cards. Closest to "90% instrument, 10% screen." Maximum focus on the music, minimum UI distraction.</p>
-  <div class="eval-tags">
-    <span class="eval-tag pro">+ Maximum simplicity</span>
-    <span class="eval-tag pro">+ Lowest cognitive load</span>
-    <span class="eval-tag pro">+ Best for flow state</span>
-    <span class="eval-tag con">~ Very limited data visibility</span>
-    <span class="eval-tag con">~ May feel too sparse for data-driven users</span>
-  </div>
-  <div class="mockup-frame">
-    <div class="status-bar" style="padding:6px 16px;">
-      <div class="left" style="gap:12px;">
-        <span style="font-size:11px;"><span class="status-dot"></span>Connected</span>
-        <div class="mode-switcher">
-          <button class="mode-btn active" style="font-size:10px;padding:3px 10px;">Silent Coach</button>
-          <button class="mode-btn" style="font-size:10px;padding:3px 10px;">Dashboard</button>
-          <button class="mode-btn" style="font-size:10px;padding:3px 10px;">Replay</button>
-        </div>
-      </div>
-      <div class="right">
-        <span class="streak-badge" style="padding:2px 8px;font-size:11px;"><span class="streak-number">12</span></span>
-      </div>
-    </div>
-    <div class="d5-layout">
-      <div class="d5-canvas">
-        <div class="viz-key-indicator">C Major</div>
-        <div class="viz-tempo">96 BPM</div>
-        <div class="note-block" style="left:5%;top:22%;width:65px;height:16px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:13%;top:38%;width:50px;height:16px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:20%;top:30%;width:70px;height:16px;background:var(--accent-secondary)"></div>
-        <div class="note-block" style="left:30%;top:48%;width:42px;height:16px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:37%;top:33%;width:58px;height:16px;background:var(--accent-tertiary)"></div>
-        <div class="note-block" style="left:46%;top:42%;width:48px;height:16px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:55%;top:25%;width:72px;height:16px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:66%;top:40%;width:52px;height:16px;background:var(--accent-secondary)"></div>
-        <div class="note-block" style="left:76%;top:35%;width:60px;height:16px;background:var(--accent-primary)"></div>
-        <div class="note-block" style="left:86%;top:28%;width:45px;height:16px;background:var(--accent-tertiary)"></div>
-        <div class="viz-pulse"></div>
-      </div>
-      <div class="d5-bottom">
-        <div class="d5-mini-card">
-          <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:2px;">Timing</div>
-          <div class="mono" style="font-size:18px;font-weight:600;color:var(--accent-tertiary);">78%</div>
-        </div>
-        <div class="d5-mini-card">
-          <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:2px;">Session</div>
-          <div class="mono" style="font-size:18px;font-weight:600;">12:47</div>
-        </div>
-        <div class="d5-mini-card">
-          <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:2px;">Chords</div>
-          <div style="font-size:14px;font-weight:500;color:var(--accent-primary);">C Am F G</div>
-        </div>
-        <div class="d5-mini-card" style="border:1px solid rgba(232,199,123,0.3);background:rgba(232,199,123,0.08);">
-          <div style="font-size:10px;color:var(--accent-warm);margin-bottom:2px;">Insight</div>
-          <div style="font-size:12px;color:var(--text-primary);">C→Am: 380ms</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Direction 6: Tabbed Workspace -->
-<section class="direction-section" id="dir-6">
-  <h2 class="direction-title">Direction 6: Tabbed Workspace</h2>
-  <p class="direction-subtitle">Replay Studio Mode — Timeline-driven with detail tabs</p>
-  <p class="direction-desc">Content-tab navigation below the mode switcher organizes detail views. Canvas left, tabbed detail panel right. Tabs allow switching between Insights, Chat, Progress, and Drills without losing canvas view. Best for information-rich modes like Replay Studio.</p>
-  <div class="eval-tags">
-    <span class="eval-tag pro">+ Organized depth</span>
-    <span class="eval-tag pro">+ Tabs reduce overwhelm</span>
-    <span class="eval-tag pro">+ Good for Replay Studio</span>
-    <span class="eval-tag con">~ Extra navigation layer</span>
-    <span class="eval-tag con">~ Tabs can feel like separate sections</span>
-  </div>
-  <div class="mockup-frame">
-    <div class="status-bar">
-      <div class="left">
-        <span><span class="status-dot"></span>Yamaha P-125 Connected</span>
-        <div class="mode-switcher">
-          <button class="mode-btn">Silent Coach</button>
-          <button class="mode-btn">Dashboard</button>
-          <button class="mode-btn active">Replay</button>
-        </div>
-      </div>
-      <div class="right">
-        <span class="streak-badge"><span class="streak-number">Day 12</span></span>
-        <span style="font-size:12px;color:var(--text-tertiary);">Session: Jan 15, 8:12 PM</span>
-      </div>
-    </div>
-    <div class="d6-layout">
-      <div class="d6-content">
-        <div class="d6-canvas" style="display:flex;flex-direction:column;">
-          <div style="flex:1;position:relative;">
-            <div class="viz-key-indicator">Key: C Major</div>
-            <div class="note-block" style="left:5%;top:20%;width:55px;height:12px;background:var(--accent-primary);opacity:0.5;"></div>
-            <div class="note-block" style="left:12%;top:35%;width:42px;height:12px;background:var(--accent-primary);opacity:0.5;"></div>
-            <div class="note-block" style="left:18%;top:28%;width:58px;height:12px;background:var(--accent-secondary);opacity:0.5;"></div>
-            <div class="note-block" style="left:26%;top:42%;width:35px;height:12px;background:var(--accent-primary);opacity:0.7;"></div>
-            <div class="note-block" style="left:33%;top:30%;width:50px;height:12px;background:var(--accent-primary);opacity:0.8;"></div>
-            <div class="note-block" style="left:40%;top:45%;width:40px;height:12px;background:var(--accent-tertiary);"></div>
-            <div class="note-block" style="left:48%;top:33%;width:62px;height:12px;background:var(--accent-primary);"></div>
-            <div class="note-block" style="left:58%;top:38%;width:45px;height:12px;background:var(--accent-secondary);opacity:0.4;"></div>
-          </div>
-          <div class="timeline-bar">
-            <div class="timeline-track">
-              <div class="timeline-segment" style="left:5%;width:15%;background:var(--accent-primary);"></div>
-              <div class="timeline-segment" style="left:22%;width:20%;background:var(--accent-tertiary);"></div>
-              <div class="timeline-segment" style="left:45%;width:25%;background:var(--accent-primary);"></div>
-              <div class="timeline-segment" style="left:73%;width:12%;background:var(--accent-secondary);"></div>
-              <div class="timeline-playhead" style="left:60%;"></div>
-            </div>
-            <div class="timeline-labels">
-              <span>0:00</span>
-              <span>3:12</span>
-              <span>6:24</span>
-              <span>9:36</span>
-              <span>12:47</span>
-            </div>
-          </div>
-        </div>
-        <div class="d6-detail">
-          <div class="d6-tab-bar" style="margin:-16px -16px 16px;padding:0 16px;">
-            <div class="d6-tab active">Insights</div>
-            <div class="d6-tab">Chat</div>
-            <div class="d6-tab">Progress</div>
-            <div class="d6-tab">Drills</div>
-          </div>
-          <div class="data-card" style="margin-bottom:12px;">
-            <div class="data-card-header">At This Moment (6:24)</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
-              <div>
-                <div style="font-size:10px;color:var(--text-tertiary);">Chord</div>
-                <div style="font-size:14px;font-weight:500;color:var(--accent-primary);">Am7</div>
-              </div>
-              <div>
-                <div style="font-size:10px;color:var(--text-tertiary);">Timing</div>
-                <div class="mono" style="font-size:14px;font-weight:500;color:var(--accent-tertiary);">82%</div>
+          <div class="d4-right">
+            <div class="data-card" style="padding: 12px; border-left: 3px solid var(--accent-warm)">
+              <div class="data-card-header" style="font-size: 10px">Key Insight</div>
+              <p
+                style="
+                  font-size: 12px;
+                  color: var(--text-primary);
+                  margin-top: 4px;
+                  line-height: 1.5;
+                "
+              >
+                C→Am transition:
+                <span class="mono" style="color: var(--accent-warm)">380ms</span> avg
+              </p>
+              <div
+                class="snapshot-action"
+                style="font-size: 11px; padding: 5px 10px; margin-top: 8px"
+              >
+                Drill this
               </div>
             </div>
-          </div>
-          <div class="snapshot-insight">
-            <p>At <span class="mono">6:24</span>, your transition from F to Am took <span class="mono" style="color:var(--accent-warm)">420ms</span> — your longest transition gap in this session.</p>
-          </div>
-          <div class="snapshot-action" style="margin-top:12px;">Generate drill for this transition</div>
-          <div class="data-card" style="margin-top:16px;">
-            <div class="data-card-header">Session Summary</div>
-            <div class="session-summary" style="margin-top:8px;">
-              <div class="summary-row">
-                <span class="summary-label">Duration</span>
-                <span class="summary-value mono">12:47</span>
+            <div style="flex: 1; display: flex; flex-direction: column">
+              <div
+                style="
+                  font-size: 11px;
+                  font-weight: 500;
+                  color: var(--text-tertiary);
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  margin-bottom: 8px;
+                "
+              >
+                AI Coach
               </div>
-              <div class="summary-row">
-                <span class="summary-label">Avg Timing</span>
-                <span class="summary-value mono" style="color:var(--accent-tertiary)">78%</span>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+                <div class="chat-msg ai" style="font-size: 12px; padding: 8px 10px">
+                  Voice leading parallel fifths down from 40% to 18% this week.
+                </div>
+                <div class="chat-msg user" style="font-size: 12px; padding: 8px 10px">
+                  Why did that sound jazzy?
+                </div>
+                <div class="chat-msg ai" style="font-size: 12px; padding: 8px 10px">
+                  You used a b9 over the V chord — common bebop tension.
+                </div>
               </div>
-              <div class="summary-row">
-                <span class="summary-label">Key Changes</span>
-                <span class="summary-value mono">2</span>
-              </div>
-              <div class="summary-row">
-                <span class="summary-label">Unique Chords</span>
-                <span class="summary-value mono">7</span>
+              <div style="margin-top: 8px">
+                <input
+                  type="text"
+                  placeholder="Ask..."
+                  style="
+                    width: 100%;
+                    background: var(--bg-tertiary);
+                    border: 1px solid var(--border-default);
+                    border-radius: 4px;
+                    padding: 6px 10px;
+                    color: var(--text-primary);
+                    font-family: 'Inter', sans-serif;
+                    font-size: 12px;
+                    outline: none;
+                  "
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<script>
-function showDirection(n) {
-  document.querySelectorAll('.direction-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.direction-nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('dir-' + n).classList.add('active');
-  document.querySelectorAll('.direction-nav button')[n-1].classList.add('active');
-}
-</script>
+    <!-- Direction 5: Minimal Focus -->
+    <section class="direction-section" id="dir-5">
+      <h2 class="direction-title">Direction 5: Minimal Focus</h2>
+      <p class="direction-subtitle">Silent Coach Mode — Almost pure canvas, mini data strip</p>
+      <p class="direction-desc">
+        The most minimal approach. Canvas takes nearly all space. A thin data strip at the bottom
+        shows only essential metrics as compact mini-cards. Closest to "90% instrument, 10% screen."
+        Maximum focus on the music, minimum UI distraction.
+      </p>
+      <div class="eval-tags">
+        <span class="eval-tag pro">+ Maximum simplicity</span>
+        <span class="eval-tag pro">+ Lowest cognitive load</span>
+        <span class="eval-tag pro">+ Best for flow state</span>
+        <span class="eval-tag con">~ Very limited data visibility</span>
+        <span class="eval-tag con">~ May feel too sparse for data-driven users</span>
+      </div>
+      <div class="mockup-frame">
+        <div class="status-bar" style="padding: 6px 16px">
+          <div class="left" style="gap: 12px">
+            <span style="font-size: 11px"><span class="status-dot"></span>Connected</span>
+            <div class="mode-switcher">
+              <button class="mode-btn active" style="font-size: 10px; padding: 3px 10px">
+                Silent Coach
+              </button>
+              <button class="mode-btn" style="font-size: 10px; padding: 3px 10px">Dashboard</button>
+              <button class="mode-btn" style="font-size: 10px; padding: 3px 10px">Replay</button>
+            </div>
+          </div>
+          <div class="right">
+            <span class="streak-badge" style="padding: 2px 8px; font-size: 11px"
+              ><span class="streak-number">12</span></span
+            >
+          </div>
+        </div>
+        <div class="d5-layout">
+          <div class="d5-canvas">
+            <div class="viz-key-indicator">C Major</div>
+            <div class="viz-tempo">96 BPM</div>
+            <div
+              class="note-block"
+              style="
+                left: 5%;
+                top: 22%;
+                width: 65px;
+                height: 16px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 13%;
+                top: 38%;
+                width: 50px;
+                height: 16px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 20%;
+                top: 30%;
+                width: 70px;
+                height: 16px;
+                background: var(--accent-secondary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 30%;
+                top: 48%;
+                width: 42px;
+                height: 16px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 37%;
+                top: 33%;
+                width: 58px;
+                height: 16px;
+                background: var(--accent-tertiary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 46%;
+                top: 42%;
+                width: 48px;
+                height: 16px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 55%;
+                top: 25%;
+                width: 72px;
+                height: 16px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 66%;
+                top: 40%;
+                width: 52px;
+                height: 16px;
+                background: var(--accent-secondary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 76%;
+                top: 35%;
+                width: 60px;
+                height: 16px;
+                background: var(--accent-primary);
+              "
+            ></div>
+            <div
+              class="note-block"
+              style="
+                left: 86%;
+                top: 28%;
+                width: 45px;
+                height: 16px;
+                background: var(--accent-tertiary);
+              "
+            ></div>
+            <div class="viz-pulse"></div>
+          </div>
+          <div class="d5-bottom">
+            <div class="d5-mini-card">
+              <div style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 2px">
+                Timing
+              </div>
+              <div
+                class="mono"
+                style="font-size: 18px; font-weight: 600; color: var(--accent-tertiary)"
+              >
+                78%
+              </div>
+            </div>
+            <div class="d5-mini-card">
+              <div style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 2px">
+                Session
+              </div>
+              <div class="mono" style="font-size: 18px; font-weight: 600">12:47</div>
+            </div>
+            <div class="d5-mini-card">
+              <div style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 2px">
+                Chords
+              </div>
+              <div style="font-size: 14px; font-weight: 500; color: var(--accent-primary)">
+                C Am F G
+              </div>
+            </div>
+            <div
+              class="d5-mini-card"
+              style="
+                border: 1px solid rgba(232, 199, 123, 0.3);
+                background: rgba(232, 199, 123, 0.08);
+              "
+            >
+              <div style="font-size: 10px; color: var(--accent-warm); margin-bottom: 2px">
+                Insight
+              </div>
+              <div style="font-size: 12px; color: var(--text-primary)">C→Am: 380ms</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-</body>
+    <!-- Direction 6: Tabbed Workspace -->
+    <section class="direction-section" id="dir-6">
+      <h2 class="direction-title">Direction 6: Tabbed Workspace</h2>
+      <p class="direction-subtitle">Replay Studio Mode — Timeline-driven with detail tabs</p>
+      <p class="direction-desc">
+        Content-tab navigation below the mode switcher organizes detail views. Canvas left, tabbed
+        detail panel right. Tabs allow switching between Insights, Chat, Progress, and Drills
+        without losing canvas view. Best for information-rich modes like Replay Studio.
+      </p>
+      <div class="eval-tags">
+        <span class="eval-tag pro">+ Organized depth</span>
+        <span class="eval-tag pro">+ Tabs reduce overwhelm</span>
+        <span class="eval-tag pro">+ Good for Replay Studio</span>
+        <span class="eval-tag con">~ Extra navigation layer</span>
+        <span class="eval-tag con">~ Tabs can feel like separate sections</span>
+      </div>
+      <div class="mockup-frame">
+        <div class="status-bar">
+          <div class="left">
+            <span><span class="status-dot"></span>Yamaha P-125 Connected</span>
+            <div class="mode-switcher">
+              <button class="mode-btn">Silent Coach</button>
+              <button class="mode-btn">Dashboard</button>
+              <button class="mode-btn active">Replay</button>
+            </div>
+          </div>
+          <div class="right">
+            <span class="streak-badge"><span class="streak-number">Day 12</span></span>
+            <span style="font-size: 12px; color: var(--text-tertiary)"
+              >Session: Jan 15, 8:12 PM</span
+            >
+          </div>
+        </div>
+        <div class="d6-layout">
+          <div class="d6-content">
+            <div class="d6-canvas" style="display: flex; flex-direction: column">
+              <div style="flex: 1; position: relative">
+                <div class="viz-key-indicator">Key: C Major</div>
+                <div
+                  class="note-block"
+                  style="
+                    left: 5%;
+                    top: 20%;
+                    width: 55px;
+                    height: 12px;
+                    background: var(--accent-primary);
+                    opacity: 0.5;
+                  "
+                ></div>
+                <div
+                  class="note-block"
+                  style="
+                    left: 12%;
+                    top: 35%;
+                    width: 42px;
+                    height: 12px;
+                    background: var(--accent-primary);
+                    opacity: 0.5;
+                  "
+                ></div>
+                <div
+                  class="note-block"
+                  style="
+                    left: 18%;
+                    top: 28%;
+                    width: 58px;
+                    height: 12px;
+                    background: var(--accent-secondary);
+                    opacity: 0.5;
+                  "
+                ></div>
+                <div
+                  class="note-block"
+                  style="
+                    left: 26%;
+                    top: 42%;
+                    width: 35px;
+                    height: 12px;
+                    background: var(--accent-primary);
+                    opacity: 0.7;
+                  "
+                ></div>
+                <div
+                  class="note-block"
+                  style="
+                    left: 33%;
+                    top: 30%;
+                    width: 50px;
+                    height: 12px;
+                    background: var(--accent-primary);
+                    opacity: 0.8;
+                  "
+                ></div>
+                <div
+                  class="note-block"
+                  style="
+                    left: 40%;
+                    top: 45%;
+                    width: 40px;
+                    height: 12px;
+                    background: var(--accent-tertiary);
+                  "
+                ></div>
+                <div
+                  class="note-block"
+                  style="
+                    left: 48%;
+                    top: 33%;
+                    width: 62px;
+                    height: 12px;
+                    background: var(--accent-primary);
+                  "
+                ></div>
+                <div
+                  class="note-block"
+                  style="
+                    left: 58%;
+                    top: 38%;
+                    width: 45px;
+                    height: 12px;
+                    background: var(--accent-secondary);
+                    opacity: 0.4;
+                  "
+                ></div>
+              </div>
+              <div class="timeline-bar">
+                <div class="timeline-track">
+                  <div
+                    class="timeline-segment"
+                    style="left: 5%; width: 15%; background: var(--accent-primary)"
+                  ></div>
+                  <div
+                    class="timeline-segment"
+                    style="left: 22%; width: 20%; background: var(--accent-tertiary)"
+                  ></div>
+                  <div
+                    class="timeline-segment"
+                    style="left: 45%; width: 25%; background: var(--accent-primary)"
+                  ></div>
+                  <div
+                    class="timeline-segment"
+                    style="left: 73%; width: 12%; background: var(--accent-secondary)"
+                  ></div>
+                  <div class="timeline-playhead" style="left: 60%"></div>
+                </div>
+                <div class="timeline-labels">
+                  <span>0:00</span>
+                  <span>3:12</span>
+                  <span>6:24</span>
+                  <span>9:36</span>
+                  <span>12:47</span>
+                </div>
+              </div>
+            </div>
+            <div class="d6-detail">
+              <div class="d6-tab-bar" style="margin: -16px -16px 16px; padding: 0 16px">
+                <div class="d6-tab active">Insights</div>
+                <div class="d6-tab">Chat</div>
+                <div class="d6-tab">Progress</div>
+                <div class="d6-tab">Drills</div>
+              </div>
+              <div class="data-card" style="margin-bottom: 12px">
+                <div class="data-card-header">At This Moment (6:24)</div>
+                <div
+                  style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px"
+                >
+                  <div>
+                    <div style="font-size: 10px; color: var(--text-tertiary)">Chord</div>
+                    <div style="font-size: 14px; font-weight: 500; color: var(--accent-primary)">
+                      Am7
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size: 10px; color: var(--text-tertiary)">Timing</div>
+                    <div
+                      class="mono"
+                      style="font-size: 14px; font-weight: 500; color: var(--accent-tertiary)"
+                    >
+                      82%
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="snapshot-insight">
+                <p>
+                  At <span class="mono">6:24</span>, your transition from F to Am took
+                  <span class="mono" style="color: var(--accent-warm)">420ms</span> — your longest
+                  transition gap in this session.
+                </p>
+              </div>
+              <div class="snapshot-action" style="margin-top: 12px">
+                Generate drill for this transition
+              </div>
+              <div class="data-card" style="margin-top: 16px">
+                <div class="data-card-header">Session Summary</div>
+                <div class="session-summary" style="margin-top: 8px">
+                  <div class="summary-row">
+                    <span class="summary-label">Duration</span>
+                    <span class="summary-value mono">12:47</span>
+                  </div>
+                  <div class="summary-row">
+                    <span class="summary-label">Avg Timing</span>
+                    <span class="summary-value mono" style="color: var(--accent-tertiary)"
+                      >78%</span
+                    >
+                  </div>
+                  <div class="summary-row">
+                    <span class="summary-label">Key Changes</span>
+                    <span class="summary-value mono">2</span>
+                  </div>
+                  <div class="summary-row">
+                    <span class="summary-label">Unique Chords</span>
+                    <span class="summary-value mono">7</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      function showDirection(n) {
+        document
+          .querySelectorAll('.direction-section')
+          .forEach((s) => s.classList.remove('active'));
+        document
+          .querySelectorAll('.direction-nav button')
+          .forEach((b) => b.classList.remove('active'));
+        document.getElementById('dir-' + n).classList.add('active');
+        document.querySelectorAll('.direction-nav button')[n - 1].classList.add('active');
+      }
+    </script>
+  </body>
 </html>

@@ -103,6 +103,9 @@ so that I can study my playing after the fact.
 ## Dev Agent Record
 
 ### Agent Model Used
+
 ### Debug Log References
+
 ### Completion Notes List
+
 ### File List

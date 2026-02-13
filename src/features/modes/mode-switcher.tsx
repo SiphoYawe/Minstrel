@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useSessionStore } from '@/stores/session-store';
+import { capture } from '@/lib/analytics';
 import type { SessionMode } from '@/features/modes/mode-types';
 import { MODE_CONFIGS } from '@/features/modes/mode-types';
 
@@ -11,10 +12,18 @@ export function ModeSwitcher() {
   const currentMode = useSessionStore((s) => s.currentMode);
   const announceRef = useRef<HTMLSpanElement>(null);
 
-  function switchMode(mode: SessionMode) {
-    if (mode === currentMode) return;
-    useSessionStore.getState().setCurrentMode(mode);
-  }
+  const switchMode = useCallback(
+    (mode: SessionMode, source: 'click' | 'keyboard' = 'click') => {
+      if (mode === currentMode) return;
+      capture('mode_switched', {
+        from_mode: currentMode,
+        to_mode: mode,
+        source,
+      });
+      useSessionStore.getState().setCurrentMode(mode);
+    },
+    [currentMode]
+  );
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -29,13 +38,13 @@ export function ModeSwitcher() {
       const mode = modeByKey[e.key];
       if (mode) {
         e.preventDefault();
-        useSessionStore.getState().setCurrentMode(mode);
+        switchMode(mode, 'keyboard');
       }
     }
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [switchMode]);
 
   // Announce mode changes to screen readers
   useEffect(() => {

@@ -103,6 +103,7 @@ So I know practice is working.
 - **Architecture Layer**: `drill-tracker.ts` is Layer 3 domain logic (pure measurement functions). DrillController is Layer 1 presentation. The `sessionStore` integration is Layer 2. Supabase persistence is Layer 4.
 
 - **Performance Comparison Algorithm**: Matching user notes to drill target notes is the core challenge. The approach:
+
   ```typescript
   function comparePerformance(
     userNotes: MidiEvent[],
@@ -119,8 +120,7 @@ So I know practice is working.
       const targetTimeMs = target.startBeat * beatMs;
       // Find closest user note matching the pitch
       const match = userNotes.find(
-        (n) => n.note === target.midiNote &&
-               Math.abs(n.timestamp - targetTimeMs) < TIMING_WINDOW_MS
+        (n) => n.note === target.midiNote && Math.abs(n.timestamp - targetTimeMs) < TIMING_WINDOW_MS
       );
       if (match) {
         correctNotes++;
@@ -144,9 +144,10 @@ So I know practice is working.
   4. **Growth mindset**: "Not yet smooth" not "You're bad at this"
 
 - **Improvement Delta Display**: The UX spec shows `380ms → 220ms ↑ 42%` in the DrillController anatomy. The delta format should be:
+
   ```typescript
   function formatTimingDelta(reps: RepPerformance[]): string {
-    const timings = reps.map(r => `${Math.round(r.timingDeviation)}ms`);
+    const timings = reps.map((r) => `${Math.round(r.timingDeviation)}ms`);
     return timings.join(' → ');
   }
 
@@ -157,6 +158,7 @@ So I know practice is working.
   ```
 
 - **DrillController Component Design**: Follow the UX specification exactly:
+
   ```
   ┌─────────────────────────────────────────┐
   │  Chord Transition Drill                 │
@@ -169,6 +171,7 @@ So I know practice is working.
   │  [One more]              [Complete]     │
   └─────────────────────────────────────────┘
   ```
+
   - Background: `--bg-secondary` (#1A1A1A)
   - 0px border radius
   - Phase indicators: active phase uses `--accent-primary` (#7CB9E8), inactive uses `--text-tertiary`
@@ -177,6 +180,7 @@ So I know practice is working.
   - Improvement numbers: JetBrains Mono (monospace)
 
 - **Growth Mindset in Code**: Constants for user-facing text:
+
   ```typescript
   const DRILL_MESSAGES = {
     IMPROVING: 'Closing in',
@@ -188,6 +192,7 @@ So I know practice is working.
   ```
 
 - **Difficulty Engine Feedback Loop**: This story closes the loop with Story 5.2. Each rep's performance feeds back into the growth zone detector:
+
   ```
   User plays rep → drill-tracker measures → sessionStore.recordRepPerformance()
     → growth-zone-detector evaluates → difficulty-engine computes adjustment

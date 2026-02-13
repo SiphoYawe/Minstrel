@@ -12,7 +12,11 @@ import posthog from 'posthog-js';
  * Checks if PostHog is ready for use (client-side only).
  */
 function isPostHogReady(): boolean {
-  return typeof window !== 'undefined' && !!process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  return (
+    typeof window !== 'undefined' &&
+    !!process.env.NEXT_PUBLIC_POSTHOG_KEY &&
+    !process.env.NEXT_PUBLIC_POSTHOG_KEY.startsWith('your-')
+  );
 }
 
 /**

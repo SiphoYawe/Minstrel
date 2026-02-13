@@ -4,6 +4,7 @@ import { useState, useId } from 'react';
 import { z } from 'zod/v4';
 import { Loader2, ExternalLink } from 'lucide-react';
 
+import { capture } from '@/lib/analytics';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -103,7 +104,8 @@ export function ApiKeyPrompt({
 
     try {
       await onSave(result.data.provider, result.data.apiKey);
-      // If onSave succeeds (no throw), reset local state
+      // If onSave succeeds (no throw), reset local state and track
+      capture('api_key_saved', { provider: result.data.provider });
       setApiKey('');
       setIsEditing(false);
       setValidationError(null);
@@ -130,6 +132,7 @@ export function ApiKeyPrompt({
   async function handleDelete() {
     if (!keyMetadata) return;
     await onDelete(keyMetadata.provider);
+    capture('api_key_removed', { provider: keyMetadata.provider });
     setIsEditing(false);
     setApiKey('');
   }

@@ -4,6 +4,7 @@ import { getModelForProvider } from '@/lib/ai/provider';
 import { buildDrillSystemPrompt } from '@/lib/ai/prompts';
 import { authenticateAiRequest, withAiErrorHandling } from '@/lib/ai/route-helpers';
 import { AiError } from '@/lib/ai/errors';
+import { getPostHogClient } from '@/lib/posthog-server';
 import * as Sentry from '@sentry/nextjs';
 
 export async function POST(req: Request): Promise<Response> {
@@ -82,6 +83,19 @@ export async function POST(req: Request): Promise<Response> {
     if (!output) {
       throw new AiError('GENERATION_FAILED');
     }
+
+    // Track server-side drill generation
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: 'server', // No user context in this API route
+      event: 'ai_drill_generated',
+      properties: {
+        weakness,
+        provider: providerId,
+        target_tempo: difficultyParameters.tempo,
+        generation_time_ms: Math.round(elapsed),
+      },
+    });
 
     return Response.json({ data: output, error: null });
   });

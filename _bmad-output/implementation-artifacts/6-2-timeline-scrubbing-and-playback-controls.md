@@ -110,6 +110,9 @@ so that I can jump to specific moments and review them.
 ## Dev Agent Record
 
 ### Agent Model Used
+
 ### Debug Log References
+
 ### Completion Notes List
+
 ### File List

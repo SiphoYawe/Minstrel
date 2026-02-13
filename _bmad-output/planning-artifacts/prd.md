@@ -1,5 +1,19 @@
 ---
-stepsCompleted: ['step-01-init', 'step-02-discovery', 'step-03-success', 'step-04-journeys', 'step-05-domain', 'step-06-innovation', 'step-07-project-type', 'step-08-scoping', 'step-09-functional', 'step-10-nonfunctional', 'step-11-polish', 'step-12-complete']
+stepsCompleted:
+  [
+    'step-01-init',
+    'step-02-discovery',
+    'step-03-success',
+    'step-04-journeys',
+    'step-05-domain',
+    'step-06-innovation',
+    'step-07-project-type',
+    'step-08-scoping',
+    'step-09-functional',
+    'step-10-nonfunctional',
+    'step-11-polish',
+    'step-12-complete',
+  ]
 classification:
   projectType: 'web_app'
   domain: 'edtech'
@@ -41,47 +55,48 @@ Minstrel is an AI-powered real-time MIDI practice companion that transforms any 
 
 ### User Success
 
-| Criteria | Measurement | Target |
-|----------|------------|--------|
-| **Measurable Skill Improvement** | Accuracy, speed, and complexity tracked over time | Statistically significant improvement within 30 days of regular use |
-| **Practice Habit Formation** | Sessions per week for active users | 3+ sessions per week |
-| **Breakthrough Milestones** | First improv, first song by ear, first clean speed run | At least 1 breakthrough per user per month |
-| **Session Completion** | % of started sessions not abandoned | >80% completion rate |
-| **Aha Moment Reach** | % of new users receiving real-time feedback in first session | >90% within first session |
+| Criteria                         | Measurement                                                  | Target                                                              |
+| -------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
+| **Measurable Skill Improvement** | Accuracy, speed, and complexity tracked over time            | Statistically significant improvement within 30 days of regular use |
+| **Practice Habit Formation**     | Sessions per week for active users                           | 3+ sessions per week                                                |
+| **Breakthrough Milestones**      | First improv, first song by ear, first clean speed run       | At least 1 breakthrough per user per month                          |
+| **Session Completion**           | % of started sessions not abandoned                          | >80% completion rate                                                |
+| **Aha Moment Reach**             | % of new users receiving real-time feedback in first session | >90% within first session                                           |
 
 **The moment users feel Minstrel is "worth it":** When they play something, Minstrel shows them a mistake they didn't hear, and then generates a drill that fixes it in 2 minutes. That's when they know this is different.
 
 ### Business Success
 
-| Timeline | Metric | Target |
-|----------|--------|--------|
-| **3 months** | Registered users | 500+ |
-| **6 months** | Organic referral rate | >20% |
-| **6 months** | Net Promoter Score | >50 |
-| **12 months** | Weekly Active Users | 10,000+ |
-| **12 months** | Weekly retention rate | >70% |
+| Timeline      | Metric                | Target  |
+| ------------- | --------------------- | ------- |
+| **3 months**  | Registered users      | 500+    |
+| **6 months**  | Organic referral rate | >20%    |
+| **6 months**  | Net Promoter Score    | >50     |
+| **12 months** | Weekly Active Users   | 10,000+ |
+| **12 months** | Weekly retention rate | >70%    |
 
 **Business model:** Free with BYOK (Bring Your Own Key). All features available to all users. Users provide their own LLM API keys (OpenAI, Anthropic, etc.) to power AI coaching and drill generation. Monetization (subscriptions, managed API access) deferred to a future phase.
 
 ### Technical Success
 
-| Criteria | Target | Rationale |
-|----------|--------|-----------|
-| **MIDI-to-feedback latency** | <50ms | Must feel instantaneous — any perceptible delay breaks the real-time experience |
-| **Application uptime** | 99.5% | Musicians practice at unpredictable hours — downtime kills habit |
-| **Initial page load** | <3 seconds | Zero friction between "I want to practice" and playing the first note |
-| **MIDI connection time** | <2 seconds | Plug in and go — no configuration screens or setup wizards |
-| **AI response time** | <1 second | Chat responses and drill generation must feel conversational, not queued |
-| **Session recording reliability** | 100% | Every note must be captured — lost data destroys trust |
+| Criteria                          | Target     | Rationale                                                                       |
+| --------------------------------- | ---------- | ------------------------------------------------------------------------------- |
+| **MIDI-to-feedback latency**      | <50ms      | Must feel instantaneous — any perceptible delay breaks the real-time experience |
+| **Application uptime**            | 99.5%      | Musicians practice at unpredictable hours — downtime kills habit                |
+| **Initial page load**             | <3 seconds | Zero friction between "I want to practice" and playing the first note           |
+| **MIDI connection time**          | <2 seconds | Plug in and go — no configuration screens or setup wizards                      |
+| **AI response time**              | <1 second  | Chat responses and drill generation must feel conversational, not queued        |
+| **Session recording reliability** | 100%       | Every note must be captured — lost data destroys trust                          |
 
 ### Measurable Outcomes
 
 **Leading indicators (early signals):**
+
 - Day 7 retention >40% (strongest predictor of long-term engagement)
 - Drill completion rate >60% (drills are relevant and well-calibrated)
 - AI chat engagement >30% (users trust the coaching)
 
-**Critical quality gate:** The Difficulty Engine must be *perfect* at launch. If challenge calibration is off — too easy or too hard — the core value proposition fails. All other features can iterate; this one cannot ship "good enough."
+**Critical quality gate:** The Difficulty Engine must be _perfect_ at launch. If challenge calibration is off — too easy or too hard — the core value proposition fails. All other features can iterate; this one cannot ship "good enough."
 
 ---
 
@@ -102,6 +117,7 @@ Minstrel is an AI-powered real-time MIDI practice companion that transforms any 
 ### Growth Features (Post-MVP)
 
 **v2 — Monetization & Creative Companion:**
+
 - Premium subscription model (managed API access, freemium tiers)
 - Payment processing integration
 - Song completion engine
@@ -114,6 +130,7 @@ Minstrel is an AI-powered real-time MIDI practice companion that transforms any 
 ### Vision (Future)
 
 **v3 — The Intelligent Studio:**
+
 - AI jam partner (reactive backing tracks)
 - Composition scratchpad
 - Advanced analytics (millisecond-level timing, harmonic tendency mapping)
@@ -130,6 +147,7 @@ Minstrel is an AI-powered real-time MIDI practice companion that transforms any 
 **Opening Scene:** Jake, 17, has been teaching himself guitar from YouTube for 8 months. He can strum open chords and play a few riffs, but he's hit a wall. He googled "why am I not improving at guitar" and found Minstrel recommended in a Reddit thread. He bought a cheap MIDI keyboard adapter for his guitar last week.
 
 **Rising Action:**
+
 1. Jake opens Minstrel in Chrome. No account creation — just "Plug in your MIDI device." He connects his guitar adapter. Green light: "Connected — start playing whenever you're ready."
 2. He noodles around for 2 minutes — some chord progressions he knows, a riff from a song he's learning. Minstrel is silent. The Silent Coach shows a subtle real-time visualization — notes lighting up, a timing pulse.
 3. After 2 minutes, Minstrel presents a **Session Snapshot**: "You played in C major, used 4 chords (C, Am, F, G), timing accuracy 73%, average tempo 95 BPM." Below that, a **Key Insight**: "Your chord transitions from C to Am are slow — the gap averages 400ms. Want a 30-second drill to smooth that out?"
@@ -148,12 +166,13 @@ Minstrel is an AI-powered real-time MIDI practice companion that transforms any 
 **Opening Scene:** Aisha, 28, classically trained pianist. She's been using Minstrel for 2 weeks. She knows theory but can't improvise. It's 8pm Tuesday — she has 25 minutes before dinner.
 
 **Rising Action:**
+
 1. Aisha opens Minstrel. It remembers her: "Welcome back, Aisha. Ready to warm up?" An auto-generated 2-minute warm-up begins — scale patterns in the key she was working in yesterday, progressively faster. Minstrel demonstrates each pattern through her piano's speakers first, then she plays.
 2. Warm-up done. Minstrel transitions: "Yesterday you were working on ii-V-I voicings and your voice leading between the ii and V had some parallel fifths. Here's a targeted drill." It demonstrates the voicing through her speakers — smooth voice leading — then she plays.
 3. After 5 minutes of drilling, Minstrel reports: "Voice leading accuracy up from 60% to 82% this week." Then it shifts: "Freeform time — try improvising over this ii-V-I progression. I'll listen." She improvises. The Silent Coach shows chord tones vs. passing tones in real time.
 4. She pauses and types: "Why did that last phrase sound so jazzy?" Minstrel responds: "You used a b9 over the V chord — that's a common bebop tension. It resolved nicely to the root of the I. Want to explore more altered dominant tensions?"
 
-**Climax:** Aisha realizes she just improvised something that sounded genuinely jazzy — and she understands *why* it worked. Theory and playing clicked together for the first time.
+**Climax:** Aisha realizes she just improvised something that sounded genuinely jazzy — and she understands _why_ it worked. Theory and playing clicked together for the first time.
 
 **Resolution:** Session complete. Achievement unlocked: "First Altered Dominant." Her weekly progress shows improv confidence growing. She's not just playing notes anymore — she's making music.
 
@@ -166,6 +185,7 @@ Minstrel is an AI-powered real-time MIDI practice companion that transforms any 
 **Opening Scene:** Jake plugs in his MIDI adapter. Nothing happens. No green light. Minstrel shows: "No MIDI device detected."
 
 **Rising Action:**
+
 1. Minstrel doesn't leave Jake stranded. It immediately shows: "Troubleshooting — let's get you connected." Step 1: "Is your device powered on and plugged into USB?" Step 2: "Try a different USB port." Step 3: "Check if your browser has MIDI permissions (here's how)."
 2. Jake follows step 2 — different USB port. Still nothing. Minstrel detects the device is sending on MIDI channel 10 (drums). It suggests: "I see a MIDI signal on channel 10 — this is usually set for drums. Your instrument might need to be set to channel 1. Here's how to check."
 3. Jake changes the channel. Green light. "Connected — you're good to go."
@@ -183,6 +203,7 @@ Minstrel is an AI-powered real-time MIDI practice companion that transforms any 
 **Opening Scene:** A new user has been playing in guest mode for a few sessions — MIDI analysis and visualization work perfectly without an account. They want AI coaching and drill generation. Minstrel prompts: "To unlock AI features, connect your LLM API key."
 
 **Rising Action:**
+
 1. The user creates an account (email + password). Minstrel immediately shows Settings → API Keys.
 2. They select their LLM provider (OpenAI, Anthropic, etc.) and paste their API key. Minstrel validates the key in real time — green checkmark: "Connected. AI features are ready."
 3. They return to their session. The AI coaching chat is now live. They play something and ask "What went wrong?" — Minstrel responds with grounded, session-aware analysis. Drill generation works. The full experience is unlocked.
@@ -197,25 +218,25 @@ Minstrel is an AI-powered real-time MIDI practice companion that transforms any 
 
 ### Journey Requirements Summary
 
-| Capability Area | Revealed By | Priority |
-|----------------|-------------|----------|
-| MIDI auto-detection & diagnostics | Journey 3 | Critical |
-| Free play + session snapshot | Journey 1 | Critical |
-| Key insight engine | Journey 1 | Critical |
-| AI drill generation + MIDI demo | Journeys 1, 2 | Critical |
-| Silent Coach real-time visualization | Journeys 1, 2 | Critical |
-| AI coaching chat | Journey 2 | Critical |
-| Session continuity/memory | Journey 2 | High |
-| Auto-generated warm-ups | Journey 2 | High |
-| Freeform mode | Journey 2 | High |
-| Backing tracks for improvisation practice | Journey 2 | Post-MVP (Phase 3) |
-| Streak & achievement system | Journeys 1, 2 | High |
-| Progress tracking & history | Journeys 2, 4 | High |
-| LLM API key management | Journey 4 | High |
-| Multi-provider LLM support | Journey 4 | High |
-| Token usage transparency | Journey 4 | Medium |
-| Troubleshooting UI | Journey 3 | Medium |
-| Audio-only fallback mode | Journey 3 | Medium |
+| Capability Area                           | Revealed By   | Priority           |
+| ----------------------------------------- | ------------- | ------------------ |
+| MIDI auto-detection & diagnostics         | Journey 3     | Critical           |
+| Free play + session snapshot              | Journey 1     | Critical           |
+| Key insight engine                        | Journey 1     | Critical           |
+| AI drill generation + MIDI demo           | Journeys 1, 2 | Critical           |
+| Silent Coach real-time visualization      | Journeys 1, 2 | Critical           |
+| AI coaching chat                          | Journey 2     | Critical           |
+| Session continuity/memory                 | Journey 2     | High               |
+| Auto-generated warm-ups                   | Journey 2     | High               |
+| Freeform mode                             | Journey 2     | High               |
+| Backing tracks for improvisation practice | Journey 2     | Post-MVP (Phase 3) |
+| Streak & achievement system               | Journeys 1, 2 | High               |
+| Progress tracking & history               | Journeys 2, 4 | High               |
+| LLM API key management                    | Journey 4     | High               |
+| Multi-provider LLM support                | Journey 4     | High               |
+| Token usage transparency                  | Journey 4     | Medium             |
+| Troubleshooting UI                        | Journey 3     | Medium             |
+| Audio-only fallback mode                  | Journey 3     | Medium             |
 
 ---
 
@@ -266,19 +287,19 @@ Using MIDI output to play demonstrations through the user's own instrument speak
 
 ### Validation Approach
 
-| Innovation | Validation Method | Success Signal |
-|-----------|-------------------|---------------|
-| **Difficulty Engine** | A/B test adaptive vs. static difficulty with early users | Higher drill completion rate and lower session abandonment in adaptive group |
-| **Ear-First Architecture** | User testing with beginners — can they use the product without any notation? | >90% of first-time users complete their first session without requesting sheet music |
-| **Bidirectional MIDI Demo** | Compare learning speed with MIDI demo vs. audio recording demo | Measurable improvement in drill accuracy when demonstration is via MIDI output |
+| Innovation                  | Validation Method                                                            | Success Signal                                                                       |
+| --------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Difficulty Engine**       | A/B test adaptive vs. static difficulty with early users                     | Higher drill completion rate and lower session abandonment in adaptive group         |
+| **Ear-First Architecture**  | User testing with beginners — can they use the product without any notation? | >90% of first-time users complete their first session without requesting sheet music |
+| **Bidirectional MIDI Demo** | Compare learning speed with MIDI demo vs. audio recording demo               | Measurable improvement in drill accuracy when demonstration is via MIDI output       |
 
 ### Risk Mitigation
 
-| Innovation | Risk | Mitigation |
-|-----------|------|-----------|
-| **Difficulty Engine** | Calibration is off — too easy or too hard | Extensive testing with diverse skill levels before launch. Implement manual difficulty override as safety valve. This is the critical quality gate. |
-| **Ear-First Architecture** | Users expect sheet music and feel lost without it | Clear messaging during onboarding: "Minstrel teaches your ears, not your eyes." Provide rich visual feedback (note names, chord diagrams) as alternative to notation. |
-| **Bidirectional MIDI Demo** | Not all MIDI devices support output / have speakers | Graceful fallback to audio playback through laptop speakers. Detect MIDI output capability and adapt. |
+| Innovation                  | Risk                                                | Mitigation                                                                                                                                                            |
+| --------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Difficulty Engine**       | Calibration is off — too easy or too hard           | Extensive testing with diverse skill levels before launch. Implement manual difficulty override as safety valve. This is the critical quality gate.                   |
+| **Ear-First Architecture**  | Users expect sheet music and feel lost without it   | Clear messaging during onboarding: "Minstrel teaches your ears, not your eyes." Provide rich visual feedback (note names, chord diagrams) as alternative to notation. |
+| **Bidirectional MIDI Demo** | Not all MIDI devices support output / have speakers | Graceful fallback to audio playback through laptop speakers. Detect MIDI output capability and adapt.                                                                 |
 
 ---
 
@@ -290,13 +311,13 @@ Minstrel is a **Single Page Application (SPA)** designed for desktop-class brows
 
 ### Browser Support
 
-| Browser | Support Level | Rationale |
-|---------|--------------|-----------|
-| **Chrome (Desktop)** | Full support, primary target | Best Web MIDI API support, largest market share |
-| **Edge (Desktop)** | Full support | Chromium-based, equivalent Web MIDI support |
-| **Firefox (Desktop)** | Partial support | Web MIDI API requires polyfill or extension; degrade gracefully |
-| **Safari (Desktop)** | Partial support | Web MIDI API support limited; audio-only fallback available |
-| **Mobile browsers** | Not supported at MVP | MIDI instrument connection is desktop-centric; mobile is post-MVP |
+| Browser               | Support Level                | Rationale                                                         |
+| --------------------- | ---------------------------- | ----------------------------------------------------------------- |
+| **Chrome (Desktop)**  | Full support, primary target | Best Web MIDI API support, largest market share                   |
+| **Edge (Desktop)**    | Full support                 | Chromium-based, equivalent Web MIDI support                       |
+| **Firefox (Desktop)** | Partial support              | Web MIDI API requires polyfill or extension; degrade gracefully   |
+| **Safari (Desktop)**  | Partial support              | Web MIDI API support limited; audio-only fallback available       |
+| **Mobile browsers**   | Not supported at MVP         | MIDI instrument connection is desktop-centric; mobile is post-MVP |
 
 **Critical dependency:** Web MIDI API availability. Chrome and Chromium-based browsers are the primary target. For browsers without Web MIDI, display a clear message directing users to Chrome.
 
@@ -309,23 +330,23 @@ Minstrel is a **Single Page Application (SPA)** designed for desktop-class brows
 
 ### Real-Time Requirements
 
-| Feature | Latency Target | Protocol |
-|---------|---------------|----------|
-| MIDI input processing | <50ms | Web MIDI API (client-side) |
-| Visual feedback update | <16ms (60fps) | Client-side rendering |
-| AI chat response | <1 second | Server API (WebSocket or REST) |
-| Drill generation | <2 seconds | Server API |
-| Session data sync | Best-effort, non-blocking | Background sync |
+| Feature                | Latency Target            | Protocol                       |
+| ---------------------- | ------------------------- | ------------------------------ |
+| MIDI input processing  | <50ms                     | Web MIDI API (client-side)     |
+| Visual feedback update | <16ms (60fps)             | Client-side rendering          |
+| AI chat response       | <1 second                 | Server API (WebSocket or REST) |
+| Drill generation       | <2 seconds                | Server API                     |
+| Session data sync      | Best-effort, non-blocking | Background sync                |
 
 ### Performance Targets
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Initial page load (first contentful paint) | <3 seconds | Measured on broadband connection (10Mbps+) |
-| Time to interactive | <5 seconds | Measured on broadband connection (10Mbps+) |
-| MIDI connection established | <2 seconds after device detection | Client-side timer |
-| Client-side bundle size | <500KB gzipped (initial load) | Build output analysis |
-| Memory usage during session | <200MB | Browser DevTools profiling |
+| Metric                                     | Target                            | Measurement                                |
+| ------------------------------------------ | --------------------------------- | ------------------------------------------ |
+| Initial page load (first contentful paint) | <3 seconds                        | Measured on broadband connection (10Mbps+) |
+| Time to interactive                        | <5 seconds                        | Measured on broadband connection (10Mbps+) |
+| MIDI connection established                | <2 seconds after device detection | Client-side timer                          |
+| Client-side bundle size                    | <500KB gzipped (initial load)     | Build output analysis                      |
+| Memory usage during session                | <200MB                            | Browser DevTools profiling                 |
 
 ### SEO Strategy
 
@@ -355,12 +376,14 @@ Minstrel is a **Single Page Application (SPA)** designed for desktop-class brows
 ### MVP Feature Set (Phase 1)
 
 **Core User Journeys Supported:**
+
 - Journey 1 (Jake — First Session): Full happy path
 - Journey 2 (Aisha — Regular Session): Full happy path
 - Journey 3 (MIDI Connection Failure): Troubleshooting + audio fallback
 - Journey 4 (API Key Setup): BYOK onboarding and AI feature activation
 
 **Must-Have Capabilities:**
+
 1. MIDI connection auto-detection and bidirectional communication
 2. Real-time note/chord/progression analysis
 3. The Difficulty Engine (adaptive challenge — CRITICAL QUALITY GATE)
@@ -375,6 +398,7 @@ Minstrel is a **Single Page Application (SPA)** designed for desktop-class brows
 ### Post-MVP Features
 
 **Phase 2 — Monetization & Creative Companion (v2):**
+
 - Premium subscription model (freemium tiers, managed API access so users don't need their own keys)
 - Payment processing integration
 - Song completion engine (play a melody, get chord progressions)
@@ -386,6 +410,7 @@ Minstrel is a **Single Page Application (SPA)** designed for desktop-class brows
 - Mobile browser support
 
 **Phase 3 — The Intelligent Studio (v3):**
+
 - AI jam partner (real-time backing tracks reactive to playing)
 - Composition scratchpad (extract best licks into songwriting tools)
 - Advanced analytics (millisecond-level timing, harmonic tendency mapping)
@@ -396,26 +421,26 @@ Minstrel is a **Single Page Application (SPA)** designed for desktop-class brows
 
 **Technical Risks:**
 
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Difficulty Engine calibration is wrong at launch | Core value proposition fails | Extensive beta testing across skill levels. Manual difficulty override as safety valve. This is the #1 risk. |
-| Web MIDI API browser support is too limited | Reduces addressable market | Target Chrome/Edge first (80%+ desktop share). Clear browser requirement messaging. Audio fallback for unsupported browsers. |
-| AI response latency exceeds targets | Breaks real-time feel | Client-side MIDI processing (no server round-trip for core analysis). Server calls only for AI chat and drill generation. |
-| MIDI output not supported on all devices | Demonstration feature doesn't work | Graceful fallback to audio playback through laptop speakers. Detect device capabilities. |
+| Risk                                             | Impact                             | Mitigation                                                                                                                   |
+| ------------------------------------------------ | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Difficulty Engine calibration is wrong at launch | Core value proposition fails       | Extensive beta testing across skill levels. Manual difficulty override as safety valve. This is the #1 risk.                 |
+| Web MIDI API browser support is too limited      | Reduces addressable market         | Target Chrome/Edge first (80%+ desktop share). Clear browser requirement messaging. Audio fallback for unsupported browsers. |
+| AI response latency exceeds targets              | Breaks real-time feel              | Client-side MIDI processing (no server round-trip for core analysis). Server calls only for AI chat and drill generation.    |
+| MIDI output not supported on all devices         | Demonstration feature doesn't work | Graceful fallback to audio playback through laptop speakers. Detect device capabilities.                                     |
 
 **Market Risks:**
 
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Musicians don't trust AI coaching | Low adoption and engagement | Show data, not opinions. Ground every suggestion in what the player actually played. Growth mindset framing builds trust. |
-| Users expect sheet music | Confusion and churn | Clear "ear-first" messaging from day one. Rich visual feedback as alternative (note names, chord diagrams, timing graphs). |
-| API key friction deters users | Users unwilling to get/manage their own LLM API keys | Clear setup guide, multi-provider support, transparent cost estimates. Plan managed API access (premium tier) for Phase 2 to remove this barrier. |
+| Risk                              | Impact                                               | Mitigation                                                                                                                                        |
+| --------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Musicians don't trust AI coaching | Low adoption and engagement                          | Show data, not opinions. Ground every suggestion in what the player actually played. Growth mindset framing builds trust.                         |
+| Users expect sheet music          | Confusion and churn                                  | Clear "ear-first" messaging from day one. Rich visual feedback as alternative (note names, chord diagrams, timing graphs).                        |
+| API key friction deters users     | Users unwilling to get/manage their own LLM API keys | Clear setup guide, multi-provider support, transparent cost estimates. Plan managed API access (premium tier) for Phase 2 to remove this barrier. |
 
 **Resource Risks:**
 
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Smaller team than planned | Slower delivery | Phase 1 is tightly scoped to 10 must-haves. All growth features deferred to Phase 2. |
+| Risk                       | Impact                | Mitigation                                                                                                        |
+| -------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Smaller team than planned  | Slower delivery       | Phase 1 is tightly scoped to 10 must-haves. All growth features deferred to Phase 2.                              |
 | Music theory expertise gap | Poor analysis quality | Consult with music educators during development. Validate analysis accuracy with trained musicians before launch. |
 
 ---
@@ -505,16 +530,16 @@ Minstrel is a **Single Page Application (SPA)** designed for desktop-class brows
 
 ### Performance
 
-| Requirement | Target | Condition |
-|-------------|--------|-----------|
-| MIDI event processing latency | <50ms | From MIDI input to visual feedback update, client-side |
-| Real-time visualization frame rate | 60fps | During active play with Silent Coach overlay |
-| AI coaching chat response | <1 second | From user message submission to first response token |
-| AI drill generation | <2 seconds | From drill request to playable exercise delivered |
-| Initial page load (FCP) | <3 seconds | On broadband connection (10Mbps+) |
-| Time to interactive | <5 seconds | On broadband connection (10Mbps+) |
-| Session data autosave | Every 30 seconds | Non-blocking background operation |
-| Client memory usage | <200MB | During active 30-minute session |
+| Requirement                        | Target           | Condition                                              |
+| ---------------------------------- | ---------------- | ------------------------------------------------------ |
+| MIDI event processing latency      | <50ms            | From MIDI input to visual feedback update, client-side |
+| Real-time visualization frame rate | 60fps            | During active play with Silent Coach overlay           |
+| AI coaching chat response          | <1 second        | From user message submission to first response token   |
+| AI drill generation                | <2 seconds       | From drill request to playable exercise delivered      |
+| Initial page load (FCP)            | <3 seconds       | On broadband connection (10Mbps+)                      |
+| Time to interactive                | <5 seconds       | On broadband connection (10Mbps+)                      |
+| Session data autosave              | Every 30 seconds | Non-blocking background operation                      |
+| Client memory usage                | <200MB           | During active 30-minute session                        |
 
 ### Security
 
@@ -528,10 +553,10 @@ Minstrel is a **Single Page Application (SPA)** designed for desktop-class brows
 
 ### Scalability
 
-| Milestone | Target | Approach |
-|-----------|--------|----------|
-| Launch | 500 concurrent users | Single-region deployment |
-| 6 months | 2,000 concurrent users | Horizontal scaling of API servers |
+| Milestone | Target                  | Approach                                       |
+| --------- | ----------------------- | ---------------------------------------------- |
+| Launch    | 500 concurrent users    | Single-region deployment                       |
+| 6 months  | 2,000 concurrent users  | Horizontal scaling of API servers              |
 | 12 months | 10,000 concurrent users | Multi-region deployment, CDN for static assets |
 
 - Client-side MIDI processing eliminates server load for core real-time features
@@ -549,24 +574,24 @@ Minstrel is a **Single Page Application (SPA)** designed for desktop-class brows
 
 ### Reliability
 
-| Requirement | Target | Rationale |
-|-------------|--------|-----------|
-| Application uptime | 99.5% | Musicians practice at unpredictable hours |
-| Session recording integrity | 100% — zero data loss during active recording | Lost session data destroys user trust |
-| Graceful degradation on connection loss | Client continues recording locally; syncs when reconnected | Practice shouldn't stop because of network issues |
-| MIDI device reconnection | Auto-reconnect within 5 seconds of device re-detection | USB disconnects happen — recovery must be seamless |
-| AI service degradation | Core features (MIDI analysis, visualization) function without AI server | AI is enhancement, not dependency for basic practice |
+| Requirement                             | Target                                                                  | Rationale                                            |
+| --------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------- |
+| Application uptime                      | 99.5%                                                                   | Musicians practice at unpredictable hours            |
+| Session recording integrity             | 100% — zero data loss during active recording                           | Lost session data destroys user trust                |
+| Graceful degradation on connection loss | Client continues recording locally; syncs when reconnected              | Practice shouldn't stop because of network issues    |
+| MIDI device reconnection                | Auto-reconnect within 5 seconds of device re-detection                  | USB disconnects happen — recovery must be seamless   |
+| AI service degradation                  | Core features (MIDI analysis, visualization) function without AI server | AI is enhancement, not dependency for basic practice |
 
 ### Integration
 
-| System | Integration Type | Priority |
-|--------|-----------------|----------|
-| Web MIDI API | Browser API (client-side) | Critical — core MIDI functionality |
-| Web Audio API | Browser API (client-side) | High — audio capture and playback |
-| LLM Provider(s) | Server-side API (user-provided keys) | High — AI coaching and drill generation via BYOK |
-| Product Analytics Platform | Client + server SDK | Medium — user behavior tracking and product metrics |
-| Transactional Email Service | Server-side API | Medium — account verification |
+| System                      | Integration Type                     | Priority                                            |
+| --------------------------- | ------------------------------------ | --------------------------------------------------- |
+| Web MIDI API                | Browser API (client-side)            | Critical — core MIDI functionality                  |
+| Web Audio API               | Browser API (client-side)            | High — audio capture and playback                   |
+| LLM Provider(s)             | Server-side API (user-provided keys) | High — AI coaching and drill generation via BYOK    |
+| Product Analytics Platform  | Client + server SDK                  | Medium — user behavior tracking and product metrics |
+| Transactional Email Service | Server-side API                      | Medium — account verification                       |
 
 ---
 
-*This PRD serves as the capability contract for all downstream work. UX designers will design for these capabilities. Architects will build systems to support them. Epic breakdown will implement what is listed here. Any capability not documented in the Functional Requirements will not exist in the final product.*
+_This PRD serves as the capability contract for all downstream work. UX designers will design for these capabilities. Architects will build systems to support them. Epic breakdown will implement what is listed here. Any capability not documented in the Functional Requirements will not exist in the final product._

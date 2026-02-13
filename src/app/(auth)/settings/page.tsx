@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -153,17 +154,30 @@ export default function SettingsPage() {
     <div className="min-h-svh bg-background px-6 py-8">
       <div className="mx-auto w-full max-w-xl">
         {/* Navigation */}
-        <Link
-          href="/play"
-          className="text-caption text-muted-foreground transition-colors duration-micro hover:text-primary"
-        >
-          &larr; Back to practice
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link
+            href="/session"
+            className="text-caption text-muted-foreground transition-colors duration-150 hover:text-[#7CB9E8]"
+          >
+            &larr; Back to practice
+          </Link>
+          <Link href="/" className="transition-opacity duration-150 hover:opacity-70">
+            <Image
+              src="/minstrel-logo-white.svg"
+              alt="Minstrel"
+              width={80}
+              height={20}
+              className="h-4 w-auto opacity-30"
+            />
+          </Link>
+        </div>
 
         {/* Page header */}
         <div className="mt-6 mb-10">
-          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-primary">Settings</p>
-          <div className="mt-2 h-px w-12 bg-primary" />
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#7CB9E8]">
+            Settings
+          </p>
+          <div className="mt-2 h-px w-12 bg-[#7CB9E8]" />
         </div>
 
         {/* Profile section */}

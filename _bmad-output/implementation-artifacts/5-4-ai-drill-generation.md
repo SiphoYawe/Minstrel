@@ -38,12 +38,14 @@ So every drill targets something I need.
       targetSkill: z.string().describe('Specific skill this drill targets'),
       instructions: z.string().describe('Brief instruction for the musician'),
       sequence: z.object({
-        notes: z.array(z.object({
-          midiNote: z.number().min(21).max(108),
-          duration: z.number().positive().describe('Duration in beats'),
-          velocity: z.number().min(1).max(127),
-          startBeat: z.number().min(0),
-        })),
+        notes: z.array(
+          z.object({
+            midiNote: z.number().min(21).max(108),
+            duration: z.number().positive().describe('Duration in beats'),
+            velocity: z.number().min(1).max(127),
+            startBeat: z.number().min(0),
+          })
+        ),
         chordSymbols: z.array(z.string()).optional(),
         timeSignature: z.tuple([z.number(), z.number()]),
         measures: z.number().int().positive(),
@@ -133,7 +135,7 @@ So every drill targets something I need.
   1. **LLM constraint** — `generateObject` uses it to guide the LLM's structured output
   2. **Server validation** — Zod validates the LLM response automatically
   3. **Client types** — `z.infer<typeof DrillGenerationSchema>` generates TypeScript types
-  This is the architecture's "validate at the boundary" pattern.
+     This is the architecture's "validate at the boundary" pattern.
 
 - **MIDI Note Numbers**: The schema constrains notes to 21-108 (standard 88-key piano range: A0 to C8). The `midiNote` field uses standard MIDI note numbers:
   - Middle C = 60
@@ -147,6 +149,7 @@ So every drill targets something I need.
   - `startBeat` — when in the measure the note starts
 
 - **Variety Strategy (FR21)**: The prompt includes previous drill descriptions and explicitly instructs:
+
   ```
   IMPORTANT: The musician has already practiced these drills for this weakness:
   ${previousDrills.map(d => `- ${d.instructions}`).join('\n')}
@@ -160,6 +163,7 @@ So every drill targets something I need.
   ```
 
 - **Performance Budget (NFR4)**: Drill generation must complete in <2 seconds. Monitor this:
+
   ```typescript
   const startTime = performance.now();
   const result = await generateObject({ ... });
@@ -172,6 +176,7 @@ So every drill targets something I need.
 - **Dependency Chain**: Stories 5.1 (skill profile) + 5.2 (difficulty parameters) + Epic 3 (API key) + Story 4.1 (AI SDK setup) feed into this story. This story feeds into Story 5.5 (MIDI output plays the drill) and Story 5.6 (tracks performance against drill criteria).
 
 - **Vercel AI SDK 6.x `generateObject` Pattern**:
+
   ```typescript
   import { generateObject } from 'ai';
   import { createProvider } from '@/lib/ai/provider';

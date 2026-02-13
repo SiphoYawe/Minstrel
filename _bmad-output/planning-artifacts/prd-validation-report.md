@@ -5,7 +5,21 @@ inputDocuments:
   - '_bmad-output/planning-artifacts/prd.md'
   - '_bmad-output/planning-artifacts/product-brief-Minstrel-2026-02-09.md'
   - '_bmad-output/brainstorming/brainstorming-session-2026-02-09.md'
-validationStepsCompleted: ['step-v-01-discovery', 'step-v-02-format-detection', 'step-v-03-density-validation', 'step-v-04-brief-coverage-validation', 'step-v-05-measurability-validation', 'step-v-06-traceability-validation', 'step-v-07-implementation-leakage-validation', 'step-v-08-domain-compliance-validation', 'step-v-09-project-type-validation', 'step-v-10-smart-validation', 'step-v-11-holistic-quality-validation', 'step-v-12-completeness-validation']
+validationStepsCompleted:
+  [
+    'step-v-01-discovery',
+    'step-v-02-format-detection',
+    'step-v-03-density-validation',
+    'step-v-04-brief-coverage-validation',
+    'step-v-05-measurability-validation',
+    'step-v-06-traceability-validation',
+    'step-v-07-implementation-leakage-validation',
+    'step-v-08-domain-compliance-validation',
+    'step-v-09-project-type-validation',
+    'step-v-10-smart-validation',
+    'step-v-11-holistic-quality-validation',
+    'step-v-12-completeness-validation',
+  ]
 validationStatus: COMPLETE
 holisticQualityRating: '4/5 - Good'
 overallStatus: WARNING
@@ -13,7 +27,7 @@ overallStatus: WARNING
 
 # PRD Validation Report
 
-**PRD Being Validated:** _bmad-output/planning-artifacts/prd.md
+**PRD Being Validated:** \_bmad-output/planning-artifacts/prd.md
 **Validation Date:** 2026-02-12
 
 ## Input Documents
@@ -25,6 +39,7 @@ overallStatus: WARNING
 ## Format Detection
 
 **PRD Structure:**
+
 - (Intro paragraph - serves as Executive Summary)
 - ## Success Criteria
 - ## Product Scope
@@ -37,6 +52,7 @@ overallStatus: WARNING
 - ## Non-Functional Requirements
 
 **BMAD Core Sections Present:**
+
 - Executive Summary: Present (as intro paragraph, no ## header)
 - Success Criteria: Present
 - Product Scope: Present
@@ -58,6 +74,7 @@ overallStatus: WARNING
 The PRD maintains high information density throughout. Every sentence carries weight. No filler phrases, conversational padding, or redundant content detected. Tables are used effectively to compress structured data. The document follows BMAD information density principles consistently.
 
 **Strengths:**
+
 - Executive summary packs vision, differentiator, target users, business model, and platform into 5 concise lines
 - Success criteria use measurable tables with specific targets
 - User journeys are narrative but purposeful — every paragraph reveals requirements
@@ -74,19 +91,19 @@ The PRD maintains high information density throughout. Every sentence carries we
 
 All product brief elements are represented in the PRD:
 
-| Brief Element | PRD Coverage | Status |
-|---------------|-------------|--------|
-| Executive Summary / Vision | Intro paragraph + Core Differentiator | Covered |
-| Problem Statement | Embedded in Success Criteria context | Covered |
-| Target Users (Jake, Aisha) | User Journeys 1 & 2 | Covered |
-| Key Differentiators (3) | Innovation & Novel Patterns section | Covered |
-| MVP Scope (9 features) | Product Scope + Must-Have Capabilities | Covered |
-| Success Metrics / KPIs | Success Criteria (User, Business, Technical) | Covered |
-| Business Model | Success Criteria + FR45-FR50 | Covered |
-| Out-of-Scope Items | Product Scope (Growth Features, Vision) | Covered |
-| Post-MVP Roadmap | Phases 2 & 3 | Covered |
-| Risk Mitigation | Risk Mitigation Strategy (Technical, Market, Resource) | Covered |
-| Supported Instruments | Target Users description | Covered |
+| Brief Element              | PRD Coverage                                           | Status  |
+| -------------------------- | ------------------------------------------------------ | ------- |
+| Executive Summary / Vision | Intro paragraph + Core Differentiator                  | Covered |
+| Problem Statement          | Embedded in Success Criteria context                   | Covered |
+| Target Users (Jake, Aisha) | User Journeys 1 & 2                                    | Covered |
+| Key Differentiators (3)    | Innovation & Novel Patterns section                    | Covered |
+| MVP Scope (9 features)     | Product Scope + Must-Have Capabilities                 | Covered |
+| Success Metrics / KPIs     | Success Criteria (User, Business, Technical)           | Covered |
+| Business Model             | Success Criteria + FR45-FR50                           | Covered |
+| Out-of-Scope Items         | Product Scope (Growth Features, Vision)                | Covered |
+| Post-MVP Roadmap           | Phases 2 & 3                                           | Covered |
+| Risk Mitigation            | Risk Mitigation Strategy (Technical, Market, Resource) | Covered |
+| Supported Instruments      | Target Users description                               | Covered |
 
 **Note:** PRD expands significantly beyond the brief with domain-specific requirements, web application requirements, innovation validation approaches, and 50 detailed FRs. The brief served as a strong foundation that the PRD built upon without gaps.
 
@@ -98,11 +115,11 @@ All product brief elements are represented in the PRD:
 
 **Summary:** 47/50 FRs have clear measurability. 3 FRs have minor measurability concerns.
 
-| FR | Issue | Severity |
-|----|-------|----------|
-| FR11 | "genre-specific patterns and stylistic elements" — what constitutes a pattern match? | Minor |
-| FR17 | "growth zone (between boredom and frustration)" — subjective states, hard to test | Minor |
-| FR28 | "growth mindset language" — how to verify compliance systematically? | Minor |
+| FR   | Issue                                                                                | Severity |
+| ---- | ------------------------------------------------------------------------------------ | -------- |
+| FR11 | "genre-specific patterns and stylistic elements" — what constitutes a pattern match? | Minor    |
+| FR17 | "growth zone (between boredom and frustration)" — subjective states, hard to test    | Minor    |
+| FR28 | "growth mindset language" — how to verify compliance systematically?                 | Minor    |
 
 **Success Criteria Measurability:** All success criteria in the tables have specific measurement methods and numeric targets. Leading indicators have thresholds. The "Critical quality gate" statement about the Difficulty Engine is qualitative but supported by specific FR measurability.
 
@@ -120,6 +137,7 @@ All product brief elements are represented in the PRD:
 The executive summary establishes the vision (AI-powered MIDI practice companion, Difficulty Engine differentiator) which maps directly to all three success criteria categories (User, Business, Technical). The "worth it" moment narrative chains to Session Completion and Aha Moment Reach criteria.
 
 **Success Criteria -> User Journeys:** Intact
+
 - Measurable Skill Improvement: Journey 1 (Jake's 55% improvement), Journey 2 (Aisha's 60%->82%)
 - Practice Habit Formation: Journey 2 (regular Tuesday user)
 - Breakthrough Milestones: Journey 2 (first jazzy improvisation)
@@ -154,13 +172,13 @@ All 10 MVP Must-Have Capabilities have supporting FRs. No FRs address features e
 
 Implementation leakage = technology/vendor names that should not appear in a requirements document (PRD defines WHAT, not HOW).
 
-| Location | Leakage | Line | Recommendation |
-|----------|---------|------|----------------|
-| Performance Targets | "Lighthouse on broadband connection" (measurement tool) | 326-327 | Replace with "Measured on broadband connection (10Mbps+)" |
-| Security | "Stripe or equivalent" (vendor name) | 524 | Replace with "PCI-DSS compliant third-party payment processor" |
-| Integration | "Mixpanel, PostHog" (vendor names) | 568 | Replace with "Product analytics platform" |
-| Integration | "SendGrid" (vendor name) | 569 | Replace with "Transactional email service" |
-| Integration | "Claude API" (vendor name) | 566 | Replace with "LLM provider API" — already partially generic with "e.g." prefix |
+| Location            | Leakage                                                 | Line    | Recommendation                                                                 |
+| ------------------- | ------------------------------------------------------- | ------- | ------------------------------------------------------------------------------ |
+| Performance Targets | "Lighthouse on broadband connection" (measurement tool) | 326-327 | Replace with "Measured on broadband connection (10Mbps+)"                      |
+| Security            | "Stripe or equivalent" (vendor name)                    | 524     | Replace with "PCI-DSS compliant third-party payment processor"                 |
+| Integration         | "Mixpanel, PostHog" (vendor names)                      | 568     | Replace with "Product analytics platform"                                      |
+| Integration         | "SendGrid" (vendor name)                                | 569     | Replace with "Transactional email service"                                     |
+| Integration         | "Claude API" (vendor name)                              | 566     | Replace with "LLM provider API" — already partially generic with "e.g." prefix |
 
 **Note:** The PRD already uses "e.g." prefix for most vendor mentions, showing awareness of the principle. The Integration table uses vendor names as examples rather than hard requirements, which is borderline acceptable. The Lighthouse reference in Performance Targets is the clearest violation — it specifies a measurement tool rather than a measurement standard.
 
@@ -175,13 +193,13 @@ Implementation leakage = technology/vendor names that should not appear in a req
 **Domain:** EdTech (medium complexity)
 **Required Sections:** privacy_compliance, content_guidelines, accessibility_features, curriculum_alignment, age_verification (per domain-complexity.csv)
 
-| Required Section | Present | PRD Location |
-|-----------------|---------|-------------|
-| Privacy Compliance | Yes | Domain-Specific Requirements > Privacy & Data Protection |
-| Content Guidelines | Yes | Domain-Specific Requirements > Content Safety |
-| Accessibility Features | Yes | Domain-Specific Requirements > Accessibility + NFR Accessibility |
-| Curriculum Alignment | No (intentional) | N/A — PRD explicitly rejects curriculum: "no pre-built curriculum" (by design) |
-| Age Verification | Yes | Domain-Specific Requirements > Age Verification |
+| Required Section       | Present          | PRD Location                                                                   |
+| ---------------------- | ---------------- | ------------------------------------------------------------------------------ |
+| Privacy Compliance     | Yes              | Domain-Specific Requirements > Privacy & Data Protection                       |
+| Content Guidelines     | Yes              | Domain-Specific Requirements > Content Safety                                  |
+| Accessibility Features | Yes              | Domain-Specific Requirements > Accessibility + NFR Accessibility               |
+| Curriculum Alignment   | No (intentional) | N/A — PRD explicitly rejects curriculum: "no pre-built curriculum" (by design) |
+| Age Verification       | Yes              | Domain-Specific Requirements > Age Verification                                |
 
 **Sections Present:** 4/5
 
@@ -197,13 +215,13 @@ Implementation leakage = technology/vendor names that should not appear in a req
 **Required Sections:** browser_matrix, responsive_design, performance_targets, seo_strategy, accessibility_level (per project-types.csv)
 **Skip Sections:** native_features, cli_commands
 
-| Required Section | Present | PRD Location |
-|-----------------|---------|-------------|
-| Browser Matrix | Yes | Web Application Specific Requirements > Browser Support |
-| Responsive Design | Yes | Web Application Specific Requirements > Responsive Design |
-| Performance Targets | Yes | Web Application Specific Requirements > Performance Targets + NFR Performance |
-| SEO Strategy | Yes | Web Application Specific Requirements > SEO Strategy |
-| Accessibility Level | Yes | Web Application Specific Requirements > Accessibility Level |
+| Required Section    | Present | PRD Location                                                                  |
+| ------------------- | ------- | ----------------------------------------------------------------------------- |
+| Browser Matrix      | Yes     | Web Application Specific Requirements > Browser Support                       |
+| Responsive Design   | Yes     | Web Application Specific Requirements > Responsive Design                     |
+| Performance Targets | Yes     | Web Application Specific Requirements > Performance Targets + NFR Performance |
+| SEO Strategy        | Yes     | Web Application Specific Requirements > SEO Strategy                          |
+| Accessibility Level | Yes     | Web Application Specific Requirements > Accessibility Level                   |
 
 **Required Sections:** 5/5 (100%)
 
@@ -221,31 +239,31 @@ Implementation leakage = technology/vendor names that should not appear in a req
 
 ### SMART Scoring Summary
 
-| FR Range | Area | Avg SMART Score | Lowest Dimension |
-|----------|------|----------------|-----------------|
-| FR1-FR7 | MIDI & Audio Input | 4.2 | Measurable (FR7) |
-| FR8-FR13 | Real-Time Analysis | 4.0 | Measurable (FR11) |
-| FR14-FR18 | Difficulty Engine | 3.4 | Measurable (FR17: 1.0) |
-| FR19-FR23 | AI Drill Generation | 4.1 | Measurable (FR21) |
-| FR24-FR28 | AI Coaching Chat | 3.8 | Measurable (FR28) |
-| FR29-FR33 | Interaction Modes | 4.3 | n/a |
-| FR34-FR39 | Session Management | 4.4 | n/a |
-| FR40-FR44 | Engagement & Progress | 4.2 | n/a |
-| FR45-FR50 | Accounts & Monetization | 4.5 | n/a |
+| FR Range  | Area                    | Avg SMART Score | Lowest Dimension       |
+| --------- | ----------------------- | --------------- | ---------------------- |
+| FR1-FR7   | MIDI & Audio Input      | 4.2             | Measurable (FR7)       |
+| FR8-FR13  | Real-Time Analysis      | 4.0             | Measurable (FR11)      |
+| FR14-FR18 | Difficulty Engine       | 3.4             | Measurable (FR17: 1.0) |
+| FR19-FR23 | AI Drill Generation     | 4.1             | Measurable (FR21)      |
+| FR24-FR28 | AI Coaching Chat        | 3.8             | Measurable (FR28)      |
+| FR29-FR33 | Interaction Modes       | 4.3             | n/a                    |
+| FR34-FR39 | Session Management      | 4.4             | n/a                    |
+| FR40-FR44 | Engagement & Progress   | 4.2             | n/a                    |
+| FR45-FR50 | Accounts & Monetization | 4.5             | n/a                    |
 
 ### Flagged FRs (9 total)
 
-| FR | Issue | SMART Dimension | Score |
-|----|-------|----------------|-------|
-| FR11 | "genre-specific patterns" lacks definition of what constitutes a match | Measurable | 2 |
-| FR14 | "assess skill level across multiple dimensions" — dimensions listed but thresholds undefined | Measurable | 3 |
-| FR15 | "dynamically adjust" — adjustment triggers and magnitude unspecified | Measurable | 3 |
-| FR16 | "progressive overload" — increment sizes unspecified | Measurable | 3 |
-| FR17 | "growth zone (between boredom and frustration)" — subjective states, unmeasurable as written | Measurable | 1 |
-| FR18 | "recalibrate difficulty" — recalibration triggers and frequency unspecified | Measurable | 3 |
-| FR21 | "without repetition" — over what time window? | Specific | 3 |
-| FR26 | "constrain to relevant genre/style" — constraint boundaries undefined | Measurable | 3 |
-| FR28 | "growth mindset language" — compliance criteria undefined | Measurable | 3 |
+| FR   | Issue                                                                                        | SMART Dimension | Score |
+| ---- | -------------------------------------------------------------------------------------------- | --------------- | ----- |
+| FR11 | "genre-specific patterns" lacks definition of what constitutes a match                       | Measurable      | 2     |
+| FR14 | "assess skill level across multiple dimensions" — dimensions listed but thresholds undefined | Measurable      | 3     |
+| FR15 | "dynamically adjust" — adjustment triggers and magnitude unspecified                         | Measurable      | 3     |
+| FR16 | "progressive overload" — increment sizes unspecified                                         | Measurable      | 3     |
+| FR17 | "growth zone (between boredom and frustration)" — subjective states, unmeasurable as written | Measurable      | 1     |
+| FR18 | "recalibrate difficulty" — recalibration triggers and frequency unspecified                  | Measurable      | 3     |
+| FR21 | "without repetition" — over what time window?                                                | Specific        | 3     |
+| FR26 | "constrain to relevant genre/style" — constraint boundaries undefined                        | Measurable      | 3     |
+| FR28 | "growth mindset language" — compliance criteria undefined                                    | Measurable      | 3     |
 
 ### Critical Observation
 
@@ -260,6 +278,7 @@ The Difficulty Engine FRs (FR14-FR18) scored lowest across all capability areas,
 **Assessment:** Excellent
 
 **Strengths:**
+
 - Tells a cohesive story from vision through execution with natural narrative flow
 - The "ear-first" philosophy is consistently reinforced in every section without becoming repetitive
 - User journeys are vivid, specific, and directly reveal requirements
@@ -268,18 +287,21 @@ The Difficulty Engine FRs (FR14-FR18) scored lowest across all capability areas,
 - Tables and prose are mixed effectively — data in tables, context in prose
 
 **Areas for Improvement:**
+
 - The Innovation & Novel Patterns section partially overlaps with the Product Scope differentiators — could be tighter
 - Risk Mitigation appears in Project Scoping but could be cross-referenced from Innovation risks
 
 ### Dual Audience Effectiveness
 
 **For Humans:**
+
 - Executive-friendly: Excellent — the intro paragraph and Success Criteria provide a complete picture in 2 minutes
 - Developer clarity: Excellent — 50 numbered FRs with clear capability language, NFRs with specific targets
 - Designer clarity: Excellent — 4 vivid user journeys with interaction details, 3 named interaction modes
 - Stakeholder decision-making: Excellent — business model, success criteria, risk mitigation all present
 
 **For LLMs:**
+
 - Machine-readable structure: Excellent — consistent markdown, numbered FRs, structured tables, clear headers
 - UX readiness: Excellent — journeys describe specific screens, interactions, and feedback patterns
 - Architecture readiness: Excellent — NFRs with specific targets, integration table, real-time requirements
@@ -289,15 +311,15 @@ The Difficulty Engine FRs (FR14-FR18) scored lowest across all capability areas,
 
 ### BMAD PRD Principles Compliance
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| Information Density | Met | 0 violations (Step 3) |
-| Measurability | Partial | 3 minor violations, Difficulty Engine FRs need work (Steps 5, 10) |
-| Traceability | Met | 99% intact, 1 minor gap — backing tracks (Step 6) |
-| Domain Awareness | Met | 4/5 required sections, 1 intentionally excluded (Step 8) |
-| Zero Anti-Patterns | Met | No filler, no padding, no redundancy detected |
-| Dual Audience | Met | Effective for both humans and LLMs |
-| Markdown Format | Met | Proper structure, consistent formatting, effective table usage |
+| Principle           | Status  | Notes                                                             |
+| ------------------- | ------- | ----------------------------------------------------------------- |
+| Information Density | Met     | 0 violations (Step 3)                                             |
+| Measurability       | Partial | 3 minor violations, Difficulty Engine FRs need work (Steps 5, 10) |
+| Traceability        | Met     | 99% intact, 1 minor gap — backing tracks (Step 6)                 |
+| Domain Awareness    | Met     | 4/5 required sections, 1 intentionally excluded (Step 8)          |
+| Zero Anti-Patterns  | Met     | No filler, no padding, no redundancy detected                     |
+| Dual Audience       | Met     | Effective for both humans and LLMs                                |
+| Markdown Format     | Met     | Proper structure, consistent formatting, effective table usage    |
 
 **Principles Met:** 6.5/7 (Measurability is partial)
 
@@ -306,6 +328,7 @@ The Difficulty Engine FRs (FR14-FR18) scored lowest across all capability areas,
 **Rating:** 4/5 - Good
 
 **Scale:**
+
 - 5/5 - Excellent: Exemplary, ready for production use
 - **4/5 - Good: Strong with minor improvements needed** <--
 - 3/5 - Adequate: Acceptable but needs refinement
@@ -340,18 +363,18 @@ No template variables remaining. All placeholders have been filled with actual c
 
 ### Content Completeness by Section
 
-| Section | Status |
-|---------|--------|
-| Executive Summary | Complete |
-| Success Criteria | Complete |
-| Product Scope | Complete |
-| User Journeys | Complete |
-| Domain-Specific Requirements | Complete |
-| Innovation & Novel Patterns | Complete |
+| Section                               | Status   |
+| ------------------------------------- | -------- |
+| Executive Summary                     | Complete |
+| Success Criteria                      | Complete |
+| Product Scope                         | Complete |
+| User Journeys                         | Complete |
+| Domain-Specific Requirements          | Complete |
+| Innovation & Novel Patterns           | Complete |
 | Web Application Specific Requirements | Complete |
-| Project Scoping & Phased Development | Complete |
-| Functional Requirements | Complete |
-| Non-Functional Requirements | Complete |
+| Project Scoping & Phased Development  | Complete |
+| Functional Requirements               | Complete |
+| Non-Functional Requirements           | Complete |
 
 **All sections:** 10/10 Complete
 
@@ -393,28 +416,30 @@ No template variables remaining. All placeholders have been filled with actual c
 
 **Quick Results:**
 
-| Check | Result | Severity |
-|-------|--------|----------|
-| Format Detection | BMAD Standard (6/6 core sections) | Pass |
-| Information Density | 0 violations | Pass |
-| Product Brief Coverage | 100% coverage, 0 gaps | Pass |
-| Measurability | 3 minor violations | Pass |
-| Traceability | 99% intact, 1 minor gap | Warning |
-| Implementation Leakage | 5 violations | Warning |
-| Domain Compliance | 4/5 sections (1 intentional exclusion) | Pass |
-| Project-Type Compliance | 5/5 required, 100% | Pass |
-| SMART Requirements | 82% acceptable (41/50) | Warning |
-| Holistic Quality | 4/5 - Good | Pass |
-| Completeness | 100% sections complete | Pass |
+| Check                   | Result                                 | Severity |
+| ----------------------- | -------------------------------------- | -------- |
+| Format Detection        | BMAD Standard (6/6 core sections)      | Pass     |
+| Information Density     | 0 violations                           | Pass     |
+| Product Brief Coverage  | 100% coverage, 0 gaps                  | Pass     |
+| Measurability           | 3 minor violations                     | Pass     |
+| Traceability            | 99% intact, 1 minor gap                | Warning  |
+| Implementation Leakage  | 5 violations                           | Warning  |
+| Domain Compliance       | 4/5 sections (1 intentional exclusion) | Pass     |
+| Project-Type Compliance | 5/5 required, 100%                     | Pass     |
+| SMART Requirements      | 82% acceptable (41/50)                 | Warning  |
+| Holistic Quality        | 4/5 - Good                             | Pass     |
+| Completeness            | 100% sections complete                 | Pass     |
 
 **Critical Issues:** 0
 
 **Warnings:** 3 areas
+
 1. **SMART Requirements** — Difficulty Engine FRs (FR14-FR18) score lowest, FR17 scores 1/5 on Measurability. The critical quality gate has the least measurable requirements.
 2. **Implementation Leakage** — 5 vendor/tool name references in NFRs and Integration section (Lighthouse, Stripe, Mixpanel/PostHog, SendGrid, Claude API)
 3. **Traceability** — Backing tracks mentioned in Journey 2 and Journey Requirements Summary but no corresponding FR
 
 **Strengths:**
+
 - Exceptional information density — zero filler, every sentence carries weight
 - 100% product brief coverage with significant expansion
 - Vivid, requirement-revealing user journeys that drive FR traceability
@@ -426,11 +451,13 @@ No template variables remaining. All placeholders have been filled with actual c
 **Holistic Quality:** 4/5 - Good
 
 **Top 3 Improvements:**
+
 1. SMART-ify Difficulty Engine FRs (FR14-FR18) — critical quality gate needs measurable requirements
 2. ~~Remove implementation leakage — replace vendor names with generic descriptions~~ FIXED
 3. ~~Resolve backing track traceability gap — add FR or clarify post-MVP status~~ FIXED
 
 **Fixes Applied (Post-Validation):**
+
 - Replaced "Lighthouse" with "Measured on broadband connection (10Mbps+)" in Performance Targets
 - Replaced "Stripe or equivalent" with "PCI-DSS compliant third-party payment processor" in Security
 - Replaced vendor names (Claude API, Stripe, Mixpanel/PostHog, SendGrid) with generic descriptions in Integration table

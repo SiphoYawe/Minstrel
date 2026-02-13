@@ -42,7 +42,7 @@ So I have clear auditory target.
     // Scheduler pattern for precise timing
     const beatDurationMs = 60000 / targetTempo;
     for (const note of drill.sequence.notes) {
-      const targetTime = startTime + (note.startBeat * beatDurationMs);
+      const targetTime = startTime + note.startBeat * beatDurationMs;
       const delay = targetTime - performance.now();
       await preciseDelay(delay);
       sendNoteOn(port, note.midiNote, note.velocity);
@@ -112,21 +112,23 @@ So I have clear auditory target.
 - **Architecture Layer**: `midi-output.ts` is Layer 3 domain logic (pure MIDI byte construction). `drill-player.ts` is Layer 2/3 (orchestration + timing). Canvas visualization is Layer 1. The Web MIDI API itself is Layer 5 (external).
 
 - **Web MIDI API Output**: The output API is straightforward but requires careful timing:
+
   ```typescript
   // Web MIDI API output
   const output: MIDIOutput = midiAccess.outputs.values().next().value;
 
   // noteOn: status byte (0x90 + channel), note number, velocity
-  output.send([0x90, 60, 100]);  // C4, velocity 100
+  output.send([0x90, 60, 100]); // C4, velocity 100
 
   // noteOff: status byte (0x80 + channel), note number, velocity (usually 0)
-  output.send([0x80, 60, 0]);    // C4 off
+  output.send([0x80, 60, 0]); // C4 off
 
   // With timestamp (for precise scheduling):
   output.send([0x90, 60, 100], performance.now() + 500); // play in 500ms
   ```
 
 - **MIDI Output Port Discovery**: Not all MIDI devices support output. Many MIDI controllers are input-only. The code must gracefully handle this:
+
   ```typescript
   async function getMidiOutputPort(): Promise<MIDIOutput | null> {
     const access = await navigator.requestMIDIAccess();
@@ -138,20 +140,23 @@ So I have clear auditory target.
   ```
 
 - **Precise Timing**: JavaScript `setTimeout` has ~4ms minimum delay and can jitter. For musical timing at 120 BPM (500ms per beat), this is usually acceptable. For faster tempos or more precise needs, use the Web MIDI API's built-in timestamp parameter:
+
   ```typescript
   // Schedule notes ahead of time using Web MIDI API timestamps
   const now = performance.now();
-  drill.sequence.notes.forEach(note => {
-    const noteTime = now + (note.startBeat * beatDurationMs);
+  drill.sequence.notes.forEach((note) => {
+    const noteTime = now + note.startBeat * beatDurationMs;
     output.send([0x90, note.midiNote, note.velocity], noteTime);
-    output.send([0x80, note.midiNote, 0], noteTime + (note.duration * beatDurationMs));
+    output.send([0x80, note.midiNote, 0], noteTime + note.duration * beatDurationMs);
   });
   ```
+
   This is the preferred approach — schedule all notes upfront and let the MIDI API handle timing.
 
 - **Audio Fallback Quality**: The Web Audio API oscillator fallback is intentionally simple. It is NOT trying to replicate the instrument's sound — it is a functional fallback so the user can hear the drill. A sine wave at the correct frequency and velocity is sufficient. Future enhancement could use sampled sounds.
 
 - **DrillController Component Integration**: The DrillController (P1 component from UX spec) manages the UI for this choreography. Its anatomy from the UX spec:
+
   ```
   ┌─────────────────────────────────────────┐
   │  Chord Transition Drill                 │
@@ -164,9 +169,11 @@ So I have clear auditory target.
   │  [One more]              [Complete]     │
   └─────────────────────────────────────────┘
   ```
+
   The DrillController component itself may be partially built in this story (phase indicator, demonstrate UI) with full completion tracking added in Story 5.6.
 
 - **Canvas/Zustand Synchronization**: The Canvas must show notes lighting up in real time during demonstration. Use the architecture's vanilla subscribe pattern:
+
   ```typescript
   // In Canvas component setup (not in React render cycle)
   useMidiStore.subscribe(

@@ -4,6 +4,7 @@ import { getModelForProvider } from '@/lib/ai/provider';
 import { buildAnalysisSystemPrompt } from '@/lib/ai/prompts';
 import { authenticateAiRequest, withAiErrorHandling } from '@/lib/ai/route-helpers';
 import { AiError } from '@/lib/ai/errors';
+import { getPostHogClient } from '@/lib/posthog-server';
 
 export async function POST(req: Request): Promise<Response> {
   let body: unknown;
@@ -53,6 +54,20 @@ export async function POST(req: Request): Promise<Response> {
     if (!output) {
       throw new AiError('GENERATION_FAILED');
     }
+
+    // Track server-side analysis completion
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: 'server', // No user context in this API route
+      event: 'ai_analysis_completed',
+      properties: {
+        provider: providerId,
+        sessions_analyzed: sessionHistory.length,
+        current_level: currentProfile.overallLevel,
+        strengths_count: currentProfile.strengths.length,
+        weaknesses_count: currentProfile.weaknesses.length,
+      },
+    });
 
     return Response.json({ data: output, error: null });
   });

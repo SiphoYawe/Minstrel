@@ -27,6 +27,7 @@ context_file: ''
 **Topic:** Minstrel - An AI-powered interactive practice companion for instrumentalists. Users connect via MIDI to receive real-time analysis of notes, chords, and progressions. The platform detects mistakes, recommends improvements, generates practice drills, boosts creativity, and provides an interactive AI coaching conversation grounded in session context. Adaptive difficulty keeps it fun and challenging without discouraging the player.
 
 **Goals:**
+
 - Real-time MIDI analysis of every note, chord, and progression
 - Mistake detection and correction with explanations
 - Personalized practice drills targeting weak areas
@@ -62,9 +63,10 @@ context_file: ''
 **[Persona #1]: Jake — The Self-Taught Beginner (17, guitarist)**
 _Concept_: First experience should flow naturally: Free Play → Skill Assessment → Guided Challenge as a seamless onboarding sequence, not a forced funnel
 _Key Decisions_:
+
 - Retention through ALL channels: streaks/XP, unfinished challenges, personalized playlists, social proof
 - Error handling is LAYERED and contextual: gentle real-time nudge + post-phrase review + adaptive difficulty drop + coach explanation — Minstrel picks the right response based on the moment
-_Novelty_: Error response is not one-size-fits-all — it's a smart escalation system
+  _Novelty_: Error response is not one-size-fits-all — it's a smart escalation system
 
 **[Persona #2]: Aisha — The Creatively Stuck Classical Player (25, pianist)**
 _Concept_: All four creativity tools are core pillars: improv sandbox, theory-to-creativity bridge, style morphing, guided deconstruction
@@ -182,11 +184,12 @@ _Novelty_: This is the BRAIN of Minstrel. Every feature defers to this engine fo
 
 **[Fused Feature #2]: Multi-Modal Interaction Layers**
 _Concept_: Four interaction modes as layers of the same experience:
+
 - **Silent Coach** (during play) — real-time data visualization, AI only speaks when asked
 - **Margin Notes** (post-session) — performance as annotated document, click any moment for deeper questions
 - **Dashboard + Chat** (active questioning) — split screen with live data and conversational AI
 - **Replay Studio** (deep dive) — scrub timeline of recorded session, ask AI about any moment
-_Novelty_: Not competing modes but a layered experience — different depths for different moments
+  _Novelty_: Not competing modes but a layered experience — different depths for different moments
 
 **[Fused Feature #3]: Style DNA Profile**
 _Concept_: Minstrel maps the player's musical personality (70% jazz, 20% classical, 10% blues) — but ONLY introduces new styles with user consent or on request. Never pushes players out of comfort zone uninvited.
@@ -217,6 +220,7 @@ _Novelty_: Genre is not a tag — it's a fundamental constraint on every piece o
 ## Product Philosophy (Emerged from Session)
 
 **Minstrel is:**
+
 - A private tutor replacement, available 24/7
 - An ear-first, interactive practice sanctuary
 - Minimal, subtle, data-driven — the music speaks, not the AI
@@ -226,6 +230,7 @@ _Novelty_: Genre is not a tag — it's a fundamental constraint on every piece o
 - Built on "not yet" — never "wrong"
 
 **Minstrel's Core Systems:**
+
 1. **MIDI + Audio Listening Engine** — the foundation (bidirectional — input AND output)
 2. **MIDI Playback / Demonstration Engine** — Minstrel plays notes back through the user's instrument speakers to demonstrate drills, runs, arpeggios, and correct phrasing before the user attempts them. Teaching loop: Demonstrate → Listen → Attempt → Analyze → Correct → Repeat.
 3. **The Difficulty Engine** — unified challenge intelligence
@@ -234,6 +239,7 @@ _Novelty_: Genre is not a tag — it's a fundamental constraint on every piece o
 6. **Style DNA Profile** — musical personality mapping (opt-in discovery)
 
 **Minstrel is NOT:**
+
 - A teaching platform (no teacher mode)
 - A social network
 - A sheet music reader

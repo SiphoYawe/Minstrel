@@ -23,6 +23,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 ### Functional Requirements
 
 **MIDI & Audio Input:**
+
 - FR1: Users can connect any MIDI device and have it auto-detected without manual configuration
 - FR2: System can detect MIDI device name, channel, and connection status in real time
 - FR3: Users can receive step-by-step troubleshooting guidance when MIDI connection fails
@@ -32,6 +33,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 - FR7: System can detect basic dynamics and volume through audio capture
 
 **Real-Time Analysis:**
+
 - FR8: System can identify individual notes, chords, and chord progressions in real time as the user plays
 - FR9: System can measure timing accuracy relative to detected or target tempo
 - FR10: System can detect key center, tonal context, and harmonic function of played chords
@@ -40,6 +42,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 - FR13: System can generate a session snapshot summarizing key, chords used, timing accuracy, tempo, and a key insight
 
 **The Difficulty Engine:**
+
 - FR14: System can assess a player's current skill level across multiple dimensions (timing, harmony, technique, speed)
 - FR15: System can dynamically adjust challenge difficulty based on real-time performance within a session
 - FR16: System can apply progressive overload by incrementally increasing tempo, harmonic complexity, or rhythmic difficulty
@@ -47,6 +50,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 - FR18: System can recalibrate difficulty across all exercises and modes based on cumulative player data
 
 **AI Drill Generation & Demonstration:**
+
 - FR19: System can generate targeted practice exercises based on specific weaknesses identified during play
 - FR20: System can demonstrate generated drills through the user's instrument via MIDI output before the user attempts them
 - FR21: System can produce varied drills addressing the same weakness without repetition
@@ -54,6 +58,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 - FR23: Users can receive a key insight identifying their highest-impact area for improvement after freeform play
 
 **AI Coaching Chat:**
+
 - FR24: Users can ask natural language questions about their playing during or after a session
 - FR25: System can provide responses grounded in the user's actual session data and playing history
 - FR26: System can constrain musical advice to the relevant genre/style context
@@ -61,6 +66,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 - FR28: System can frame all feedback using growth mindset language ("not yet" instead of "wrong")
 
 **Interaction Modes:**
+
 - FR29: Users can play in Silent Coach mode with real-time visualization and no AI interruptions
 - FR30: Users can switch to Dashboard + Chat mode with live data display and conversational AI access
 - FR31: Users can review recorded sessions in Replay Studio with timeline scrubbing
@@ -68,6 +74,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 - FR33: System can display real-time harmonic overlays showing chord tones vs. passing tones during play
 
 **Session Management:**
+
 - FR34: Users can enter freeform play mode with no structured objectives
 - FR35: Users can start micro-sessions (focused bursts on a single skill, stackable)
 - FR36: System can auto-generate warm-ups based on the user's recent work and planned session focus
@@ -76,6 +83,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 - FR39: Users can view and track personal records (fastest clean run, longest streak, accuracy milestones)
 
 **Engagement & Progress:**
+
 - FR40: System can track daily practice streaks based on meaningful practice activity (not just app opens)
 - FR41: System can award XP for practice time, accuracy improvements, and milestone completion
 - FR42: System can unlock achievement badges for specific accomplishments (genre, technique, consistency milestones)
@@ -83,6 +91,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 - FR44: Users can view weekly progress summaries with skill improvement metrics and session history
 
 **User Accounts & API Key Management:**
+
 - FR45: Users can begin playing immediately without creating an account (guest mode with MIDI connection only)
 - FR46: Users can create an account to persist data, progress, and session history
 - FR47: Users can configure their own LLM API key (OpenAI, Anthropic, or other supported providers) in settings to enable AI features
@@ -93,6 +102,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 ### NonFunctional Requirements
 
 **Performance:**
+
 - NFR1: MIDI event processing latency <50ms from input to visual feedback, client-side
 - NFR2: Real-time visualization at 60fps during active play
 - NFR3: AI coaching chat response <1 second from submission to first token
@@ -103,6 +113,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 - NFR8: Client memory usage <200MB during active 30-minute session
 
 **Security:**
+
 - NFR9: All data encrypted in transit (TLS 1.2+) and at rest (AES-256)
 - NFR10: User authentication via industry-standard protocols (OAuth 2.0 / email+password)
 - NFR11: Session data isolated per user — no cross-user data access
@@ -112,11 +123,13 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 - NFR15: Users can export all personal data and request complete account deletion
 
 **Scalability:**
+
 - NFR16: Support 500 concurrent users at launch (single-region)
 - NFR17: Scale to 2,000 concurrent users at 6 months (horizontal scaling)
 - NFR18: Scale to 10,000 concurrent users at 12 months (multi-region)
 
 **Accessibility:**
+
 - NFR19: WCAG 2.1 AA compliance for all non-audio interface elements
 - NFR20: Full keyboard navigation for all UI controls and modes
 - NFR21: Screen reader compatibility for text-based features
@@ -125,6 +138,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 - NFR24: Text descriptions for visual-only data (e.g., "Timing accuracy: 85%" alongside graphs)
 
 **Reliability:**
+
 - NFR25: Application uptime 99.5%
 - NFR26: Session recording integrity 100% — zero data loss during active recording
 - NFR27: Graceful degradation on connection loss (client continues locally, syncs on reconnect)
@@ -134,6 +148,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 ### Additional Requirements
 
 **From Architecture:**
+
 - AR1: Initialize project using `npx create-next-app@latest minstrel -e with-supabase` (Next.js 16 + Supabase official template) — this is Epic 1, Story 1
 - AR2: Configure Zustand 5.x with 3-store architecture (midiStore, sessionStore, appStore)
 - AR3: Set up Dexie.js 4.x for IndexedDB client-side persistence with Supabase sync layer
@@ -150,6 +165,7 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 - AR14: Feature-based project organization with co-located tests
 
 **From UX Design:**
+
 - UX1: Implement Epidemic Sound-inspired dark aesthetic (#0F0F0F background, #7CB9E8 primary accent)
 - UX2: 0px border radius on all components — sharp corners everywhere
 - UX3: Inter + JetBrains Mono typography (variable fonts)
@@ -166,86 +182,93 @@ This document provides the complete epic and story breakdown for Minstrel, decom
 
 ### FR Coverage Map
 
-| FR | Epic | Brief Description |
-|----|------|-------------------|
-| FR1 | Epic 1 | MIDI auto-detection |
-| FR2 | Epic 1 | Device name/channel/status |
-| FR3 | Epic 1 | Troubleshooting guidance |
-| FR4 | Epic 1 | MIDI event capture |
-| FR5 | Epic 5 | MIDI output demonstration |
-| FR6 | Epic 1 | Audio-only fallback |
-| FR7 | Epic 1 | Audio dynamics detection |
-| FR8 | Epic 2 | Note/chord/progression detection |
-| FR9 | Epic 2 | Timing accuracy |
-| FR10 | Epic 2 | Key/tonal/harmonic detection |
-| FR11 | Epic 2 | Genre pattern identification |
-| FR12 | Epic 2 | Playing tendency tracking |
-| FR13 | Epic 2 | Session snapshot generation |
-| FR14 | Epic 5 | Multi-dimensional skill assessment |
-| FR15 | Epic 5 | Dynamic difficulty adjustment |
-| FR16 | Epic 5 | Progressive overload |
-| FR17 | Epic 5 | Growth zone detection |
-| FR18 | Epic 5 | Cross-session recalibration |
-| FR19 | Epic 5 | Targeted drill generation |
-| FR20 | Epic 5 | MIDI drill demonstration |
-| FR21 | Epic 5 | Varied drill production |
-| FR22 | Epic 5 | Drill completion tracking |
-| FR23 | Epic 5 | Key insight after freeform |
-| FR24 | Epic 4 | Natural language questions |
-| FR25 | Epic 4 | Session-grounded responses |
-| FR26 | Epic 4 | Genre-constrained advice |
-| FR27 | Epic 4 | Contextual concept explanations |
-| FR28 | Epic 4 | Growth mindset framing |
-| FR29 | Epic 2 | Silent Coach mode |
-| FR30 | Epic 4 | Dashboard + Chat mode |
-| FR31 | Epic 6 | Replay Studio with timeline |
-| FR32 | Epic 6 | AI questions about replay |
-| FR33 | Epic 2 | Real-time harmonic overlays |
-| FR34 | Epic 2 | Freeform play mode |
-| FR35 | Epic 5 | Micro-sessions |
-| FR36 | Epic 5 | Auto-generated warm-ups |
-| FR37 | Epic 2 | Session recording |
-| FR38 | Epic 6 | Session continuity |
-| FR39 | Epic 7 | Personal records tracking |
-| FR40 | Epic 7 | Practice streaks |
-| FR41 | Epic 7 | XP awards |
-| FR42 | Epic 7 | Achievement badges |
-| FR43 | Epic 7 | Progress trend data |
-| FR44 | Epic 7 | Weekly progress summaries |
-| FR45 | Epic 1/3 | Guest mode / account flow |
-| FR46 | Epic 3 | Account creation |
-| FR47 | Epic 3 | API key configuration |
-| FR48 | Epic 3 | API key validation |
-| FR49 | Epic 3 | Graceful degradation |
-| FR50 | Epic 3 | Token/cost usage display |
+| FR   | Epic     | Brief Description                  |
+| ---- | -------- | ---------------------------------- |
+| FR1  | Epic 1   | MIDI auto-detection                |
+| FR2  | Epic 1   | Device name/channel/status         |
+| FR3  | Epic 1   | Troubleshooting guidance           |
+| FR4  | Epic 1   | MIDI event capture                 |
+| FR5  | Epic 5   | MIDI output demonstration          |
+| FR6  | Epic 1   | Audio-only fallback                |
+| FR7  | Epic 1   | Audio dynamics detection           |
+| FR8  | Epic 2   | Note/chord/progression detection   |
+| FR9  | Epic 2   | Timing accuracy                    |
+| FR10 | Epic 2   | Key/tonal/harmonic detection       |
+| FR11 | Epic 2   | Genre pattern identification       |
+| FR12 | Epic 2   | Playing tendency tracking          |
+| FR13 | Epic 2   | Session snapshot generation        |
+| FR14 | Epic 5   | Multi-dimensional skill assessment |
+| FR15 | Epic 5   | Dynamic difficulty adjustment      |
+| FR16 | Epic 5   | Progressive overload               |
+| FR17 | Epic 5   | Growth zone detection              |
+| FR18 | Epic 5   | Cross-session recalibration        |
+| FR19 | Epic 5   | Targeted drill generation          |
+| FR20 | Epic 5   | MIDI drill demonstration           |
+| FR21 | Epic 5   | Varied drill production            |
+| FR22 | Epic 5   | Drill completion tracking          |
+| FR23 | Epic 5   | Key insight after freeform         |
+| FR24 | Epic 4   | Natural language questions         |
+| FR25 | Epic 4   | Session-grounded responses         |
+| FR26 | Epic 4   | Genre-constrained advice           |
+| FR27 | Epic 4   | Contextual concept explanations    |
+| FR28 | Epic 4   | Growth mindset framing             |
+| FR29 | Epic 2   | Silent Coach mode                  |
+| FR30 | Epic 4   | Dashboard + Chat mode              |
+| FR31 | Epic 6   | Replay Studio with timeline        |
+| FR32 | Epic 6   | AI questions about replay          |
+| FR33 | Epic 2   | Real-time harmonic overlays        |
+| FR34 | Epic 2   | Freeform play mode                 |
+| FR35 | Epic 5   | Micro-sessions                     |
+| FR36 | Epic 5   | Auto-generated warm-ups            |
+| FR37 | Epic 2   | Session recording                  |
+| FR38 | Epic 6   | Session continuity                 |
+| FR39 | Epic 7   | Personal records tracking          |
+| FR40 | Epic 7   | Practice streaks                   |
+| FR41 | Epic 7   | XP awards                          |
+| FR42 | Epic 7   | Achievement badges                 |
+| FR43 | Epic 7   | Progress trend data                |
+| FR44 | Epic 7   | Weekly progress summaries          |
+| FR45 | Epic 1/3 | Guest mode / account flow          |
+| FR46 | Epic 3   | Account creation                   |
+| FR47 | Epic 3   | API key configuration              |
+| FR48 | Epic 3   | API key validation                 |
+| FR49 | Epic 3   | Graceful degradation               |
+| FR50 | Epic 3   | Token/cost usage display           |
 
 ## Epic List
 
 ### Epic 1: First Note Experience
+
 A user can open Minstrel, connect their MIDI device (with troubleshooting if needed), and see real-time visual feedback when they play — the "it hears me" moment.
 **FRs covered:** FR1, FR2, FR3, FR4, FR6, FR7, FR45 (guest)
 
 ### Epic 2: Real-Time Analysis & Silent Coach
+
 Users can play freely and see real-time analysis of notes, chords, timing, and harmonic context. They receive silence-triggered session snapshots with key insights. Sessions are recorded locally.
 **FRs covered:** FR8, FR9, FR10, FR11, FR12, FR13, FR29, FR33, FR34, FR37
 
 ### Epic 3: Accounts & API Key Management
+
 Users can create an account to persist data and configure their own LLM API key. The system validates keys, shows cost estimates, and degrades gracefully without a key.
 **FRs covered:** FR45 (full), FR46, FR47, FR48, FR49, FR50
 
 ### Epic 4: AI Coaching & Dashboard Mode
+
 Users can switch to Dashboard + Chat mode and ask the AI natural language questions about their playing. Responses are session-aware, genre-aware, and use growth mindset framing.
 **FRs covered:** FR24, FR25, FR26, FR27, FR28, FR30
 
 ### Epic 5: Difficulty Engine & AI Drills
+
 Users receive AI-generated drills targeting their specific weaknesses, demonstrated through their instrument via MIDI output, with adaptive difficulty that keeps them in the growth zone.
 **FRs covered:** FR5, FR14, FR15, FR16, FR17, FR18, FR19, FR20, FR21, FR22, FR23, FR35, FR36
 
 ### Epic 6: Session Replay & Continuity
+
 Users can replay recorded sessions with timeline scrubbing, ask the AI about any moment in a recording, and experience cross-session continuity in coaching and drill selection.
 **FRs covered:** FR31, FR32, FR38
 
 ### Epic 7: Engagement & Progress Tracking
+
 Users can track practice streaks, earn XP and achievement badges, view progress trends over time, and celebrate personal records.
 **FRs covered:** FR39, FR40, FR41, FR42, FR43, FR44
 

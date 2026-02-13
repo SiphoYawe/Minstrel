@@ -72,27 +72,29 @@ So I'm always challenged but never frustrated.
 
 ## Dev Notes
 
-- **This is the heart of the Difficulty Engine** — the critical quality gate for launch. The growth zone detection and dynamic adjustment must be precise and well-tested. The PRD states: "The Difficulty Engine must be *perfect* at launch. If challenge calibration is off — too easy or too hard — the core value proposition fails."
+- **This is the heart of the Difficulty Engine** — the critical quality gate for launch. The growth zone detection and dynamic adjustment must be precise and well-tested. The PRD states: "The Difficulty Engine must be _perfect_ at launch. If challenge calibration is off — too easy or too hard — the core value proposition fails."
 
 - **Architecture Layer**: Domain Logic (Layer 3). Both `difficulty-engine.ts` and `growth-zone-detector.ts` are pure function modules. They receive data and return results — no side effects, no framework imports. Store integration is in the application layer (Task 4).
 
 - **Growth Zone Constants**:
+
   ```typescript
   const GROWTH_ZONE = {
-    TOO_EASY_THRESHOLD: 0.90,   // >90% accuracy = too easy
-    TOO_HARD_THRESHOLD: 0.40,   // <40% accuracy = too hard
-    ZONE_LOW: 0.60,             // Growth zone lower bound
-    ZONE_HIGH: 0.85,            // Growth zone upper bound
-    CONSECUTIVE_REPS: 3,        // Reps needed to trigger adjustment
+    TOO_EASY_THRESHOLD: 0.9, // >90% accuracy = too easy
+    TOO_HARD_THRESHOLD: 0.4, // <40% accuracy = too hard
+    ZONE_LOW: 0.6, // Growth zone lower bound
+    ZONE_HIGH: 0.85, // Growth zone upper bound
+    CONSECUTIVE_REPS: 3, // Reps needed to trigger adjustment
   } as const;
   ```
 
 - **Proportional Adjustment Strategy**:
+
   ```typescript
   // Distance from nearest zone edge determines magnitude
   // Example for tempo adjustment:
   const ADJUSTMENT_SCALE = {
-    tempo: { min: 2, max: 15 },           // BPM change range
+    tempo: { min: 2, max: 15 }, // BPM change range
     harmonicComplexity: { min: 0.05, max: 0.2 }, // complexity delta
     rhythmicDensity: { min: 0.05, max: 0.2 },
   };
@@ -110,6 +112,7 @@ So I'm always challenged but never frustrated.
   4. Key difficulty (less common keys)
 
 - **Adjustment Queuing Pattern**: Adjustments are computed in real time but never applied mid-exercise:
+
   ```typescript
   // During rep: compute and store pending
   sessionStore.setState({ pendingAdjustment: adjustment });
@@ -125,11 +128,11 @@ So I'm always challenged but never frustrated.
 - **Default Parameters (No Profile)**:
   ```typescript
   const DEFAULT_DIFFICULTY: DifficultyParameters = {
-    tempo: 80,                    // Conservative starting tempo
-    harmonicComplexity: 0.2,      // Simple triads
-    keyDifficulty: 0.1,           // C major / A minor
-    rhythmicDensity: 0.2,         // Quarter/half notes
-    noteRange: 0.3,               // Single octave
+    tempo: 80, // Conservative starting tempo
+    harmonicComplexity: 0.2, // Simple triads
+    keyDifficulty: 0.1, // C major / A minor
+    rhythmicDensity: 0.2, // Quarter/half notes
+    noteRange: 0.3, // Single octave
   };
   ```
 

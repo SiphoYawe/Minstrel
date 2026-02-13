@@ -39,7 +39,7 @@ so that I can celebrate concrete achievements and push myself.
 
 - [ ] 3. Implement personal records persistence service (AC: 4, 5)
   - [ ] 3.1 Create `src/features/engagement/record-service.ts` (Layer 4 wrapper) for Supabase read/write of personal record data
-  - [ ] 3.2 Implement `fetchPersonalRecords(userId: string): Promise<PersonalRecordWithHistory[]>` — queries `progress_metrics` where `metric_type` starts with "record_", reconstructs the full record objects with history from the `metadata` JSONB field
+  - [ ] 3.2 Implement `fetchPersonalRecords(userId: string): Promise<PersonalRecordWithHistory[]>` — queries `progress_metrics` where `metric_type` starts with "record\_", reconstructs the full record objects with history from the `metadata` JSONB field
   - [ ] 3.3 Implement `saveNewRecords(userId: string, updatedRecords: PersonalRecordWithHistory[]): Promise<void>` — upserts updated records to `progress_metrics` with the new current value and appended history in `metadata`
   - [ ] 3.4 Verify JSONB metadata field correctly stores and retrieves the history array
 
@@ -106,6 +106,9 @@ so that I can celebrate concrete achievements and push myself.
 ## Dev Agent Record
 
 ### Agent Model Used
+
 ### Debug Log References
+
 ### Completion Notes List
+
 ### File List

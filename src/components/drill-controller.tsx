@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { capture } from '@/lib/analytics';
 
 // --- Types ---
 
@@ -101,6 +102,25 @@ export function DrillController({
     return currentPhase;
   }
 
+  function handleStartDrill() {
+    capture('drill_started', {
+      target_skill: drill.targetSkill,
+      total_reps: drill.reps,
+    });
+    onStartDrill();
+  }
+
+  function handleComplete() {
+    const finalAccuracy = repHistory.length > 0 ? repHistory[repHistory.length - 1].accuracy : null;
+    capture('drill_completed', {
+      target_skill: drill.targetSkill,
+      reps_completed: repHistory.length,
+      final_accuracy: finalAccuracy,
+      improvement_percent: improvementPercent,
+    });
+    onComplete();
+  }
+
   return (
     <div className="w-full bg-[#1A1A1A] border border-border p-4">
       {/* Screen reader announcements */}
@@ -159,7 +179,7 @@ export function DrillController({
             Listen first
           </p>
           <button
-            onClick={onStartDrill}
+            onClick={handleStartDrill}
             className="h-9 px-4 text-ui-label font-medium bg-accent-blue text-[#0F0F0F] hover:brightness-110 active:brightness-90 transition-all duration-micro focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Start Drill
@@ -259,7 +279,7 @@ export function DrillController({
             One more
           </button>
           <button
-            onClick={onComplete}
+            onClick={handleComplete}
             className="h-9 px-4 text-ui-label font-medium bg-accent-blue text-[#0F0F0F] hover:brightness-110 active:brightness-90 transition-all duration-micro focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Complete

@@ -97,6 +97,9 @@ so that I'm motivated to maintain a consistent practice habit.
 ## Dev Agent Record
 
 ### Agent Model Used
+
 ### Debug Log References
+
 ### Completion Notes List
+
 ### File List

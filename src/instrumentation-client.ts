@@ -33,9 +33,14 @@ export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 
 // PostHog initialization for product analytics
 // https://posthog.com/docs/libraries/next-js
-if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+if (
+  process.env.NEXT_PUBLIC_POSTHOG_KEY &&
+  !process.env.NEXT_PUBLIC_POSTHOG_KEY.startsWith('your-')
+) {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
+    // Use reverse proxy to avoid ad blockers
+    api_host: '/ingest',
+    ui_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.posthog.com',
     defaults: '2026-01-30',
     capture_exceptions: true,
     person_profiles: 'identified_only',

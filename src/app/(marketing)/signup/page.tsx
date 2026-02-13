@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -46,8 +47,21 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="flex min-h-svh w-full items-center justify-center px-6">
+      <div className="flex min-h-[calc(100svh-3.5rem)] w-full items-center justify-center px-6">
         <div className="w-full max-w-sm">
+          <Link
+            href="/"
+            className="mb-12 inline-block transition-opacity duration-150 hover:opacity-70"
+          >
+            <Image
+              src="/minstrel-logo-white.svg"
+              alt="Minstrel"
+              width={100}
+              height={25}
+              className="h-5 w-auto opacity-40"
+            />
+          </Link>
+
           <div className="mb-6">
             <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#81C995]">
               Account Created
@@ -60,7 +74,7 @@ export default function SignupPage() {
           </p>
           <Link
             href="/login"
-            className="mt-6 inline-flex h-11 w-full items-center justify-center border border-border bg-background text-sm font-medium text-foreground transition-colors duration-micro hover:bg-surface-light"
+            className="mt-6 inline-flex h-11 w-full items-center justify-center border border-[#2A2A2A] bg-background text-sm font-medium text-foreground transition-colors duration-150 hover:bg-[#171717]"
           >
             Back to Sign In
           </Link>
@@ -70,14 +84,28 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center px-6">
+    <div className="flex min-h-[calc(100svh-3.5rem)] w-full items-center justify-center px-6">
       <div className="w-full max-w-sm">
+        {/* Logo */}
+        <Link
+          href="/"
+          className="mb-12 inline-block transition-opacity duration-150 hover:opacity-70"
+        >
+          <Image
+            src="/minstrel-logo-white.svg"
+            alt="Minstrel"
+            width={100}
+            height={25}
+            className="h-5 w-auto opacity-40"
+          />
+        </Link>
+
         {/* Header */}
         <div className="mb-8">
-          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-primary">
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#7CB9E8]">
             New Account
           </p>
-          <div className="mt-2 h-px w-12 bg-primary" />
+          <div className="mt-2 h-px w-12 bg-[#7CB9E8]" />
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -168,7 +196,7 @@ export default function SignupPage() {
           Already have an account?{' '}
           <Link
             href="/login"
-            className="text-primary transition-colors duration-micro hover:brightness-110"
+            className="text-[#7CB9E8] transition-colors duration-150 hover:brightness-110"
           >
             Sign in
           </Link>

@@ -157,6 +157,7 @@ So feedback feels relevant and motivating.
 ### Project Structure Notes
 
 Files created or modified in this story:
+
 ```
 src/features/coaching/
   genre-terminology.ts            # Genre-specific term mappings (NEW)

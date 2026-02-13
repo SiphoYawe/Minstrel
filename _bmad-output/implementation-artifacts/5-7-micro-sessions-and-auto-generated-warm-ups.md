@@ -102,26 +102,27 @@ So I can practice efficiently with limited time.
 - **Warm-Up Generation is LOCAL, Not LLM-Powered**: Unlike drill generation (Story 5.4), warm-ups are generated client-side using rules-based logic. Warm-ups are simpler (scales, basic chords, rhythmic patterns) and don't need the creativity of LLM-generated drills. This saves API calls/tokens and ensures instant warm-up generation (no 2s latency).
 
 - **Scale Pattern Generation**: For scale warm-ups, generate MIDI note sequences programmatically:
+
   ```typescript
   const SCALES: Record<string, number[]> = {
-    'C_major': [0, 2, 4, 5, 7, 9, 11],  // Intervals from root
-    'A_minor': [0, 2, 3, 5, 7, 8, 10],
+    C_major: [0, 2, 4, 5, 7, 9, 11], // Intervals from root
+    A_minor: [0, 2, 3, 5, 7, 8, 10],
     // ... more scales
   };
 
   function generateScalePattern(
-    rootNote: number,  // MIDI note number of root
-    scale: number[],   // Interval pattern
-    octaves: number,   // How many octaves
-    tempo: number      // Target BPM
+    rootNote: number, // MIDI note number of root
+    scale: number[], // Interval pattern
+    octaves: number, // How many octaves
+    tempo: number // Target BPM
   ): DrillSequence {
     const notes: DrillNote[] = [];
     let beat = 0;
     for (let oct = 0; oct < octaves; oct++) {
       for (const interval of scale) {
         notes.push({
-          midiNote: rootNote + (oct * 12) + interval,
-          duration: 1,     // Quarter notes
+          midiNote: rootNote + oct * 12 + interval,
+          duration: 1, // Quarter notes
           velocity: 80,
           startBeat: beat++,
         });
@@ -132,6 +133,7 @@ So I can practice efficiently with limited time.
   ```
 
 - **Chord Warm-Up Generation**: For chord transition warm-ups:
+
   ```typescript
   const CHORD_VOICINGS: Record<string, number[]> = {
     'C_major': [60, 64, 67],       // C4, E4, G4
@@ -149,6 +151,7 @@ So I can practice efficiently with limited time.
   ```
 
 - **Micro-Session Duration Calculation**:
+
   ```typescript
   function estimateMicroSessionDuration(
     drill: GeneratedDrill,
@@ -156,11 +159,12 @@ So I can practice efficiently with limited time.
     challengeReps: number,
     cooldownReps: number
   ): number {
-    const repDurationSec = (drill.sequence.measures * (drill.sequence.timeSignature[0])) * (60 / drill.targetTempo);
+    const repDurationSec =
+      drill.sequence.measures * drill.sequence.timeSignature[0] * (60 / drill.targetTempo);
     const totalReps = warmupReps + challengeReps + cooldownReps;
     const demonstrationTime = repDurationSec; // One demo per phase
     const pauseTime = 2 * totalReps; // 2s pause between reps
-    return demonstrationTime + (totalReps * repDurationSec) + pauseTime;
+    return demonstrationTime + totalReps * repDurationSec + pauseTime;
   }
   // Adjust rep count to fit within 180-300 seconds (3-5 minutes)
   ```
@@ -171,6 +175,7 @@ So I can practice efficiently with limited time.
   - Shows what's next: "Next up: timing accuracy in the key of G"
 
 - **Session Flow Integration** (matches Aisha's user journey from UX spec):
+
   ```
   User opens Minstrel → "Welcome back. Ready to warm up?"
     → Auto-generated warm-up (2 min) → MIDI demonstration → User plays
@@ -184,7 +189,7 @@ So I can practice efficiently with limited time.
   - Warm-up exercise 2: Bb major chord shapes (80% tempo)
   - Warm-up exercise 3: ii-V-I basic voicings in Bb (100% tempo)
   - Warm-up exercise 4: Simple voice leading patterns in Bb (100% tempo)
-  This ensures the musician's fingers and ears are primed for the main work.
+    This ensures the musician's fingers and ears are primed for the main work.
 
 - **Dependency**: Requires Story 5.1 (skill profile for warm-up calibration), Story 5.4 (drill generation for micro-sessions), Story 5.5 (MIDI playback for demonstrations), Story 5.6 (tracking for micro-session results).
 

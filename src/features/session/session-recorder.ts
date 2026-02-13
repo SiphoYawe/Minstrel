@@ -3,6 +3,7 @@ import type { StoredMidiEvent } from '@/lib/dexie/db';
 import type { MidiEvent } from '@/features/midi/midi-types';
 import type { SessionType } from './session-types';
 import type { InstantSnapshot } from '@/features/analysis/analysis-types';
+import { capture } from '@/lib/analytics';
 import {
   MAX_BUFFER_SIZE,
   AUTOSAVE_INTERVAL_MS,
@@ -72,6 +73,13 @@ export async function startRecording(
       console.warn('Autosave flush failed:', err);
     });
   }, AUTOSAVE_INTERVAL_MS);
+
+  // Track practice session start
+  capture('practice_session_started', {
+    session_type: sessionType,
+    input_source: inputSource,
+    session_id: activeSessionId,
+  });
 
   return activeSessionId;
 }
@@ -212,6 +220,17 @@ export async function stopRecording(): Promise<number | null> {
     endedAt,
     duration: endedAt - startedAt,
     status: 'completed',
+  });
+
+  // Track practice session completion
+  const durationMs = endedAt - startedAt;
+  capture('practice_session_completed', {
+    session_id: sessionId,
+    duration_ms: durationMs,
+    duration_minutes: Math.round(durationMs / 60000),
+    session_type: session?.sessionType,
+    key: session?.key,
+    tempo: session?.tempo,
   });
 
   activeSessionId = null;

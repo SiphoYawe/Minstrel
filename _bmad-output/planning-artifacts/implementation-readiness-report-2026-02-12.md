@@ -26,15 +26,19 @@ date: '2026-02-12'
 ### Documents Found
 
 **PRD:**
+
 - Whole: `_bmad-output/planning-artifacts/prd.md` (573 lines, status: complete)
 
 **Architecture:**
+
 - Whole: `_bmad-output/planning-artifacts/architecture.md` (1180 lines, status: complete)
 
 **Epics & Stories:**
+
 - Whole: `_bmad-output/planning-artifacts/epics.md` (1060 lines, status: complete)
 
 **UX Design:**
+
 - Whole: `_bmad-output/planning-artifacts/ux-design-specification.md` (14 steps, status: complete)
 
 ### Issues Found
@@ -50,6 +54,7 @@ date: '2026-02-12'
 ### Functional Requirements Extracted
 
 **MIDI & Audio Input (7 FRs):**
+
 - FR1: Users can connect any MIDI device and have it auto-detected without manual configuration
 - FR2: System can detect MIDI device name, channel, and connection status in real time
 - FR3: Users can receive step-by-step troubleshooting guidance when MIDI connection fails
@@ -59,6 +64,7 @@ date: '2026-02-12'
 - FR7: System can detect basic dynamics and volume through audio capture
 
 **Real-Time Analysis (6 FRs):**
+
 - FR8: System can identify individual notes, chords, and chord progressions in real time as the user plays
 - FR9: System can measure timing accuracy relative to detected or target tempo
 - FR10: System can detect key center, tonal context, and harmonic function of played chords
@@ -67,6 +73,7 @@ date: '2026-02-12'
 - FR13: System can generate a session snapshot summarizing key, chords used, timing accuracy, tempo, and a key insight
 
 **The Difficulty Engine (5 FRs):**
+
 - FR14: System can assess a player's current skill level across multiple dimensions (timing, harmony, technique, speed)
 - FR15: System can dynamically adjust challenge difficulty based on real-time performance within a session
 - FR16: System can apply progressive overload by incrementally increasing tempo, harmonic complexity, or rhythmic difficulty
@@ -74,6 +81,7 @@ date: '2026-02-12'
 - FR18: System can recalibrate difficulty across all exercises and modes based on cumulative player data
 
 **AI Drill Generation & Demonstration (5 FRs):**
+
 - FR19: System can generate targeted practice exercises based on specific weaknesses identified during play
 - FR20: System can demonstrate generated drills through the user's instrument via MIDI output before the user attempts them
 - FR21: System can produce varied drills addressing the same weakness without repetition
@@ -81,6 +89,7 @@ date: '2026-02-12'
 - FR23: Users can receive a key insight identifying their highest-impact area for improvement after freeform play
 
 **AI Coaching Chat (5 FRs):**
+
 - FR24: Users can ask natural language questions about their playing during or after a session
 - FR25: System can provide responses grounded in the user's actual session data and playing history
 - FR26: System can constrain musical advice to the relevant genre/style context
@@ -88,6 +97,7 @@ date: '2026-02-12'
 - FR28: System can frame all feedback using growth mindset language ("not yet" instead of "wrong")
 
 **Interaction Modes (5 FRs):**
+
 - FR29: Users can play in Silent Coach mode with real-time visualization and no AI interruptions
 - FR30: Users can switch to Dashboard + Chat mode with live data display and conversational AI access
 - FR31: Users can review recorded sessions in Replay Studio with timeline scrubbing
@@ -95,6 +105,7 @@ date: '2026-02-12'
 - FR33: System can display real-time harmonic overlays showing chord tones vs. passing tones during play
 
 **Session Management (6 FRs):**
+
 - FR34: Users can enter freeform play mode with no structured objectives
 - FR35: Users can start micro-sessions (focused bursts on a single skill, stackable)
 - FR36: System can auto-generate warm-ups based on the user's recent work and planned session focus
@@ -103,6 +114,7 @@ date: '2026-02-12'
 - FR39: Users can view and track personal records (fastest clean run, longest streak, accuracy milestones)
 
 **Engagement & Progress (5 FRs):**
+
 - FR40: System can track daily practice streaks based on meaningful practice activity (not just app opens)
 - FR41: System can award XP for practice time, accuracy improvements, and milestone completion
 - FR42: System can unlock achievement badges for specific accomplishments (genre, technique, consistency milestones)
@@ -110,6 +122,7 @@ date: '2026-02-12'
 - FR44: Users can view weekly progress summaries with skill improvement metrics and session history
 
 **User Accounts & API Key Management (6 FRs):**
+
 - FR45: Users can begin playing immediately without creating an account (guest mode with MIDI connection only)
 - FR46: Users can create an account to persist data, progress, and session history
 - FR47: Users can configure their own LLM API key (OpenAI, Anthropic, or other supported providers) in settings to enable AI features
@@ -122,6 +135,7 @@ date: '2026-02-12'
 ### Non-Functional Requirements Extracted
 
 **Performance (8 NFRs):**
+
 - NFR1: MIDI event processing latency <50ms
 - NFR2: Real-time visualization at 60fps
 - NFR3: AI coaching chat response <1 second to first token
@@ -132,6 +146,7 @@ date: '2026-02-12'
 - NFR8: Client memory usage <200MB during 30-minute session
 
 **Security (7 NFRs):**
+
 - NFR9: All data encrypted in transit (TLS 1.2+) and at rest (AES-256)
 - NFR10: User authentication via industry-standard protocols
 - NFR11: Session data isolated per user — no cross-user data access
@@ -141,11 +156,13 @@ date: '2026-02-12'
 - NFR15: Users can export all personal data and request complete account deletion
 
 **Scalability (3 NFRs):**
+
 - NFR16: Support 500 concurrent users at launch
 - NFR17: Scale to 2,000 concurrent at 6 months
 - NFR18: Scale to 10,000 concurrent at 12 months
 
 **Accessibility (6 NFRs):**
+
 - NFR19: WCAG 2.1 AA compliance for all non-audio interface elements
 - NFR20: Full keyboard navigation for all UI controls and modes
 - NFR21: Screen reader compatibility for text-based features
@@ -154,6 +171,7 @@ date: '2026-02-12'
 - NFR24: Text descriptions for visual-only data
 
 **Reliability (5 NFRs):**
+
 - NFR25: Application uptime 99.5%
 - NFR26: Session recording integrity 100%
 - NFR27: Graceful degradation on connection loss
@@ -178,58 +196,58 @@ The PRD is thorough and well-structured. All 50 FRs are clearly numbered and spe
 
 ### FR Coverage Matrix
 
-| FR | PRD Requirement | Epic Coverage | Status |
-|----|----------------|---------------|--------|
-| FR1 | MIDI auto-detection | Epic 1 (Story 1.3) | ✓ Covered |
-| FR2 | Device name/channel/status | Epic 1 (Story 1.3) | ✓ Covered |
-| FR3 | Troubleshooting guidance | Epic 1 (Story 1.5) | ✓ Covered |
-| FR4 | MIDI event capture | Epic 1 (Story 1.4) | ✓ Covered |
-| FR5 | MIDI output demonstration | Epic 5 (Story 5.5) | ✓ Covered |
-| FR6 | Audio-only fallback | Epic 1 (Story 1.6) | ✓ Covered |
-| FR7 | Audio dynamics detection | Epic 1 (Story 1.6) | ✓ Covered |
-| FR8 | Note/chord/progression detection | Epic 2 (Story 2.1) | ✓ Covered |
-| FR9 | Timing accuracy | Epic 2 (Story 2.2) | ✓ Covered |
-| FR10 | Key/tonal/harmonic detection | Epic 2 (Story 2.3) | ✓ Covered |
-| FR11 | Genre pattern identification | Epic 2 (Story 2.4) | ✓ Covered |
-| FR12 | Playing tendency tracking | Epic 2 (Story 2.4) | ✓ Covered |
-| FR13 | Session snapshot generation | Epic 2 (Story 2.5) | ✓ Covered |
-| FR14 | Multi-dimensional skill assessment | Epic 5 (Story 5.1) | ✓ Covered |
-| FR15 | Dynamic difficulty adjustment | Epic 5 (Story 5.2) | ✓ Covered |
-| FR16 | Progressive overload | Epic 5 (Story 5.3) | ✓ Covered |
-| FR17 | Growth zone detection | Epic 5 (Story 5.2) | ✓ Covered |
-| FR18 | Cross-session recalibration | Epic 5 (Story 5.3) | ✓ Covered |
-| FR19 | Targeted drill generation | Epic 5 (Story 5.4) | ✓ Covered |
-| FR20 | MIDI drill demonstration | Epic 5 (Story 5.5) | ✓ Covered |
-| FR21 | Varied drill production | Epic 5 (Story 5.4) | ✓ Covered |
-| FR22 | Drill completion tracking | Epic 5 (Story 5.6) | ✓ Covered |
-| FR23 | Key insight after freeform | Epic 5 (Story 5.6) | ✓ Covered |
-| FR24 | Natural language questions | Epic 4 (Story 4.3) | ✓ Covered |
-| FR25 | Session-grounded responses | Epic 4 (Story 4.4) | ✓ Covered |
-| FR26 | Genre-constrained advice | Epic 4 (Story 4.5) | ✓ Covered |
-| FR27 | Contextual concept explanations | Epic 4 (Story 4.4) | ✓ Covered |
-| FR28 | Growth mindset framing | Epic 4 (Story 4.5) | ✓ Covered |
-| FR29 | Silent Coach mode | Epic 2 (Story 2.6) | ✓ Covered |
-| FR30 | Dashboard + Chat mode | Epic 4 (Story 4.2) | ✓ Covered |
-| FR31 | Replay Studio with timeline | Epic 6 (Story 6.1, 6.2) | ✓ Covered |
-| FR32 | AI questions about replay | Epic 6 (Story 6.3) | ✓ Covered |
-| FR33 | Real-time harmonic overlays | Epic 2 (Story 2.3) | ✓ Covered |
-| FR34 | Freeform play mode | Epic 2 (Story 2.7) | ✓ Covered |
-| FR35 | Micro-sessions | Epic 5 (Story 5.7) | ✓ Covered |
-| FR36 | Auto-generated warm-ups | Epic 5 (Story 5.7) | ✓ Covered |
-| FR37 | Session recording | Epic 2 (Story 2.8) | ✓ Covered |
-| FR38 | Session continuity | Epic 6 (Story 6.4) | ✓ Covered |
-| FR39 | Personal records tracking | Epic 7 (Story 7.6) | ✓ Covered |
-| FR40 | Practice streaks | Epic 7 (Story 7.1) | ✓ Covered |
-| FR41 | XP awards | Epic 7 (Story 7.2) | ✓ Covered |
-| FR42 | Achievement badges | Epic 7 (Story 7.3) | ✓ Covered |
-| FR43 | Progress trend data | Epic 7 (Story 7.4) | ✓ Covered |
-| FR44 | Weekly progress summaries | Epic 7 (Story 7.5) | ✓ Covered |
-| FR45 | Guest mode / account flow | Epic 1 (Story 1.7) + Epic 3 (Story 3.1) | ✓ Covered |
-| FR46 | Account creation | Epic 3 (Story 3.1) | ✓ Covered |
-| FR47 | API key configuration | Epic 3 (Story 3.3) | ✓ Covered |
-| FR48 | API key validation | Epic 3 (Story 3.4) | ✓ Covered |
-| FR49 | Graceful degradation | Epic 3 (Story 3.5) | ✓ Covered |
-| FR50 | Token/cost usage display | Epic 3 (Story 3.6) | ✓ Covered |
+| FR   | PRD Requirement                    | Epic Coverage                           | Status    |
+| ---- | ---------------------------------- | --------------------------------------- | --------- |
+| FR1  | MIDI auto-detection                | Epic 1 (Story 1.3)                      | ✓ Covered |
+| FR2  | Device name/channel/status         | Epic 1 (Story 1.3)                      | ✓ Covered |
+| FR3  | Troubleshooting guidance           | Epic 1 (Story 1.5)                      | ✓ Covered |
+| FR4  | MIDI event capture                 | Epic 1 (Story 1.4)                      | ✓ Covered |
+| FR5  | MIDI output demonstration          | Epic 5 (Story 5.5)                      | ✓ Covered |
+| FR6  | Audio-only fallback                | Epic 1 (Story 1.6)                      | ✓ Covered |
+| FR7  | Audio dynamics detection           | Epic 1 (Story 1.6)                      | ✓ Covered |
+| FR8  | Note/chord/progression detection   | Epic 2 (Story 2.1)                      | ✓ Covered |
+| FR9  | Timing accuracy                    | Epic 2 (Story 2.2)                      | ✓ Covered |
+| FR10 | Key/tonal/harmonic detection       | Epic 2 (Story 2.3)                      | ✓ Covered |
+| FR11 | Genre pattern identification       | Epic 2 (Story 2.4)                      | ✓ Covered |
+| FR12 | Playing tendency tracking          | Epic 2 (Story 2.4)                      | ✓ Covered |
+| FR13 | Session snapshot generation        | Epic 2 (Story 2.5)                      | ✓ Covered |
+| FR14 | Multi-dimensional skill assessment | Epic 5 (Story 5.1)                      | ✓ Covered |
+| FR15 | Dynamic difficulty adjustment      | Epic 5 (Story 5.2)                      | ✓ Covered |
+| FR16 | Progressive overload               | Epic 5 (Story 5.3)                      | ✓ Covered |
+| FR17 | Growth zone detection              | Epic 5 (Story 5.2)                      | ✓ Covered |
+| FR18 | Cross-session recalibration        | Epic 5 (Story 5.3)                      | ✓ Covered |
+| FR19 | Targeted drill generation          | Epic 5 (Story 5.4)                      | ✓ Covered |
+| FR20 | MIDI drill demonstration           | Epic 5 (Story 5.5)                      | ✓ Covered |
+| FR21 | Varied drill production            | Epic 5 (Story 5.4)                      | ✓ Covered |
+| FR22 | Drill completion tracking          | Epic 5 (Story 5.6)                      | ✓ Covered |
+| FR23 | Key insight after freeform         | Epic 5 (Story 5.6)                      | ✓ Covered |
+| FR24 | Natural language questions         | Epic 4 (Story 4.3)                      | ✓ Covered |
+| FR25 | Session-grounded responses         | Epic 4 (Story 4.4)                      | ✓ Covered |
+| FR26 | Genre-constrained advice           | Epic 4 (Story 4.5)                      | ✓ Covered |
+| FR27 | Contextual concept explanations    | Epic 4 (Story 4.4)                      | ✓ Covered |
+| FR28 | Growth mindset framing             | Epic 4 (Story 4.5)                      | ✓ Covered |
+| FR29 | Silent Coach mode                  | Epic 2 (Story 2.6)                      | ✓ Covered |
+| FR30 | Dashboard + Chat mode              | Epic 4 (Story 4.2)                      | ✓ Covered |
+| FR31 | Replay Studio with timeline        | Epic 6 (Story 6.1, 6.2)                 | ✓ Covered |
+| FR32 | AI questions about replay          | Epic 6 (Story 6.3)                      | ✓ Covered |
+| FR33 | Real-time harmonic overlays        | Epic 2 (Story 2.3)                      | ✓ Covered |
+| FR34 | Freeform play mode                 | Epic 2 (Story 2.7)                      | ✓ Covered |
+| FR35 | Micro-sessions                     | Epic 5 (Story 5.7)                      | ✓ Covered |
+| FR36 | Auto-generated warm-ups            | Epic 5 (Story 5.7)                      | ✓ Covered |
+| FR37 | Session recording                  | Epic 2 (Story 2.8)                      | ✓ Covered |
+| FR38 | Session continuity                 | Epic 6 (Story 6.4)                      | ✓ Covered |
+| FR39 | Personal records tracking          | Epic 7 (Story 7.6)                      | ✓ Covered |
+| FR40 | Practice streaks                   | Epic 7 (Story 7.1)                      | ✓ Covered |
+| FR41 | XP awards                          | Epic 7 (Story 7.2)                      | ✓ Covered |
+| FR42 | Achievement badges                 | Epic 7 (Story 7.3)                      | ✓ Covered |
+| FR43 | Progress trend data                | Epic 7 (Story 7.4)                      | ✓ Covered |
+| FR44 | Weekly progress summaries          | Epic 7 (Story 7.5)                      | ✓ Covered |
+| FR45 | Guest mode / account flow          | Epic 1 (Story 1.7) + Epic 3 (Story 3.1) | ✓ Covered |
+| FR46 | Account creation                   | Epic 3 (Story 3.1)                      | ✓ Covered |
+| FR47 | API key configuration              | Epic 3 (Story 3.3)                      | ✓ Covered |
+| FR48 | API key validation                 | Epic 3 (Story 3.4)                      | ✓ Covered |
+| FR49 | Graceful degradation               | Epic 3 (Story 3.5)                      | ✓ Covered |
+| FR50 | Token/cost usage display           | Epic 3 (Story 3.6)                      | ✓ Covered |
 
 ### Missing Requirements
 
@@ -253,54 +271,55 @@ The PRD is thorough and well-structured. All 50 FRs are clearly numbered and spe
 
 ### UX ↔ PRD Alignment
 
-| Aspect | PRD | UX | Status |
-|--------|-----|-----|--------|
-| Three interaction modes | FR29-33 | Step 6 (Design Direction), Step 7 (Journeys) | ✓ Aligned |
-| Ear-first philosophy | Core differentiator | Step 5 (Visual Vocabulary) | ✓ Aligned |
-| Growth mindset framing | FR28, content safety | Steps 3-4 (Emotional Design) | ✓ Aligned |
-| BYOK model | FR45-50 | Journey 4 (API Key Setup) | ✓ Aligned |
-| Target users (Jake, Aisha) | User profiles | Steps 1-2 (User personas) | ✓ Aligned |
-| Difficulty Engine | FR14-18 | Step 5 (Invisible difficulty) | ✓ Aligned |
-| Bidirectional MIDI | FR5, FR20 | Step 5 (Demonstrate → Attempt loop) | ✓ Aligned |
-| Session snapshots | FR13 | Step 5 (Silence-triggered snapshot) | ✓ Aligned |
+| Aspect                     | PRD                  | UX                                           | Status    |
+| -------------------------- | -------------------- | -------------------------------------------- | --------- |
+| Three interaction modes    | FR29-33              | Step 6 (Design Direction), Step 7 (Journeys) | ✓ Aligned |
+| Ear-first philosophy       | Core differentiator  | Step 5 (Visual Vocabulary)                   | ✓ Aligned |
+| Growth mindset framing     | FR28, content safety | Steps 3-4 (Emotional Design)                 | ✓ Aligned |
+| BYOK model                 | FR45-50              | Journey 4 (API Key Setup)                    | ✓ Aligned |
+| Target users (Jake, Aisha) | User profiles        | Steps 1-2 (User personas)                    | ✓ Aligned |
+| Difficulty Engine          | FR14-18              | Step 5 (Invisible difficulty)                | ✓ Aligned |
+| Bidirectional MIDI         | FR5, FR20            | Step 5 (Demonstrate → Attempt loop)          | ✓ Aligned |
+| Session snapshots          | FR13                 | Step 5 (Silence-triggered snapshot)          | ✓ Aligned |
 
 No PRD requirements are missing from UX. No UX requirements contradict the PRD.
 
 ### UX ↔ Architecture Alignment
 
-| UX Requirement | Architecture Support | Status |
-|----------------|---------------------|--------|
-| Two-layer rendering (React + Canvas/WebGL) | Explicitly architectured: shadcn/ui shell + Canvas viz layer | ✓ Aligned |
-| 60fps visualization at <50ms latency | Canvas subscribes to Zustand directly (bypasses React) | ✓ Aligned |
-| shadcn/ui + Tailwind CSS | Official starter template includes both | ✓ Aligned |
-| 12 restyled shadcn/ui components | Listed in project structure (`src/components/ui/`) | ✓ Aligned |
-| 13 custom components (P0-P3) | Listed in project structure (`src/components/`, `src/components/viz/`) | ✓ Aligned |
-| Three mode layouts (90%, 60/40, 60/20/20) | Mode-specific layouts in `src/features/modes/` | ✓ Aligned |
-| Dark aesthetic (#0F0F0F, #7CB9E8) | Design tokens in `tailwind.config.ts` | ✓ Aligned |
-| 0px border radius | Global Tailwind config | ✓ Aligned |
-| WCAG 2.1 AA | axe-core deploy gate + eslint-plugin-jsx-a11y | ✓ Aligned |
+| UX Requirement                             | Architecture Support                                                   | Status    |
+| ------------------------------------------ | ---------------------------------------------------------------------- | --------- |
+| Two-layer rendering (React + Canvas/WebGL) | Explicitly architectured: shadcn/ui shell + Canvas viz layer           | ✓ Aligned |
+| 60fps visualization at <50ms latency       | Canvas subscribes to Zustand directly (bypasses React)                 | ✓ Aligned |
+| shadcn/ui + Tailwind CSS                   | Official starter template includes both                                | ✓ Aligned |
+| 12 restyled shadcn/ui components           | Listed in project structure (`src/components/ui/`)                     | ✓ Aligned |
+| 13 custom components (P0-P3)               | Listed in project structure (`src/components/`, `src/components/viz/`) | ✓ Aligned |
+| Three mode layouts (90%, 60/40, 60/20/20)  | Mode-specific layouts in `src/features/modes/`                         | ✓ Aligned |
+| Dark aesthetic (#0F0F0F, #7CB9E8)          | Design tokens in `tailwind.config.ts`                                  | ✓ Aligned |
+| 0px border radius                          | Global Tailwind config                                                 | ✓ Aligned |
+| WCAG 2.1 AA                                | axe-core deploy gate + eslint-plugin-jsx-a11y                          | ✓ Aligned |
 
 ### UX ↔ Epic Alignment
 
-| UX Requirement | Epic Coverage | Status |
-|----------------|--------------|--------|
-| UX1 (Dark aesthetic) | Story 1.2 | ✓ |
-| UX2 (0px radius) | Story 1.2 | ✓ |
-| UX3 (Typography) | Story 1.2 | ✓ |
-| UX4 (Two-layer rendering) | Story 1.4 | ✓ |
-| UX5 (Three mode layouts) | Stories 2.6, 4.2, 6.1 | ✓ |
-| UX6 (Restyle shadcn/ui) | Story 1.2 | ✓ |
-| UX7 (13 custom components) | Distributed across epics by priority tier | ✓ |
-| UX8 (Priority tiers P0-P3) | Epic ordering reflects priority tiers | ✓ |
-| UX9 (Growth mindset) | Stories 2.5, 4.5, 5.6 | ✓ |
-| UX10 (Studio Engineer persona) | Story 4.1, 4.5 | ✓ |
-| UX11 (70/30 attention split) | Story 2.6 | ✓ |
-| UX12 (Silence-triggered snapshot) | Story 2.5 | ✓ |
-| UX13 (Drill choreography) | Story 5.5 | ✓ |
+| UX Requirement                    | Epic Coverage                             | Status |
+| --------------------------------- | ----------------------------------------- | ------ |
+| UX1 (Dark aesthetic)              | Story 1.2                                 | ✓      |
+| UX2 (0px radius)                  | Story 1.2                                 | ✓      |
+| UX3 (Typography)                  | Story 1.2                                 | ✓      |
+| UX4 (Two-layer rendering)         | Story 1.4                                 | ✓      |
+| UX5 (Three mode layouts)          | Stories 2.6, 4.2, 6.1                     | ✓      |
+| UX6 (Restyle shadcn/ui)           | Story 1.2                                 | ✓      |
+| UX7 (13 custom components)        | Distributed across epics by priority tier | ✓      |
+| UX8 (Priority tiers P0-P3)        | Epic ordering reflects priority tiers     | ✓      |
+| UX9 (Growth mindset)              | Stories 2.5, 4.5, 5.6                     | ✓      |
+| UX10 (Studio Engineer persona)    | Story 4.1, 4.5                            | ✓      |
+| UX11 (70/30 attention split)      | Story 2.6                                 | ✓      |
+| UX12 (Silence-triggered snapshot) | Story 2.5                                 | ✓      |
+| UX13 (Drill choreography)         | Story 5.5                                 | ✓      |
 
 ### Alignment Issues
 
 No significant alignment issues found. All three documents (PRD, Architecture, UX) are consistent in their treatment of:
+
 - Core features and modes
 - Design system choices
 - Performance targets
@@ -320,29 +339,29 @@ None. The UX specification is comprehensive and well-aligned with both PRD and A
 
 #### A. User Value Focus Check
 
-| Epic | Title | User-Centric? | Value Proposition |
-|------|-------|---------------|-------------------|
-| Epic 1 | First Note Experience | ✓ | User opens app, connects MIDI, sees feedback |
-| Epic 2 | Real-Time Analysis & Silent Coach | ✓ | User plays freely, sees analysis, gets snapshots |
-| Epic 3 | Accounts & API Key Management | ✓ | User manages account and configures AI access |
-| Epic 4 | AI Coaching & Dashboard Mode | ✓ | User asks AI questions, gets grounded coaching |
-| Epic 5 | Difficulty Engine & AI Drills | ✓ | User receives personalized, adaptive drills |
-| Epic 6 | Session Replay & Continuity | ✓ | User replays sessions, experiences continuity |
-| Epic 7 | Engagement & Progress Tracking | ✓ | User tracks streaks, XP, achievements, progress |
+| Epic   | Title                             | User-Centric? | Value Proposition                                |
+| ------ | --------------------------------- | ------------- | ------------------------------------------------ |
+| Epic 1 | First Note Experience             | ✓             | User opens app, connects MIDI, sees feedback     |
+| Epic 2 | Real-Time Analysis & Silent Coach | ✓             | User plays freely, sees analysis, gets snapshots |
+| Epic 3 | Accounts & API Key Management     | ✓             | User manages account and configures AI access    |
+| Epic 4 | AI Coaching & Dashboard Mode      | ✓             | User asks AI questions, gets grounded coaching   |
+| Epic 5 | Difficulty Engine & AI Drills     | ✓             | User receives personalized, adaptive drills      |
+| Epic 6 | Session Replay & Continuity       | ✓             | User replays sessions, experiences continuity    |
+| Epic 7 | Engagement & Progress Tracking    | ✓             | User tracks streaks, XP, achievements, progress  |
 
 **Verdict:** All 7 epics deliver user value. No technical-milestone epics detected. ✓
 
 #### B. Epic Independence Validation
 
-| Epic | Dependencies | Can Function Independently? |
-|------|-------------|---------------------------|
-| Epic 1 | None | ✓ Standalone foundation |
-| Epic 2 | Epic 1 only | ✓ Uses Epic 1 MIDI + viz |
-| Epic 3 | Epic 1 only | ✓ Parallelizable with Epic 2 |
-| Epic 4 | Epic 2 + Epic 3 | ✓ No forward deps |
-| Epic 5 | Epic 2 + Epic 4 | ✓ No forward deps |
-| Epic 6 | Epic 2, optionally Epic 4 | ✓ No forward deps |
-| Epic 7 | Epic 2 | ✓ No forward deps |
+| Epic   | Dependencies              | Can Function Independently?  |
+| ------ | ------------------------- | ---------------------------- |
+| Epic 1 | None                      | ✓ Standalone foundation      |
+| Epic 2 | Epic 1 only               | ✓ Uses Epic 1 MIDI + viz     |
+| Epic 3 | Epic 1 only               | ✓ Parallelizable with Epic 2 |
+| Epic 4 | Epic 2 + Epic 3           | ✓ No forward deps            |
+| Epic 5 | Epic 2 + Epic 4           | ✓ No forward deps            |
+| Epic 6 | Epic 2, optionally Epic 4 | ✓ No forward deps            |
+| Epic 7 | Epic 2                    | ✓ No forward deps            |
 
 **Verdict:** No circular dependencies. No forward dependencies (Epic N never requires Epic N+1). ✓
 
@@ -355,6 +374,7 @@ All stories are appropriately sized — each delivers a meaningful increment of 
 #### B. Acceptance Criteria Review
 
 All 43 stories use Given/When/Then format with specific, testable criteria:
+
 - Happy paths defined ✓
 - Error conditions addressed (where applicable) ✓
 - NFR references included (e.g., NFR1, NFR2, NFR28) ✓
@@ -396,33 +416,36 @@ Architecture specifies `npx create-next-app@latest minstrel -e with-supabase` an
 #### B. Greenfield Indicators
 
 This is a greenfield project with appropriate stories:
+
 - Story 1.1: Project initialization from starter template ✓
 - Story 1.2: Design system configuration ✓
 - CI/CD setup included in Story 1.1 acceptance criteria ✓
 
 ### Best Practices Compliance Checklist
 
-| Criterion | Epic 1 | Epic 2 | Epic 3 | Epic 4 | Epic 5 | Epic 6 | Epic 7 |
-|-----------|--------|--------|--------|--------|--------|--------|--------|
-| Epic delivers user value | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Epic can function independently | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Stories appropriately sized | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| No forward dependencies | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Database tables created when needed | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Clear acceptance criteria | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Traceability to FRs maintained | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Criterion                           | Epic 1 | Epic 2 | Epic 3 | Epic 4 | Epic 5 | Epic 6 | Epic 7 |
+| ----------------------------------- | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| Epic delivers user value            | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      |
+| Epic can function independently     | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      |
+| Stories appropriately sized         | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      |
+| No forward dependencies             | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      |
+| Database tables created when needed | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      |
+| Clear acceptance criteria           | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      |
+| Traceability to FRs maintained      | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      | ✓      |
 
 ### Quality Findings
 
 #### 🟡 Minor Concerns (Non-Blocking)
 
 **1. Developer-Facing Stories**
+
 - Story 1.1 ("As a developer, I want the project initialized...") is developer-facing, not user-facing. Justified by AR1 which explicitly mandates this as Epic 1, Story 1. Acceptable for a greenfield project's first story.
 - Story 4.1 ("As a developer, I want the AI service layer configured...") is also developer-facing. Could be reframed as "As a user, I want AI coaching to work seamlessly..." but the infrastructure focus is clear and necessary as Epic 4's first story.
 
 **Recommendation:** Consider reframing 4.1's "As a..." to be user-focused in any future revision. Non-blocking.
 
 **2. Story Count Discrepancy in Validation Summary**
+
 - The epics.md validation summary (line 1037) states "34 stories" but the actual count is:
   - Epic 1: 7, Epic 2: 8, Epic 3: 6, Epic 4: 5, Epic 5: 7, Epic 6: 4, Epic 7: 6 = **43 stories**
 - The "34" figure is incorrect. The actual document contains 43 well-defined stories.
@@ -430,6 +453,7 @@ This is a greenfield project with appropriate stories:
 **Recommendation:** Correct the validation summary count from 34 to 43. Non-blocking — the stories themselves are complete and correct.
 
 **3. Silence Threshold Ambiguity**
+
 - Story 2.5 defines silence detection as "no MIDI input for 3+ seconds"
 - UX spec Phase 3 mentions "Silence detected (<500ms)" — which refers to the time from silence detection to snapshot display, not the silence threshold itself
 - The 3-second threshold is reasonable (distinguishes intentional pauses from gaps between phrases) but could benefit from explicit documentation of the distinction
@@ -454,26 +478,26 @@ None.
 
 ### Assessment Summary
 
-| Area | Finding | Status |
-|------|---------|--------|
-| **Document Completeness** | All 4 required documents found, complete, no duplicates | ✓ Pass |
-| **FR Coverage** | 50/50 FRs covered across 7 epics (100%) | ✓ Pass |
-| **NFR Coverage** | 29/29 NFRs referenced in acceptance criteria where applicable | ✓ Pass |
-| **UX Alignment** | Full alignment between UX, PRD, and Architecture | ✓ Pass |
-| **Epic Structure** | All epics deliver user value, no technical milestones | ✓ Pass |
-| **Epic Independence** | No circular or forward dependencies | ✓ Pass |
-| **Story Quality** | All 43 stories have Given/When/Then acceptance criteria | ✓ Pass |
-| **Dependency Chain** | Forward-only within all epics | ✓ Pass |
-| **Database Timing** | Tables created just-in-time, not upfront | ✓ Pass |
-| **Starter Template** | Story 1.1 matches AR1 requirement | ✓ Pass |
+| Area                      | Finding                                                       | Status |
+| ------------------------- | ------------------------------------------------------------- | ------ |
+| **Document Completeness** | All 4 required documents found, complete, no duplicates       | ✓ Pass |
+| **FR Coverage**           | 50/50 FRs covered across 7 epics (100%)                       | ✓ Pass |
+| **NFR Coverage**          | 29/29 NFRs referenced in acceptance criteria where applicable | ✓ Pass |
+| **UX Alignment**          | Full alignment between UX, PRD, and Architecture              | ✓ Pass |
+| **Epic Structure**        | All epics deliver user value, no technical milestones         | ✓ Pass |
+| **Epic Independence**     | No circular or forward dependencies                           | ✓ Pass |
+| **Story Quality**         | All 43 stories have Given/When/Then acceptance criteria       | ✓ Pass |
+| **Dependency Chain**      | Forward-only within all epics                                 | ✓ Pass |
+| **Database Timing**       | Tables created just-in-time, not upfront                      | ✓ Pass |
+| **Starter Template**      | Story 1.1 matches AR1 requirement                             | ✓ Pass |
 
 ### Issues Found
 
-| Severity | Count | Details |
-|----------|-------|---------|
-| 🔴 Critical | 0 | — |
-| 🟠 Major | 0 | — |
-| 🟡 Minor | 3 | Developer-facing stories (1.1, 4.1), story count discrepancy (34 vs 43), silence threshold ambiguity |
+| Severity    | Count | Details                                                                                              |
+| ----------- | ----- | ---------------------------------------------------------------------------------------------------- |
+| 🔴 Critical | 0     | —                                                                                                    |
+| 🟠 Major    | 0     | —                                                                                                    |
+| 🟡 Minor    | 3     | Developer-facing stories (1.1, 4.1), story count discrepancy (34 vs 43), silence threshold ambiguity |
 
 ### Recommended Next Steps
 
