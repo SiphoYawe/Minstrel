@@ -180,4 +180,33 @@ export interface SessionMetric {
   averageTempo: number | null;
   maxCleanTempo: number | null;
   durationMs: number;
+  drillsCompleted?: number;
+}
+
+// --- Weekly Summary Types (Story 7.5) ---
+
+export interface WeeklyMetricDelta {
+  metricName: string;
+  currentValue: number;
+  previousValue: number | null;
+  deltaPercent: number | null; // null when no previous week
+  direction: TrendDirection;
+}
+
+export interface WeeklyComparison {
+  totalTimeDeltaMs: number;
+  sessionCountDelta: number;
+  metricDeltas: WeeklyMetricDelta[];
+}
+
+export interface WeeklySummary {
+  weekStartDate: string; // ISO date (Monday)
+  weekEndDate: string; // ISO date (Sunday)
+  totalPracticeMs: number;
+  sessionCount: number;
+  drillsCompleted: number;
+  personalRecordsSet: number;
+  metricDeltas: WeeklyMetricDelta[];
+  highestImpactInsight: string;
+  previousWeekComparison: WeeklyComparison | null;
 }

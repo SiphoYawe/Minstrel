@@ -64,3 +64,6 @@ export const XP_NEW_RECORD_BONUS = 25;
 export const MIN_SESSIONS_FOR_TRENDS = 3;
 export const TREND_PERIODS = { '7d': 7, '30d': 30, '90d': 90 } as const;
 export const TREND_FLAT_THRESHOLD = 0.02;
+
+// Weekly summary constants (Story 7.5)
+export const WEEK_START_DAY = 1; // Monday (ISO 8601)
