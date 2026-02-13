@@ -116,15 +116,23 @@ const mockReverse = vi.fn();
 const mockToArray = vi.fn();
 const mockWhere = vi.fn();
 const mockEquals = vi.fn();
+const mockDelete = vi.fn();
+const mockWhereDelete = vi.fn();
+const mockTransaction = vi.fn();
 
 vi.mock('@/lib/dexie/db', () => ({
   db: {
     sessions: {
       orderBy: (...args: unknown[]) => mockOrderBy(...args),
+      delete: (...args: unknown[]) => mockDelete(...args),
     },
     midiEvents: {
       where: (...args: unknown[]) => mockWhere(...args),
     },
+    analysisSnapshots: {
+      where: (...args: unknown[]) => mockWhere(...args),
+    },
+    transaction: (...args: unknown[]) => mockTransaction(...args),
   },
 }));
 
@@ -141,7 +149,13 @@ describe('SessionHistoryList', () => {
       toArray: vi
         .fn()
         .mockResolvedValue(mockMidiEventsData.filter((e) => e.sessionId === sessionId)),
+      delete: mockWhereDelete.mockResolvedValue(undefined),
     }));
+    mockDelete.mockResolvedValue(undefined);
+    mockTransaction.mockImplementation((_mode: string, ..._tables: unknown[]) => {
+      const cb = _tables[_tables.length - 1];
+      return typeof cb === 'function' ? (cb as () => Promise<void>)() : Promise.resolve();
+    });
   });
 
   it('renders session cards after loading', async () => {
@@ -321,5 +335,93 @@ describe('SessionHistoryList empty state', () => {
 
     const link = screen.getByText('Start Playing').closest('a');
     expect(link).toHaveAttribute('href', '/session');
+  });
+});
+
+describe('SessionHistoryList deletion', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    mockOrderBy.mockReturnValue({ reverse: mockReverse });
+    mockReverse.mockReturnValue({ toArray: mockToArray });
+    mockToArray.mockResolvedValue(mockSessionsData);
+
+    mockWhere.mockReturnValue({ equals: mockEquals });
+    mockEquals.mockImplementation((sessionId: number) => ({
+      toArray: vi
+        .fn()
+        .mockResolvedValue(mockMidiEventsData.filter((e) => e.sessionId === sessionId)),
+      delete: mockWhereDelete.mockResolvedValue(undefined),
+    }));
+    mockDelete.mockResolvedValue(undefined);
+    mockTransaction.mockImplementation((_mode: string, ..._tables: unknown[]) => {
+      const cb = _tables[_tables.length - 1];
+      return typeof cb === 'function' ? (cb as () => Promise<void>)() : Promise.resolve();
+    });
+  });
+
+  it('shows delete buttons on each session card', async () => {
+    render(<SessionHistoryList />);
+    await screen.findAllByRole('listitem');
+
+    const deleteButtons = screen.getAllByLabelText(/Delete session from/);
+    expect(deleteButtons).toHaveLength(3);
+  });
+
+  it('opens confirmation dialog when delete button is clicked', async () => {
+    render(<SessionHistoryList />);
+    await screen.findAllByRole('listitem');
+
+    const deleteButtons = screen.getAllByLabelText(/Delete session from/);
+    fireEvent.click(deleteButtons[0]);
+
+    expect(screen.getByText('Delete this session?')).toBeInTheDocument();
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('closes confirmation dialog when Cancel is clicked', async () => {
+    render(<SessionHistoryList />);
+    await screen.findAllByRole('listitem');
+
+    const deleteButtons = screen.getAllByLabelText(/Delete session from/);
+    fireEvent.click(deleteButtons[0]);
+
+    fireEvent.click(screen.getByText('Cancel'));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('removes session from list after confirming deletion', async () => {
+    render(<SessionHistoryList />);
+    await screen.findAllByRole('listitem');
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(3);
+
+    const deleteButtons = screen.getAllByLabelText(/Delete session from/);
+    fireEvent.click(deleteButtons[0]);
+
+    fireEvent.click(screen.getByText('Delete'));
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    });
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByText('2 of 2 sessions')).toBeInTheDocument();
+  });
+
+  it('calls Dexie transaction to delete session and related data', async () => {
+    render(<SessionHistoryList />);
+    await screen.findAllByRole('listitem');
+
+    const deleteButtons = screen.getAllByLabelText(/Delete session from/);
+    fireEvent.click(deleteButtons[0]);
+
+    fireEvent.click(screen.getByText('Delete'));
+
+    await waitFor(() => {
+      expect(mockTransaction).toHaveBeenCalled();
+    });
   });
 });
