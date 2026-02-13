@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { db, type GuestSession, type StoredMidiEvent } from '@/lib/dexie/db';
+
+const PAGE_SIZE = 20;
 
 type SortMode = 'recent' | 'longest' | 'best-accuracy';
 
@@ -39,59 +41,101 @@ function formatTime(timestamp: number): string {
   });
 }
 
+function getStatusLabel(status: string): string {
+  switch (status) {
+    case 'completed':
+      return 'Complete';
+    case 'recording':
+      return 'Active';
+    default:
+      return 'Abandoned';
+  }
+}
+
+function getStatusClasses(status: string): string {
+  switch (status) {
+    case 'completed':
+      return 'border-accent-success/20 bg-accent-success/5 text-accent-success';
+    case 'recording':
+      return 'border-accent-warm/20 bg-accent-warm/5 text-accent-warm';
+    default:
+      return 'border-border bg-card text-muted-foreground';
+  }
+}
+
 export function SessionHistoryList() {
   const [sessions, setSessions] = useState<SessionWithStats[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(!!db);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>('recent');
 
-  useEffect(() => {
-    if (!db) {
-      return;
+  const hasMore = sessions.length < totalCount;
+
+  const loadPage = useCallback(async (offset: number, append: boolean) => {
+    if (!db) return;
+
+    try {
+      const allSorted = await db.sessions.orderBy('startedAt').reverse().toArray();
+
+      if (!append) {
+        setTotalCount(allSorted.length);
+      }
+
+      const page = allSorted.slice(offset, offset + PAGE_SIZE);
+
+      const pageWithStats: SessionWithStats[] = await Promise.all(
+        page.map(async (session) => {
+          const sessionId = session.id!;
+          const events: StoredMidiEvent[] = await db.midiEvents
+            .where('sessionId')
+            .equals(sessionId)
+            .toArray();
+
+          const noteCount = events.filter((e) => e.type === 'note-on').length;
+
+          return {
+            ...session,
+            noteCount,
+            averageAccuracy: null,
+          };
+        })
+      );
+
+      if (append) {
+        setSessions((prev) => [...prev, ...pageWithStats]);
+      } else {
+        setSessions(pageWithStats);
+      }
+    } catch {
+      // Silently handle — loading state cleared below
     }
+  }, []);
+
+  useEffect(() => {
+    if (!db) return;
 
     let cancelled = false;
 
-    async function load() {
-      try {
-        const allSessions = await db.sessions.orderBy('startedAt').reverse().toArray();
-
-        // For each session, count MIDI events
-        const sessionsWithStats: SessionWithStats[] = await Promise.all(
-          allSessions.map(async (session) => {
-            const sessionId = session.id!;
-            const events: StoredMidiEvent[] = await db.midiEvents
-              .where('sessionId')
-              .equals(sessionId)
-              .toArray();
-
-            const noteOnEvents = events.filter((e) => e.type === 'note-on');
-            const noteCount = noteOnEvents.length;
-
-            return {
-              ...session,
-              noteCount,
-              averageAccuracy: null, // Timing accuracy per-session is not stored in Dexie
-            };
-          })
-        );
-
-        if (!cancelled) {
-          setSessions(sessionsWithStats);
-          setIsLoading(false);
-        }
-      } catch {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
+    async function initialLoad() {
+      await loadPage(0, false);
+      if (!cancelled) {
+        setIsLoading(false);
       }
     }
 
-    load();
+    initialLoad();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadPage]);
+
+  const handleLoadMore = useCallback(async () => {
+    setIsLoadingMore(true);
+    await loadPage(sessions.length, true);
+    setIsLoadingMore(false);
+  }, [loadPage, sessions.length]);
 
   const sortedSessions = useMemo(() => {
     const copy = [...sessions];
@@ -101,7 +145,6 @@ export function SessionHistoryList() {
       case 'longest':
         return copy.sort((a, b) => (b.duration ?? 0) - (a.duration ?? 0));
       case 'best-accuracy':
-        // Sort by note count as proxy since accuracy is session-level
         return copy.sort((a, b) => b.noteCount - a.noteCount);
       default:
         return copy;
@@ -186,9 +229,7 @@ export function SessionHistoryList() {
           >
             <div className="flex items-start justify-between">
               <div>
-                <p className="font-mono text-sm text-foreground">
-                  {formatDate(session.startedAt)}
-                </p>
+                <p className="font-mono text-sm text-foreground">{formatDate(session.startedAt)}</p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
                   {formatTime(session.startedAt)}
                 </p>
@@ -198,7 +239,7 @@ export function SessionHistoryList() {
               </span>
             </div>
 
-            <div className="mt-3 grid grid-cols-3 gap-3">
+            <div className="mt-3 grid grid-cols-4 gap-3">
               {/* Duration */}
               <div>
                 <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -219,6 +260,17 @@ export function SessionHistoryList() {
                 </span>
               </div>
 
+              {/* Tempo */}
+              <div>
+                <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Tempo
+                </span>
+                <span className="mt-0.5 block font-mono text-sm text-foreground">
+                  {session.tempo ? `${Math.round(session.tempo)}` : '--'}
+                  {session.tempo && <span className="text-[10px] text-muted-foreground"> BPM</span>}
+                </span>
+              </div>
+
               {/* Notes */}
               <div>
                 <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -230,24 +282,37 @@ export function SessionHistoryList() {
               </div>
             </div>
 
-            {/* Input source badge */}
+            {/* Input source + status badges */}
             <div className="mt-3 flex items-center gap-2">
               <span className="border border-border px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
                 {session.inputSource === 'midi' ? 'MIDI' : 'Audio'}
               </span>
-              {session.status === 'completed' && (
-                <span className="border border-accent-success/20 bg-accent-success/5 px-2 py-0.5 text-[10px] uppercase tracking-wider text-accent-success">
-                  Complete
-                </span>
-              )}
+              <span
+                className={`border px-2 py-0.5 text-[10px] uppercase tracking-wider ${getStatusClasses(session.status)}`}
+              >
+                {getStatusLabel(session.status)}
+              </span>
             </div>
           </Link>
         ))}
       </div>
 
+      {/* Load More */}
+      {hasMore && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={handleLoadMore}
+            disabled={isLoadingMore}
+            className="border border-border bg-card px-6 py-2 font-mono text-xs uppercase tracking-wider text-foreground transition-colors hover:bg-surface-light disabled:opacity-50"
+          >
+            {isLoadingMore ? 'Loading...' : 'Load More'}
+          </button>
+        </div>
+      )}
+
       {/* Count */}
       <p className="mt-4 text-center text-[11px] text-muted-foreground">
-        {sessions.length} session{sessions.length !== 1 ? 's' : ''} total
+        {sessions.length} of {totalCount} session{totalCount !== 1 ? 's' : ''}
       </p>
     </div>
   );
