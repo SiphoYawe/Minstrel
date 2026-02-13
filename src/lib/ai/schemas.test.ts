@@ -46,16 +46,24 @@ function validChatRequest() {
 function validDrillGeneration() {
   return {
     targetSkill: 'chord transitions',
-    noteSequence: [
-      { note: 'C', octave: 4, duration: 'quarter' },
-      { note: 'E', octave: 4, duration: 'quarter' },
-      { note: 'G', octave: 4, duration: 'half' },
-    ],
-    chordSequence: ['Cmaj', 'Am', 'Fmaj', 'G7'],
+    instructions: 'Practice smooth C to G7 transitions',
+    sequence: {
+      notes: [
+        { midiNote: 60, duration: 1, velocity: 80, startBeat: 0 },
+        { midiNote: 64, duration: 1, velocity: 80, startBeat: 1 },
+        { midiNote: 67, duration: 2, velocity: 80, startBeat: 2 },
+      ],
+      chordSymbols: ['Cmaj', 'Am', 'Fmaj', 'G7'],
+      timeSignature: [4, 4] as [number, number],
+      measures: 2,
+    },
     targetTempo: 100,
-    successCriteria: 'Play all transitions with < 50ms gap',
-    difficultyLevel: 5,
-    variation: 'Ascending arpeggio pattern with swing feel',
+    successCriteria: {
+      timingThresholdMs: 50,
+      accuracyTarget: 0.8,
+      tempoToleranceBpm: 5,
+    },
+    reps: 4,
   };
 }
 
@@ -149,26 +157,34 @@ describe('DrillGenerationSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('rejects DrillGeneration with difficultyLevel > 10', () => {
-    const data = { ...validDrillGeneration(), difficultyLevel: 11 };
+  it('rejects DrillGeneration with midiNote out of piano range', () => {
+    const data = validDrillGeneration();
+    data.sequence.notes = [{ midiNote: 10, duration: 1, velocity: 80, startBeat: 0 }];
     const result = DrillGenerationSchema.safeParse(data);
     expect(result.success).toBe(false);
   });
 
-  it('rejects DrillGeneration with difficultyLevel < 1', () => {
-    const data = { ...validDrillGeneration(), difficultyLevel: 0 };
+  it('rejects DrillGeneration with tempo > 240', () => {
+    const data = { ...validDrillGeneration(), targetTempo: 250 };
     const result = DrillGenerationSchema.safeParse(data);
     expect(result.success).toBe(false);
   });
 
-  it('rejects DrillGeneration with empty noteSequence', () => {
-    const data = { ...validDrillGeneration(), noteSequence: [] };
+  it('rejects DrillGeneration with tempo < 40', () => {
+    const data = { ...validDrillGeneration(), targetTempo: 30 };
     const result = DrillGenerationSchema.safeParse(data);
     expect(result.success).toBe(false);
   });
 
-  it('rejects DrillGeneration with empty chordSequence', () => {
-    const data = { ...validDrillGeneration(), chordSequence: [] };
+  it('rejects DrillGeneration with empty notes array', () => {
+    const data = validDrillGeneration();
+    data.sequence.notes = [];
+    const result = DrillGenerationSchema.safeParse(data);
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects DrillGeneration with reps > 20', () => {
+    const data = { ...validDrillGeneration(), reps: 25 };
     const result = DrillGenerationSchema.safeParse(data);
     expect(result.success).toBe(false);
   });

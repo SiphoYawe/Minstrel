@@ -87,7 +87,7 @@ development_status:
   5-1-multi-dimensional-skill-assessment: done
   5-2-dynamic-difficulty-adjustment-and-growth-zone-detection: done
   5-3-progressive-overload-and-cross-session-recalibration: done
-  5-4-ai-drill-generation: ready-for-dev
+  5-4-ai-drill-generation: done
   5-5-midi-output-demonstration-playback: ready-for-dev
   5-6-drill-tracking-and-improvement-measurement: ready-for-dev
   5-7-micro-sessions-and-auto-generated-warm-ups: ready-for-dev

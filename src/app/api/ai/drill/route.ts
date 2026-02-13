@@ -4,6 +4,7 @@ import { getModelForProvider } from '@/lib/ai/provider';
 import { buildDrillSystemPrompt } from '@/lib/ai/prompts';
 import { authenticateAiRequest, withAiErrorHandling } from '@/lib/ai/route-helpers';
 import { AiError } from '@/lib/ai/errors';
+import * as Sentry from '@sentry/nextjs';
 
 export async function POST(req: Request): Promise<Response> {
   let body: unknown;
@@ -23,7 +24,8 @@ export async function POST(req: Request): Promise<Response> {
     );
   }
 
-  const { sessionContext, weakness, currentDifficulty, providerId } = parsed.data;
+  const { sessionContext, weakness, difficultyParameters, previousDrillDescriptions, providerId } =
+    parsed.data;
 
   const authResult = await authenticateAiRequest(providerId);
   if (authResult instanceof Response) return authResult;
@@ -34,12 +36,48 @@ export async function POST(req: Request): Promise<Response> {
     const model = getModelForProvider(providerId, apiKey);
     const systemPrompt = buildDrillSystemPrompt(sessionContext);
 
+    const promptLines = [
+      `Generate a targeted drill for this weakness: ${weakness}`,
+      '',
+      'DIFFICULTY PARAMETERS:',
+      `  Target tempo: ${difficultyParameters.tempo} BPM (+/- 5 BPM)`,
+      `  Harmonic complexity: ${(difficultyParameters.harmonicComplexity * 100).toFixed(0)}%`,
+      `  Key difficulty: ${(difficultyParameters.keyDifficulty * 100).toFixed(0)}%`,
+      `  Rhythmic density: ${(difficultyParameters.rhythmicDensity * 100).toFixed(0)}%`,
+      `  Note range: ${(difficultyParameters.noteRange * 100).toFixed(0)}%`,
+    ];
+
+    if (previousDrillDescriptions && previousDrillDescriptions.length > 0) {
+      promptLines.push(
+        '',
+        'IMPORTANT: The musician has already practiced these drills for this weakness:',
+        ...previousDrillDescriptions.map((d) => `- ${d}`),
+        '',
+        'Generate a DIFFERENT drill. Vary one or more of:',
+        '- Chord voicings (open vs. close, different inversions)',
+        '- Rhythmic pattern (straight vs. swing, different subdivisions)',
+        '- Key center (try a related key)',
+        '- Approach direction (ascending vs. descending)',
+        '- Exercise structure (call-and-response, loop, sequence)'
+      );
+    }
+
+    const startTime = performance.now();
+
     const { output } = await generateText({
       model,
       system: systemPrompt,
-      prompt: `Generate a drill targeting: ${weakness}. Current difficulty level: ${currentDifficulty}/10.`,
+      prompt: promptLines.join('\n'),
       output: Output.object({ schema: DrillGenerationSchema }),
     });
+
+    const elapsed = performance.now() - startTime;
+    if (elapsed > 2000) {
+      Sentry.captureMessage('Drill generation exceeded 2s budget', {
+        level: 'warning',
+        extra: { elapsed, weakness },
+      });
+    }
 
     if (!output) {
       throw new AiError('GENERATION_FAILED');

@@ -45,6 +45,22 @@ export interface StoredSkillProfile {
   syncStatus: SyncStatus;
 }
 
+export interface StoredDrillRecord {
+  id?: number;
+  drillId: string;
+  userId: string;
+  sessionId: string | null;
+  targetSkill: string;
+  weaknessDescription: string;
+  drillData: Record<string, unknown>;
+  difficultyParameters: Record<string, number>;
+  status: string;
+  createdAt: string;
+  completedAt: string | null;
+  results: Record<string, unknown> | null;
+  syncStatus: SyncStatus;
+}
+
 export interface AnalysisSnapshot {
   id?: number;
   sessionId: number;
@@ -59,6 +75,7 @@ class MinstrelDatabase extends Dexie {
   midiEvents!: Table<StoredMidiEvent>;
   analysisSnapshots!: Table<AnalysisSnapshot>;
   skillProfiles!: Table<StoredSkillProfile>;
+  drillRecords!: Table<StoredDrillRecord>;
 
   constructor() {
     super('minstrel-local');
@@ -115,6 +132,7 @@ class MinstrelDatabase extends Dexie {
       midiEvents: '++id, sessionId, [sessionId+timestamp], userId, syncStatus',
       analysisSnapshots: '++id, sessionId, createdAt, [sessionId+createdAt], userId, syncStatus',
       skillProfiles: '++id, userId, lastAssessedAt, syncStatus',
+      drillRecords: '++id, drillId, userId, sessionId, status, createdAt, syncStatus',
     });
   }
 }

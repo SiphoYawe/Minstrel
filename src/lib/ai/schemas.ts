@@ -48,22 +48,31 @@ export const ChatRequestSchema = z.object({
 
 export type ChatRequest = z.infer<typeof ChatRequestSchema>;
 
-// --- Drill generation structured output ---
+// --- Drill generation structured output (Story 5.4) ---
+
+export const DrillNoteSchema = z.object({
+  midiNote: z.number().min(21).max(108).describe('MIDI note number (21=A0 to 108=C8)'),
+  duration: z.number().positive().describe('Duration in beats'),
+  velocity: z.number().min(1).max(127).describe('MIDI velocity'),
+  startBeat: z.number().min(0).describe('Beat position within the measure'),
+});
 
 export const DrillGenerationSchema = z.object({
-  targetSkill: z.string().describe('The skill this drill targets, e.g. "chord transitions"'),
-  noteSequence: z
-    .array(z.object({ note: z.string(), octave: z.number(), duration: z.string() }))
-    .min(1)
-    .describe('Sequence of notes for the drill (at least 1)'),
-  chordSequence: z
-    .array(z.string())
-    .min(1)
-    .describe('Chord progression for the drill (at least 1)'),
-  targetTempo: z.number().describe('BPM target for the drill'),
-  successCriteria: z.string().describe('What counts as completing the drill successfully'),
-  difficultyLevel: z.number().min(1).max(10).describe('1–10 difficulty scale'),
-  variation: z.string().describe('Description of what makes this drill unique'),
+  targetSkill: z.string().describe('Specific skill this drill targets'),
+  instructions: z.string().describe('Brief instruction for the musician'),
+  sequence: z.object({
+    notes: z.array(DrillNoteSchema).min(1).describe('MIDI note sequence'),
+    chordSymbols: z.array(z.string()).optional().describe('Chord symbols for reference'),
+    timeSignature: z.tuple([z.number(), z.number()]).describe('Time signature [beats, beat unit]'),
+    measures: z.number().int().positive().describe('Number of measures'),
+  }),
+  targetTempo: z.number().min(40).max(240).describe('Target BPM'),
+  successCriteria: z.object({
+    timingThresholdMs: z.number().positive().describe('Acceptable timing deviation in ms'),
+    accuracyTarget: z.number().min(0).max(1).describe('Required accuracy 0-1'),
+    tempoToleranceBpm: z.number().positive().describe('Acceptable tempo variation in BPM'),
+  }),
+  reps: z.number().int().min(1).max(20).describe('Number of repetitions'),
 });
 
 export type DrillGeneration = z.infer<typeof DrillGenerationSchema>;
@@ -73,7 +82,20 @@ export type DrillGeneration = z.infer<typeof DrillGenerationSchema>;
 export const DrillRequestSchema = z.object({
   sessionContext: SessionContextSchema,
   weakness: z.string().describe('Description of the weakness to target'),
-  currentDifficulty: z.number().min(1).max(10),
+  difficultyParameters: z
+    .object({
+      tempo: z.number(),
+      harmonicComplexity: z.number(),
+      keyDifficulty: z.number(),
+      rhythmicDensity: z.number(),
+      noteRange: z.number(),
+    })
+    .describe('Current difficulty parameters'),
+  previousDrillDescriptions: z
+    .array(z.string())
+    .max(5)
+    .optional()
+    .describe('Previous drills for this weakness to ensure variety'),
   providerId: z.enum(['openai', 'anthropic']),
 });
 
