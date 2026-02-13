@@ -20,6 +20,7 @@ interface AppState {
   migrationProgress: MigrationProgress;
   sessionExpired: boolean;
   sidebarCollapsed: boolean;
+  legendDismissed: boolean;
   setUser: (user: AuthUser) => void;
   clearUser: () => void;
   setLoading: (loading: boolean) => void;
@@ -30,6 +31,7 @@ interface AppState {
   setMigrationProgress: (progress: MigrationProgress) => void;
   setSessionExpired: (expired: boolean) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  setLegendDismissed: (dismissed: boolean) => void;
 }
 
 function getInitialSidebarCollapsed(): boolean {
@@ -54,6 +56,10 @@ export const useAppStore = create<AppState>()((set) => ({
   migrationProgress: { synced: 0, total: 0 },
   sessionExpired: false,
   sidebarCollapsed: getInitialSidebarCollapsed(),
+  legendDismissed:
+    typeof window !== 'undefined'
+      ? localStorage.getItem('minstrel:legend-dismissed') === 'true'
+      : false,
   setUser: (user) => set({ user, isAuthenticated: true, sessionExpired: false }),
   clearUser: () =>
     set({
@@ -85,5 +91,13 @@ export const useAppStore = create<AppState>()((set) => ({
       /* noop */
     }
     set({ sidebarCollapsed });
+  },
+  setLegendDismissed: (legendDismissed) => {
+    try {
+      localStorage.setItem('minstrel:legend-dismissed', String(legendDismissed));
+    } catch {
+      /* noop */
+    }
+    set({ legendDismissed });
   },
 }));

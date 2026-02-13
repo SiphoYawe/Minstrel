@@ -3,6 +3,7 @@
 import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
 import { StatusBar } from '@/components/status-bar';
 import { SnapshotCTA } from '@/components/snapshot-cta';
+import { CanvasLegend } from '@/components/viz/canvas-legend';
 
 /**
  * Silent Coach mode — full-screen immersive visualization.
@@ -16,6 +17,7 @@ export function SilentCoach() {
       <div className="absolute inset-0 pt-10">
         <VisualizationCanvas />
         <SnapshotCTA />
+        <CanvasLegend />
       </div>
 
       {/* StatusBar — fixed top overlay (includes ModeSwitcher) */}
