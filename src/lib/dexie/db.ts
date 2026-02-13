@@ -33,6 +33,18 @@ export interface StoredMidiEvent {
   syncStatus: SyncStatus;
 }
 
+export interface StoredSkillProfile {
+  id?: number;
+  userId: string;
+  profileVersion: number;
+  lastAssessedAt: string;
+  dimensions: Record<
+    string,
+    { value: number; confidence: number; dataPoints: number; lastUpdated: string }
+  >;
+  syncStatus: SyncStatus;
+}
+
 export interface AnalysisSnapshot {
   id?: number;
   sessionId: number;
@@ -46,6 +58,7 @@ class MinstrelDatabase extends Dexie {
   sessions!: Table<GuestSession>;
   midiEvents!: Table<StoredMidiEvent>;
   analysisSnapshots!: Table<AnalysisSnapshot>;
+  skillProfiles!: Table<StoredSkillProfile>;
 
   constructor() {
     super('minstrel-local');
@@ -96,6 +109,13 @@ class MinstrelDatabase extends Dexie {
           )
         );
       });
+
+    this.version(4).stores({
+      sessions: '++id, startedAt, sessionType, status, userId, syncStatus',
+      midiEvents: '++id, sessionId, [sessionId+timestamp], userId, syncStatus',
+      analysisSnapshots: '++id, sessionId, createdAt, [sessionId+createdAt], userId, syncStatus',
+      skillProfiles: '++id, userId, lastAssessedAt, syncStatus',
+    });
   }
 }
 

@@ -115,3 +115,75 @@ export const AnalysisRequestSchema = z.object({
 });
 
 export type AnalysisRequest = z.infer<typeof AnalysisRequestSchema>;
+
+// --- Cross-Session Recalibration (Story 5.3) ---
+
+export const RecalibrationRequestSchema = z.object({
+  profileHistory: z
+    .array(
+      z.object({
+        dimensions: z.record(
+          z.string(),
+          z.object({
+            value: z.number().min(0).max(1),
+            confidence: z.number().min(0).max(1),
+            dataPoints: z.number(),
+          })
+        ),
+        lastAssessedAt: z.string(),
+      })
+    )
+    .min(3)
+    .max(20)
+    .describe('Recent skill profile snapshots (min 3 sessions)'),
+  sessionSummaries: z
+    .array(
+      z.object({
+        sessionDate: z.string(),
+        durationMs: z.number(),
+        avgAccuracy: z.number(),
+        growthZoneRatio: z.number(),
+        genre: z.string().nullable(),
+        key: z.string().nullable(),
+      })
+    )
+    .min(3)
+    .max(20),
+  currentOverloadStrategy: z.object({
+    focusDimension: z.string(),
+    incrementScale: z.number(),
+    plateauFlags: z.record(z.string(), z.boolean()),
+  }),
+  providerId: z.enum(['openai', 'anthropic']),
+});
+
+export type RecalibrationRequest = z.infer<typeof RecalibrationRequestSchema>;
+
+export const RecalibrationResultSchema = z.object({
+  recommendedFocus: z
+    .enum(['TimingAccuracy', 'HarmonicComplexity', 'TechniqueRange', 'Speed', 'GenreFamiliarity'])
+    .describe('The skill dimension to focus on next'),
+  parameterAdjustments: z
+    .object({
+      tempo: z.number().optional(),
+      harmonicComplexity: z.number().optional(),
+      keyDifficulty: z.number().optional(),
+      rhythmicDensity: z.number().optional(),
+      noteRange: z.number().optional(),
+    })
+    .describe('Specific parameter adjustments for next session'),
+  plateauDimensions: z
+    .array(
+      z.enum([
+        'TimingAccuracy',
+        'HarmonicComplexity',
+        'TechniqueRange',
+        'Speed',
+        'GenreFamiliarity',
+      ])
+    )
+    .describe('Dimensions that have plateaued'),
+  reasoning: z.string().describe('Musical pedagogy reasoning for recommendations'),
+});
+
+export type RecalibrationResultType = z.infer<typeof RecalibrationResultSchema>;

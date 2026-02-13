@@ -67,6 +67,36 @@ export interface DifficultyState {
   pendingAdjustment: DifficultyAdjustment | null;
 }
 
+// Story 5.3: Progressive Overload types
+
+export interface OverloadStrategy {
+  focusDimension: SkillDimension;
+  incrementScale: number;
+  plateauFlags: Record<SkillDimension, boolean>;
+  sessionsSinceLastRecalibration: number;
+}
+
+export interface RecalibrationResult {
+  recommendedFocus: SkillDimension;
+  parameterAdjustments: Partial<DifficultyParameters>;
+  plateauDimensions: SkillDimension[];
+  reasoning: string;
+}
+
+export const PROGRESSIVE_OVERLOAD_CONFIG = {
+  MAX_INCREMENT_SCALE: 1.5,
+  PLATEAU_SESSION_THRESHOLD: 3,
+  PLATEAU_IMPROVEMENT_THRESHOLD: 0.02,
+  RECALIBRATION_INTERVAL: 5,
+  BASE_INCREMENTS: {
+    tempo: 3,
+    harmonicComplexity: 0.03,
+    keyDifficulty: 0.05,
+    rhythmicDensity: 0.03,
+    noteRange: 0.02,
+  } as Record<keyof DifficultyParameters, number>,
+} as const;
+
 export interface SessionPerformanceData {
   timingEvents: TimingEvent[];
   tempoSegments: TempoSegment[];

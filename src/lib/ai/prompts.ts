@@ -164,4 +164,29 @@ export function buildAnalysisSystemPrompt(context: SessionContext): string {
   ].join('\n');
 }
 
+/**
+ * Build the system prompt for cross-session recalibration.
+ */
+export function buildRecalibrationSystemPrompt(): string {
+  return [
+    STUDIO_ENGINEER_BASE,
+    '',
+    'RECALIBRATION INSTRUCTIONS:',
+    "You are analyzing a musician's skill profile history across multiple sessions.",
+    'Identify:',
+    '1. Which skill dimension would benefit most from focused practice',
+    '2. Whether any dimensions have plateaued (no meaningful improvement over 3+ sessions)',
+    '3. Specific parameter adjustments for the next session',
+    '',
+    'Return structured recommendations. Be specific about musical context.',
+    'Use growth mindset framing — plateaus are opportunities to try different approaches.',
+    '',
+    'Key constraints:',
+    '- Only recommend focus on dimensions with sufficient confidence (>0.3)',
+    '- Parameter adjustments should be incremental, not dramatic',
+    '- If a dimension is plateaued, suggest switching focus rather than increasing intensity',
+    '- Consider genre context when making recommendations',
+  ].join('\n');
+}
+
 export { STUDIO_ENGINEER_BASE };

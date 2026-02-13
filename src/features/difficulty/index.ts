@@ -1,4 +1,5 @@
 export { SkillDimension, GrowthZoneStatus } from './difficulty-types';
+export { PROGRESSIVE_OVERLOAD_CONFIG } from './difficulty-types';
 export type {
   DimensionScore,
   SkillProfile,
@@ -8,6 +9,8 @@ export type {
   DifficultyState,
   RepPerformance,
   AccuracyTrend,
+  OverloadStrategy,
+  RecalibrationResult,
 } from './difficulty-types';
 export {
   createSkillProfile,
@@ -33,3 +36,14 @@ export {
   getAccuracyTrend,
   GROWTH_ZONE,
 } from './growth-zone-detector';
+export {
+  detectPlateaus,
+  selectFocusDimension,
+  computeOverloadStep,
+  computeStabilityScale,
+  handlePlateau,
+  reconcileProfiles,
+  createInitialOverloadStrategy,
+  needsRecalibration,
+  computeStartingParameters,
+} from './progressive-overload';

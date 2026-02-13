@@ -22,6 +22,8 @@ import type {
   SkillProfile,
   DifficultyState,
   RepPerformance,
+  OverloadStrategy,
+  RecalibrationResult,
 } from '@/features/difficulty/difficulty-types';
 import { GrowthZoneStatus } from '@/features/difficulty/difficulty-types';
 import {
@@ -58,6 +60,8 @@ interface SessionState {
   totalNotesPlayed: number;
   skillProfile: SkillProfile | null;
   difficultyState: DifficultyState | null;
+  overloadStrategy: OverloadStrategy | null;
+  recalibrationResult: RecalibrationResult | null;
 }
 
 interface SessionActions {
@@ -91,6 +95,8 @@ interface SessionActions {
   initDifficulty: (skillProfile: SkillProfile | null) => void;
   recordRepPerformance: (rep: RepPerformance) => void;
   applyPendingAdjustment: () => void;
+  setOverloadStrategy: (strategy: OverloadStrategy | null) => void;
+  setRecalibrationResult: (result: RecalibrationResult | null) => void;
   resetAnalysis: () => void;
 }
 
@@ -123,6 +129,8 @@ const initialState: SessionState = {
   totalNotesPlayed: 0,
   skillProfile: null,
   difficultyState: null,
+  overloadStrategy: null,
+  recalibrationResult: null,
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -255,6 +263,10 @@ export const useSessionStore = create<SessionStore>()(
           },
         };
       }),
+
+    setOverloadStrategy: (strategy) => set({ overloadStrategy: strategy }),
+
+    setRecalibrationResult: (result) => set({ recalibrationResult: result }),
 
     resetAnalysis: () =>
       set((state) => ({
