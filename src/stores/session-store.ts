@@ -18,6 +18,7 @@ import type {
 import type { SessionMode } from '@/features/modes/mode-types';
 import type { SessionType } from '@/features/session/session-types';
 import type { ChatMessage } from '@/features/coaching/coaching-types';
+import type { SkillProfile } from '@/features/difficulty/difficulty-types';
 
 interface SessionState {
   currentMode: SessionMode;
@@ -44,6 +45,7 @@ interface SessionState {
   snapshots: InstantSnapshot[];
   chatHistory: ChatMessage[];
   totalNotesPlayed: number;
+  skillProfile: SkillProfile | null;
 }
 
 interface SessionActions {
@@ -73,6 +75,7 @@ interface SessionActions {
   addChatMessage: (message: ChatMessage) => void;
   clearChatHistory: () => void;
   incrementNotesPlayed: (count?: number) => void;
+  setSkillProfile: (profile: SkillProfile | null) => void;
   resetAnalysis: () => void;
 }
 
@@ -103,6 +106,7 @@ const initialState: SessionState = {
   snapshots: [],
   chatHistory: [],
   totalNotesPlayed: 0,
+  skillProfile: null,
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -184,6 +188,8 @@ export const useSessionStore = create<SessionStore>()(
       set((state) => ({
         totalNotesPlayed: state.totalNotesPlayed + count,
       })),
+
+    setSkillProfile: (profile) => set({ skillProfile: profile }),
 
     resetAnalysis: () =>
       set((state) => ({
