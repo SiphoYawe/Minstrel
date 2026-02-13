@@ -6,6 +6,7 @@ import { useSessionStore } from '@/stores/session-store';
 
 describe('FirstRunPrompt', () => {
   beforeEach(() => {
+    localStorage.removeItem('minstrel:first-run-dismissed');
     useMidiStore.setState({
       connectionStatus: 'disconnected',
       latestEvent: null,
@@ -30,9 +31,7 @@ describe('FirstRunPrompt', () => {
   it('renders welcome message when disconnected', () => {
     render(<FirstRunPrompt />);
     expect(screen.getByText('Welcome to Minstrel.')).toBeInTheDocument();
-    expect(
-      screen.getByText('Connect your MIDI instrument and play something')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Connect your MIDI instrument and play something')).toBeInTheDocument();
   });
 
   it('shows "Waiting for a MIDI connection" when disconnected', () => {
@@ -49,17 +48,13 @@ describe('FirstRunPrompt', () => {
   it('shows unsupported browser message when unsupported', () => {
     useMidiStore.setState({ connectionStatus: 'unsupported' });
     render(<FirstRunPrompt />);
-    expect(
-      screen.getByText(/Web MIDI not supported/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Web MIDI not supported/)).toBeInTheDocument();
   });
 
   it('renders connected state with "start playing" message', () => {
     useMidiStore.setState({ connectionStatus: 'connected' });
     render(<FirstRunPrompt />);
-    expect(
-      screen.getByText(/Connected — start playing whenever you're ready/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Connected — start playing whenever you're ready/)).toBeInTheDocument();
   });
 
   it('renders nothing when activeSessionId is set', () => {
@@ -129,16 +124,18 @@ describe('FirstRunPrompt', () => {
 
   it('shows downward arrow when not unsupported', () => {
     render(<FirstRunPrompt />);
-    const arrowContainer = screen.getByTestId('first-run-prompt').querySelector('[aria-hidden="true"]');
-    expect(arrowContainer).toBeInTheDocument();
+    const prompt = screen.getByTestId('first-run-prompt');
+    // Should have the Music icon SVG plus the ChevronDown SVG
+    const svgs = prompt.querySelectorAll('svg');
+    expect(svgs.length).toBe(2);
   });
 
   it('does not show arrow when unsupported', () => {
     useMidiStore.setState({ connectionStatus: 'unsupported' });
     render(<FirstRunPrompt />);
-    // The arrow SVG should not be rendered
-    const svgs = screen.getByTestId('first-run-prompt').querySelectorAll('svg');
-    // Only the music icon SVG should be present, not the arrow
+    const prompt = screen.getByTestId('first-run-prompt');
+    // Only the Music icon SVG should be present, not the ChevronDown
+    const svgs = prompt.querySelectorAll('svg');
     expect(svgs.length).toBe(1);
   });
 

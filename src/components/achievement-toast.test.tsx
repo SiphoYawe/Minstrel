@@ -133,60 +133,60 @@ describe('AchievementToast', () => {
     expect(screen.getByText('2 achievements unlocked: Medal A, Medal B')).toBeDefined();
   });
 
-  it('renders category-specific icon for Genre', () => {
-    render(
+  it('renders category-specific Lucide icon for Genre', () => {
+    const { container } = render(
       <AchievementToast
         achievements={[makeAchievement({ category: 'Genre' })]}
         onDismiss={vi.fn()}
       />
     );
 
-    // Genre icon is ♪
-    expect(screen.getByText('♪')).toBeDefined();
+    // Lucide icons render as SVG elements
+    expect(container.querySelector('svg')).toBeDefined();
   });
 
-  it('renders category-specific icon for Technique', () => {
-    render(
+  it('renders category-specific Lucide icon for Technique', () => {
+    const { container } = render(
       <AchievementToast
         achievements={[makeAchievement({ category: 'Technique' })]}
         onDismiss={vi.fn()}
       />
     );
 
-    expect(screen.getByText('◎')).toBeDefined();
+    expect(container.querySelector('svg')).toBeDefined();
   });
 
-  it('renders category-specific icon for Consistency', () => {
-    render(
+  it('renders category-specific Lucide icon for Consistency', () => {
+    const { container } = render(
       <AchievementToast
         achievements={[makeAchievement({ category: 'Consistency' })]}
         onDismiss={vi.fn()}
       />
     );
 
-    expect(screen.getByText('▰')).toBeDefined();
+    expect(container.querySelector('svg')).toBeDefined();
   });
 
-  it('renders category-specific icon for PersonalRecord', () => {
-    render(
+  it('renders category-specific Lucide icon for PersonalRecord', () => {
+    const { container } = render(
       <AchievementToast
         achievements={[makeAchievement({ category: 'PersonalRecord' })]}
         onDismiss={vi.fn()}
       />
     );
 
-    expect(screen.getByText('↑')).toBeDefined();
+    expect(container.querySelector('svg')).toBeDefined();
   });
 
-  it('falls back to first char of icon for unknown category', () => {
-    render(
+  it('renders Lucide icon for unknown category (fallback to Music)', () => {
+    const { container } = render(
       <AchievementToast
         achievements={[makeAchievement({ category: 'Unknown', icon: 'mystery' })]}
         onDismiss={vi.fn()}
       />
     );
 
-    expect(screen.getByText('M')).toBeDefined();
+    expect(container.querySelector('svg')).toBeDefined();
   });
 
   it('cleans up timers on unmount', () => {

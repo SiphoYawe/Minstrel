@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { Music, Crosshair, CalendarDays, TrendingUp } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export interface AchievementToastItem {
   achievementId: string;
@@ -18,15 +20,15 @@ interface AchievementToastProps {
 const DISMISS_MS = 4000;
 const STAGGER_MS = 300;
 
-const CATEGORY_ICONS: Record<string, string> = {
-  Genre: '♪',
-  Technique: '◎',
-  Consistency: '▰',
-  PersonalRecord: '↑',
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  Genre: Music,
+  Technique: Crosshair,
+  Consistency: CalendarDays,
+  PersonalRecord: TrendingUp,
 };
 
-function getCategoryIcon(category: string, icon: string): string {
-  return CATEGORY_ICONS[category] ?? icon.charAt(0).toUpperCase();
+function getCategoryIcon(category: string): LucideIcon {
+  return CATEGORY_ICONS[category] ?? Music;
 }
 
 export function AchievementToast({ achievements, onDismiss }: AchievementToastProps) {
@@ -35,7 +37,6 @@ export function AchievementToast({ achievements, onDismiss }: AchievementToastPr
   const dismissedCount = useRef(0);
   const totalCount = achievements.length;
 
-  // Stagger in each achievement
   useEffect(() => {
     if (achievements.length === 0) return;
 
@@ -47,7 +48,6 @@ export function AchievementToast({ achievements, onDismiss }: AchievementToastPr
       }, index * STAGGER_MS);
       timers.push(showTimer);
 
-      // Start exit animation before dismiss
       const exitTimer = setTimeout(
         () => {
           setExitingSet((prev) => new Set([...prev, achievement.achievementId]));
@@ -56,7 +56,6 @@ export function AchievementToast({ achievements, onDismiss }: AchievementToastPr
       );
       timers.push(exitTimer);
 
-      // Actually remove after exit animation completes
       const dismissTimer = setTimeout(
         () => {
           dismissedCount.current += 1;
@@ -86,6 +85,7 @@ export function AchievementToast({ achievements, onDismiss }: AchievementToastPr
       {achievements.map((achievement) => {
         const isVisible = visibleSet.has(achievement.achievementId);
         const isExiting = exitingSet.has(achievement.achievementId);
+        const Icon = getCategoryIcon(achievement.category);
 
         return (
           <div
@@ -97,12 +97,12 @@ export function AchievementToast({ achievements, onDismiss }: AchievementToastPr
             }}
           >
             <div
-              className="flex items-start gap-3 bg-card border-l-2 border-l-accent-success border-r border-t border-b border-r-surface-light border-t-surface-light border-b-surface-light px-3 py-2.5"
+              className="relative flex items-start gap-3 bg-card border-l-2 border-l-accent-success border-r border-t border-b border-r-surface-light border-t-surface-light border-b-surface-light px-3 py-2.5"
               role="alert"
             >
-              {/* Icon — monospaced indicator box */}
-              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-background border border-surface-light font-mono text-sm text-accent-success">
-                {getCategoryIcon(achievement.category, achievement.icon)}
+              {/* Icon */}
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-background border border-surface-light text-accent-success">
+                <Icon className="w-4 h-4" strokeWidth={1.5} />
               </div>
 
               {/* Content */}
@@ -115,7 +115,7 @@ export function AchievementToast({ achievements, onDismiss }: AchievementToastPr
                 </p>
               </div>
 
-              {/* Thin progress line that drains over DISMISS_MS */}
+              {/* Progress line */}
               <div className="absolute bottom-0 left-0 right-0 h-px bg-surface-light">
                 <div
                   className="h-full bg-accent-success/40"
@@ -131,7 +131,6 @@ export function AchievementToast({ achievements, onDismiss }: AchievementToastPr
         );
       })}
 
-      {/* Screen reader summary */}
       <span className="sr-only">
         {achievements.length === 1
           ? `Achievement unlocked: ${achievements[0].name}`

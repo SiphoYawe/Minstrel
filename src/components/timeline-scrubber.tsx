@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
+import { Play, Pause } from 'lucide-react';
 import { REPLAY_SPEEDS, SCRUB_STEP_SMALL_MS, SCRUB_STEP_LARGE_MS } from '@/lib/constants';
 
 // --- Types ---
@@ -26,8 +27,12 @@ export interface TimelineScrubberProps {
 
 function formatTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
-  const m = Math.floor(totalSeconds / 60);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
+  if (h > 0) {
+    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
@@ -183,12 +188,6 @@ export function TimelineScrubber({
     >
       {/* Track area — the scrubber itself */}
       <div className="relative px-4 pt-3 pb-1">
-        {/* Time labels flanking the track */}
-        <div className="flex justify-between mb-1 font-mono text-[10px] text-muted-foreground tabular-nums select-none">
-          <span>0:00</span>
-          <span>{formatTime(totalDuration)}</span>
-        </div>
-
         {/* The interactive track */}
         <div
           ref={trackRef}
@@ -224,11 +223,14 @@ export function TimelineScrubber({
             aria-hidden="true"
           />
 
-          {/* Current time floating label */}
+          {/* Current time floating label — clamped to avoid overflow */}
           <div
-            className="absolute -top-5 font-mono text-[10px] text-primary tabular-nums
-              -translate-x-1/2 pointer-events-none select-none"
-            style={{ left: `${progressPercent}%` }}
+            className="absolute -top-4 font-mono text-[10px] text-primary tabular-nums
+              pointer-events-none select-none whitespace-nowrap"
+            style={{
+              left: `${progressPercent}%`,
+              transform: `translateX(${progressPercent < 10 ? '0%' : progressPercent > 90 ? '-100%' : '-50%'})`,
+            }}
             aria-hidden="true"
           >
             {formatTime(position)}
@@ -294,7 +296,11 @@ export function TimelineScrubber({
             border border-surface-light hover:border-surface-border
             bg-transparent transition-colors duration-150"
         >
-          {playbackState === 'playing' ? '⏸' : '▶'}
+          {playbackState === 'playing' ? (
+            <Pause className="w-3.5 h-3.5" strokeWidth={1.5} />
+          ) : (
+            <Play className="w-3.5 h-3.5" strokeWidth={1.5} />
+          )}
         </button>
 
         {/* Speed controls */}

@@ -7,6 +7,23 @@ import { useSessionStore } from '@/stores/session-store';
 import { useAppStore } from '@/stores/app-store';
 import { daysSinceLastSession } from '@/features/session/warm-up-flow';
 
+function getWarmUpDismissed(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem('minstrel:warmup-dismissed') === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function persistWarmUpDismissed() {
+  try {
+    localStorage.setItem('minstrel:warmup-dismissed', 'true');
+  } catch {
+    /* noop */
+  }
+}
+
 interface WarmUpPromptProps {
   onStartWarmUp: () => void;
   onSkip: () => void;
@@ -15,10 +32,10 @@ interface WarmUpPromptProps {
 /**
  * Compact card that offers a warm-up before freeform play.
  * Auto-dismisses when MIDI input is detected (user starts playing).
- * Shows extra context when the user has been away for 3+ days.
+ * Persists dismissed state to localStorage so it doesn't re-render on reload.
  */
 export function WarmUpPrompt({ onStartWarmUp, onSkip }: WarmUpPromptProps) {
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(() => getWarmUpDismissed());
 
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
   const recentSessions = useSessionStore((s) => s.recentSessions);
@@ -32,6 +49,7 @@ export function WarmUpPrompt({ onStartWarmUp, onSkip }: WarmUpPromptProps) {
       (event) => {
         if (event && event.type === 'note-on') {
           setDismissed(true);
+          persistWarmUpDismissed();
         }
       }
     );
@@ -49,11 +67,13 @@ export function WarmUpPrompt({ onStartWarmUp, onSkip }: WarmUpPromptProps) {
 
   function handleStart() {
     setDismissed(true);
+    persistWarmUpDismissed();
     onStartWarmUp();
   }
 
   function handleSkip() {
     setDismissed(true);
+    persistWarmUpDismissed();
     onSkip();
   }
 

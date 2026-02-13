@@ -50,9 +50,9 @@ function getAccuracyColor(accuracy: number): string {
 }
 
 function getTrendArrow(direction: 'improving' | 'stable' | 'declining'): string {
-  if (direction === 'improving') return '\u2191';
-  if (direction === 'declining') return '\u2193';
-  return '\u2192';
+  if (direction === 'improving') return '\u25B2';
+  if (direction === 'declining') return '\u25BC';
+  return '\u25B6';
 }
 
 function getTrendColor(direction: 'improving' | 'stable' | 'declining'): string {

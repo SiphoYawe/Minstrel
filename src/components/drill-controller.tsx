@@ -84,12 +84,12 @@ export function DrillController({
 }: DrillControllerProps) {
   const timingDisplay = useMemo(() => {
     if (repHistory.length === 0) return null;
-    return repHistory.map((r) => `${Math.round(r.timingDeviationMs)}ms`).join(' \u2192 ');
+    return repHistory.map((r) => `${Math.round(r.timingDeviationMs)}ms`).join(' \u203A ');
   }, [repHistory]);
 
   const accuracyDisplay = useMemo(() => {
     if (repHistory.length === 0) return null;
-    return repHistory.map((r) => `${Math.round(r.accuracy * 100)}%`).join(' \u2192 ');
+    return repHistory.map((r) => `${Math.round(r.accuracy * 100)}%`).join(' \u203A ');
   }, [repHistory]);
 
   const improvementPercent = useMemo(() => {

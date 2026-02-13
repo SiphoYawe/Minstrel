@@ -11,9 +11,9 @@ function directionColor(direction: TrendDirection): string {
 }
 
 function directionArrow(direction: TrendDirection): string {
-  if (direction === TrendDirection.Up) return '\u2191';
-  if (direction === TrendDirection.Down) return '\u2193';
-  return '\u2192';
+  if (direction === TrendDirection.Up) return '\u25B2';
+  if (direction === TrendDirection.Down) return '\u25BC';
+  return '\u25B6';
 }
 
 function srDeltaText(delta: WeeklyMetricDelta): string {

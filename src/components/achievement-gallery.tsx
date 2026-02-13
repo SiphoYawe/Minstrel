@@ -12,37 +12,56 @@ import {
   achievementRegistry,
   ACHIEVEMENT_COUNT,
 } from '@/features/engagement/achievement-definitions';
+import {
+  Music,
+  Guitar,
+  Star,
+  Disc,
+  Zap,
+  Crosshair,
+  Waves,
+  Target,
+  ListMusic,
+  Dumbbell,
+  CalendarDays,
+  Award,
+  Play,
+  TrendingUp,
+  CircleDot,
+  Puzzle,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 type FilterCategory = 'all' | AchievementCategory;
 
-const CATEGORY_ICONS: Record<string, string> = {
-  Genre: '\u266A',
-  Technique: '\u25CE',
-  Consistency: '\u25B0',
-  PersonalRecord: '\u2191',
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  Genre: Music,
+  Technique: Crosshair,
+  Consistency: CalendarDays,
+  PersonalRecord: TrendingUp,
 };
 
-const ICON_MAP: Record<string, string> = {
-  jazz: '\u266B',
-  blues: '\u266A',
-  pop: '\u2606',
-  classical: '\u2669',
-  rock: '\u26A1',
-  precision: '\u25CE',
-  smooth: '\u223F',
-  target: '\u25C9',
-  notes: '\u266C',
-  drill: '\u2726',
-  calendar: '\u25A3',
-  xp: '\u2B50',
-  sessions: '\u25B6',
-  speed: '\u21E7',
-  accuracy: '\u25C9',
-  complexity: '\u2234',
+const ICON_MAP: Record<string, LucideIcon> = {
+  jazz: Music,
+  blues: Guitar,
+  pop: Star,
+  classical: Disc,
+  rock: Zap,
+  precision: Crosshair,
+  smooth: Waves,
+  target: Target,
+  notes: ListMusic,
+  drill: Dumbbell,
+  calendar: CalendarDays,
+  xp: Award,
+  sessions: Play,
+  speed: TrendingUp,
+  accuracy: CircleDot,
+  complexity: Puzzle,
 };
 
-function getIcon(definition: AchievementDisplayItem['definition']): string {
-  return ICON_MAP[definition.icon] ?? CATEGORY_ICONS[definition.category] ?? '\u2605';
+function getIcon(definition: AchievementDisplayItem['definition']): LucideIcon {
+  return ICON_MAP[definition.icon] ?? CATEGORY_ICONS[definition.category] ?? Star;
 }
 
 function formatUnlockedDate(isoDate: string): string {
@@ -73,7 +92,6 @@ export function AchievementGallery() {
             setItems(displayItems);
           }
         } catch {
-          // Fall back to showing all locked
           if (!cancelled) {
             const allLocked: AchievementDisplayItem[] = [];
             for (const definition of achievementRegistry.values()) {
@@ -83,7 +101,6 @@ export function AchievementGallery() {
           }
         }
       } else {
-        // Guest/unauthenticated: show all as locked
         const allLocked: AchievementDisplayItem[] = [];
         for (const definition of achievementRegistry.values()) {
           allLocked.push({ definition, unlocked: false, unlockedAt: null });
@@ -110,7 +127,6 @@ export function AchievementGallery() {
   const filteredItems =
     filter === 'all' ? items : items.filter((i) => i.definition.category === filter);
 
-  // Sort: unlocked first, then by category
   const sortedItems = [...filteredItems].sort((a, b) => {
     if (a.unlocked && !b.unlocked) return -1;
     if (!a.unlocked && b.unlocked) return 1;
@@ -182,64 +198,69 @@ export function AchievementGallery() {
         role="list"
         aria-label="Achievements"
       >
-        {sortedItems.map((item) => (
-          <div
-            key={item.definition.achievementId}
-            className={`border p-4 transition-colors ${
-              item.unlocked ? 'border-primary/20 bg-card' : 'border-border bg-background opacity-50'
-            }`}
-            role="listitem"
-            aria-label={`${item.definition.name}${item.unlocked ? ' - Earned' : ' - Not yet earned'}`}
-          >
-            {/* Icon */}
+        {sortedItems.map((item) => {
+          const Icon = getIcon(item.definition);
+          return (
             <div
-              className={`mb-3 flex h-10 w-10 items-center justify-center border font-mono text-lg ${
+              key={item.definition.achievementId}
+              className={`border p-4 transition-colors ${
                 item.unlocked
-                  ? 'border-primary/30 bg-primary/10 text-primary'
-                  : 'border-border bg-surface-light text-muted-foreground'
+                  ? 'border-primary/20 bg-card'
+                  : 'border-border bg-background opacity-50'
               }`}
-              aria-hidden="true"
+              role="listitem"
+              aria-label={`${item.definition.name}${item.unlocked ? ' - Earned' : ' - Not yet earned'}`}
             >
-              {getIcon(item.definition)}
-            </div>
-
-            {/* Content */}
-            <h3
-              className={`font-mono text-sm ${
-                item.unlocked ? 'text-foreground' : 'text-muted-foreground'
-              }`}
-            >
-              {item.definition.name}
-            </h3>
-            <p className="mt-1 text-xs text-muted-foreground">{item.definition.description}</p>
-
-            {/* Status */}
-            <div className="mt-3">
-              {item.unlocked && item.unlockedAt ? (
-                <span className="text-[10px] uppercase tracking-wider text-primary">
-                  Earned {formatUnlockedDate(item.unlockedAt)}
-                </span>
-              ) : (
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Not yet earned
-                </span>
-              )}
-            </div>
-
-            {/* Category badge */}
-            <div className="mt-2">
-              <span
-                className={`inline-block border px-2 py-0.5 text-[9px] uppercase tracking-wider ${
+              {/* Icon */}
+              <div
+                className={`mb-3 flex h-10 w-10 items-center justify-center border ${
                   item.unlocked
-                    ? 'border-primary/10 text-primary/60'
-                    : 'border-border text-muted-foreground'
+                    ? 'border-primary/30 bg-primary/10 text-primary'
+                    : 'border-border bg-surface-light text-muted-foreground'
+                }`}
+                aria-hidden="true"
+              >
+                <Icon className="w-5 h-5" strokeWidth={1.5} />
+              </div>
+
+              {/* Content */}
+              <h3
+                className={`font-mono text-sm ${
+                  item.unlocked ? 'text-foreground' : 'text-muted-foreground'
                 }`}
               >
-                {item.definition.category}
-              </span>
+                {item.definition.name}
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground">{item.definition.description}</p>
+
+              {/* Status */}
+              <div className="mt-3">
+                {item.unlocked && item.unlockedAt ? (
+                  <span className="text-[10px] uppercase tracking-wider text-primary">
+                    Earned {formatUnlockedDate(item.unlockedAt)}
+                  </span>
+                ) : (
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Not yet earned
+                  </span>
+                )}
+              </div>
+
+              {/* Category badge */}
+              <div className="mt-2">
+                <span
+                  className={`inline-block border px-2 py-0.5 text-[9px] uppercase tracking-wider ${
+                    item.unlocked
+                      ? 'border-primary/10 text-primary/60'
+                      : 'border-border text-muted-foreground'
+                  }`}
+                >
+                  {item.definition.category}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredItems.length === 0 && unlockedCount === 0 && (
@@ -251,7 +272,7 @@ export function AchievementGallery() {
                 key={i}
                 className="flex h-10 w-10 items-center justify-center border border-border bg-surface-light"
               >
-                <span className="text-muted-foreground text-lg">?</span>
+                <Star className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
               </div>
             ))}
           </div>

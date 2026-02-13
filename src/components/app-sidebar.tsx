@@ -1,10 +1,20 @@
 'use client';
 
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAppStore } from '@/stores/app-store';
 import { createClient } from '@/lib/supabase/client';
 import { capture, reset } from '@/lib/analytics';
-import { Play, LayoutDashboard, Clock, Trophy, Settings, LogOut } from 'lucide-react';
+import {
+  Play,
+  LayoutDashboard,
+  Clock,
+  Trophy,
+  Settings,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 interface NavItem {
@@ -46,21 +56,46 @@ export function AppSidebar() {
       `}
       aria-label="Main navigation"
     >
-      {/* Collapse toggle */}
-      <div className="shrink-0 h-10 flex items-center border-b border-border px-2">
+      {/* Logo + Collapse toggle */}
+      <div className="shrink-0 h-10 flex items-center justify-between border-b border-border px-2">
+        <a
+          href="/session"
+          onClick={(e) => {
+            e.preventDefault();
+            router.push('/session');
+          }}
+          className="flex items-center gap-2 min-w-0"
+          aria-label="Minstrel home"
+        >
+          <Image
+            src="/minstrel-symbol.svg"
+            alt=""
+            width={20}
+            height={20}
+            className="shrink-0 invert"
+            aria-hidden="true"
+          />
+          {!collapsed && (
+            <span className="font-mono text-xs uppercase tracking-[0.1em] text-foreground truncate">
+              Minstrel
+            </span>
+          )}
+        </a>
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="
-            w-8 h-8 flex items-center justify-center
+            w-6 h-6 flex items-center justify-center shrink-0
             text-muted-foreground hover:text-foreground
             transition-colors duration-150
           "
         >
-          <span className="text-sm" aria-hidden="true">
-            {collapsed ? '\u276F' : '\u276E'}
-          </span>
+          {collapsed ? (
+            <ChevronRight className="w-3.5 h-3.5" strokeWidth={1.5} aria-hidden="true" />
+          ) : (
+            <ChevronLeft className="w-3.5 h-3.5" strokeWidth={1.5} aria-hidden="true" />
+          )}
         </button>
       </div>
 

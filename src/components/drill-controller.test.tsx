@@ -102,7 +102,7 @@ describe('DrillController', () => {
           ]}
         />
       );
-      expect(screen.getByText('380ms → 220ms')).toBeInTheDocument();
+      expect(screen.getByText('380ms › 220ms')).toBeInTheDocument();
     });
 
     it('shows accuracy display', () => {
@@ -117,7 +117,7 @@ describe('DrillController', () => {
           ]}
         />
       );
-      expect(screen.getByText('65% → 78%')).toBeInTheDocument();
+      expect(screen.getByText('65% › 78%')).toBeInTheDocument();
     });
 
     it('shows improvement percentage', () => {

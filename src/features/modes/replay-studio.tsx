@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { ChevronUp, Settings } from 'lucide-react';
 import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
 import { StatusBar } from '@/components/status-bar';
 import { TimelineScrubber } from '@/components/timeline-scrubber';
@@ -236,7 +237,7 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
           </div>
 
           {/* Right detail panel (Story 13.4: min-w-[320px], visual separator) */}
-          <div className="flex flex-col h-full border-l border-border min-w-0 lg:min-w-[320px] bg-background">
+          <div className="relative flex flex-col h-full border-l border-border min-w-0 lg:min-w-[320px] bg-background">
             {/* Tab bar */}
             <div
               className="flex shrink-0 border-b border-border"
@@ -427,11 +428,11 @@ function ChatPanel() {
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center max-w-[220px]">
             <div
-              className="inline-block w-8 h-8 mb-3 border border-border bg-surface-light
-                flex items-center justify-center text-muted-foreground text-sm"
+              className="inline-flex w-8 h-8 mb-3 border border-border bg-surface-light
+                items-center justify-center text-muted-foreground"
               aria-hidden="true"
             >
-              ⌘
+              <Settings className="w-4 h-4" strokeWidth={1.5} />
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed mb-3">
               Connect your API key in Settings to ask questions about your playing.
@@ -558,7 +559,7 @@ function ChatPanel() {
               disabled:opacity-30 disabled:cursor-not-allowed
               transition-all duration-150"
           >
-            ↑
+            <ChevronUp className="w-4 h-4" strokeWidth={1.5} />
           </button>
         </form>
       </div>
