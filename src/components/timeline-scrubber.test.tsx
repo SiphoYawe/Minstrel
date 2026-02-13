@@ -49,7 +49,10 @@ describe('TimelineScrubber', () => {
 
     it('displays total duration', () => {
       render(<TimelineScrubber {...makeProps({ totalDuration: 300_000 })} />);
-      expect(screen.getByText('05:00')).toBeInTheDocument();
+      const timeDisplay = screen.getByText((_content, element) => {
+        return element?.textContent === '00:30/05:00' || false;
+      });
+      expect(timeDisplay).toBeInTheDocument();
     });
   });
 

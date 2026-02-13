@@ -10,7 +10,7 @@ import type { TimelineMarker } from '@/components/timeline-scrubber';
 import { useReplaySession } from '@/features/session/use-replay-session';
 import { useSessionStore } from '@/stores/session-store';
 import { useReplayChat } from '@/features/coaching/use-replay-chat';
-import { togglePlayback, setPlaybackSpeed } from '@/features/session/replay-engine';
+import { togglePlayback, setPlaybackSpeed, seekTo } from '@/features/session/replay-engine';
 import type { AnalysisSnapshot, StoredDrillRecord } from '@/lib/dexie/db';
 
 function formatDate(timestamp: number): string {
@@ -233,6 +233,7 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
               onPositionChange={setReplayPosition}
               onPlayPause={togglePlayback}
               onSpeedChange={setPlaybackSpeed}
+              onRestart={() => seekTo(0)}
             />
           </div>
 

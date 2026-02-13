@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMidiStore } from '@/stores/midi-store';
 import { useSessionStore } from '@/stores/session-store';
-import { Music, ChevronDown } from 'lucide-react';
+import { Music, ChevronDown, X } from 'lucide-react';
 
 function getFirstRunDismissed(): boolean {
   if (typeof window === 'undefined') return false;
@@ -56,6 +56,11 @@ export function FirstRunPrompt() {
   // Don't show if there's an active session, notes have been played, or dismissed
   if (activeSessionId || totalNotesPlayed > 0 || dismissed) return null;
 
+  function handleDismiss() {
+    setDismissed(true);
+    persistFirstRunDismissed();
+  }
+
   if (connectionStatus === 'connected') {
     return (
       <div
@@ -64,7 +69,15 @@ export function FirstRunPrompt() {
         aria-live="polite"
         data-testid="first-run-connected"
       >
-        <div className="text-center border border-border bg-card px-10 py-8 max-w-sm">
+        <div className="relative text-center border border-border bg-card px-10 py-8 max-w-sm">
+          <button
+            type="button"
+            onClick={handleDismiss}
+            aria-label="Dismiss"
+            className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="w-4 h-4" strokeWidth={1.5} />
+          </button>
           {/* Pulsing blue indicator */}
           <div className="relative inline-flex items-center justify-center mb-5">
             <span
@@ -91,7 +104,15 @@ export function FirstRunPrompt() {
       aria-live="polite"
       data-testid="first-run-prompt"
     >
-      <div className="text-center max-w-sm border border-border bg-card px-10 py-8">
+      <div className="relative text-center max-w-sm border border-border bg-card px-10 py-8">
+        <button
+          type="button"
+          onClick={handleDismiss}
+          aria-label="Dismiss"
+          className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <X className="w-4 h-4" strokeWidth={1.5} />
+        </button>
         {/* MIDI instrument icon with pulsing border */}
         <div className="relative inline-flex h-14 w-14 items-center justify-center border border-border bg-background mb-6">
           <span
@@ -141,6 +162,15 @@ export function FirstRunPrompt() {
             />
           </div>
         )}
+
+        {/* Skip link */}
+        <button
+          type="button"
+          onClick={handleDismiss}
+          className="mt-4 text-[10px] text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wider"
+        >
+          Skip for now
+        </button>
       </div>
     </div>
   );

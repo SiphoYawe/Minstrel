@@ -125,18 +125,18 @@ describe('FirstRunPrompt', () => {
   it('shows downward arrow when not unsupported', () => {
     render(<FirstRunPrompt />);
     const prompt = screen.getByTestId('first-run-prompt');
-    // Should have the Music icon SVG plus the ChevronDown SVG
+    // Music icon SVG + ChevronDown SVG + X dismiss button SVG
     const svgs = prompt.querySelectorAll('svg');
-    expect(svgs.length).toBe(2);
+    expect(svgs.length).toBe(3);
   });
 
   it('does not show arrow when unsupported', () => {
     useMidiStore.setState({ connectionStatus: 'unsupported' });
     render(<FirstRunPrompt />);
     const prompt = screen.getByTestId('first-run-prompt');
-    // Only the Music icon SVG should be present, not the ChevronDown
+    // Music icon SVG + X dismiss button SVG (no ChevronDown)
     const svgs = prompt.querySelectorAll('svg');
-    expect(svgs.length).toBe(1);
+    expect(svgs.length).toBe(2);
   });
 
   it('does not contain hardcoded hex color classes', () => {

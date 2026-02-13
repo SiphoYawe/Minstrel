@@ -85,9 +85,10 @@ describe('ModeSwitcher', () => {
     expect(useSessionStore.getState().currentMode).toBe('silent-coach');
   });
 
-  it('has responsive label abbreviations with hidden prefix', () => {
+  it('renders mode labels for each tab', () => {
     render(<ModeSwitcher />);
-    const hiddenPrefixes = document.querySelectorAll('.hidden.sm\\:inline');
-    expect(hiddenPrefixes.length).toBe(3);
+    expect(screen.getByText('Play')).toBeDefined();
+    expect(screen.getByText('Coach')).toBeDefined();
+    expect(screen.getByText('Replay')).toBeDefined();
   });
 });

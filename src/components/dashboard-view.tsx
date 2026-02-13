@@ -18,23 +18,43 @@ import {
 } from '@/features/difficulty/difficulty-types';
 import type { AchievementDisplayItem } from '@/features/engagement/engagement-types';
 
-const ICON_MAP: Record<string, string> = {
-  jazz: '\u266B',
-  blues: '\u266A',
-  pop: '\u2606',
-  classical: '\u2669',
-  rock: '\u26A1',
-  precision: '\u25CE',
-  smooth: '\u223F',
-  target: '\u25C9',
-  notes: '\u266C',
-  drill: '\u2726',
-  calendar: '\u25A3',
-  xp: '\u2B50',
-  sessions: '\u25B6',
-  speed: '\u21E7',
-  accuracy: '\u25C9',
-  complexity: '\u2234',
+import {
+  Music,
+  Guitar,
+  Star,
+  Disc,
+  Zap,
+  Crosshair,
+  Waves,
+  Target,
+  ListMusic,
+  Dumbbell,
+  CalendarDays,
+  Award,
+  Play as PlayIcon,
+  TrendingUp,
+  CircleDot,
+  Puzzle,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  jazz: Music,
+  blues: Guitar,
+  pop: Star,
+  classical: Disc,
+  rock: Zap,
+  precision: Crosshair,
+  smooth: Waves,
+  target: Target,
+  notes: ListMusic,
+  drill: Dumbbell,
+  calendar: CalendarDays,
+  xp: Award,
+  sessions: PlayIcon,
+  speed: TrendingUp,
+  accuracy: CircleDot,
+  complexity: Puzzle,
 };
 
 const MAX_RECENT_ACHIEVEMENTS = 5;
@@ -223,7 +243,7 @@ function RecentAchievements({
       ) : (
         <div className="space-y-3">
           {unlocked.map((item) => {
-            const icon = ICON_MAP[item.definition.icon] ?? '\u2605';
+            const IconComponent = ICON_MAP[item.definition.icon] ?? Star;
             const date = new Date(item.unlockedAt!);
             const dateStr = date.toLocaleDateString('en-US', {
               month: 'short',
@@ -233,11 +253,10 @@ function RecentAchievements({
             return (
               <div key={item.definition.achievementId} className="flex items-center gap-3 py-1.5">
                 <div
-                  className="flex h-8 w-8 shrink-0 items-center justify-center border border-primary/30 bg-primary/10 text-primary font-mono text-sm"
-                  role="img"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center border border-primary/30 bg-primary/10 text-primary"
                   aria-hidden="true"
                 >
-                  {icon}
+                  <IconComponent className="w-4 h-4" strokeWidth={1.5} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-white truncate">{item.definition.name}</p>
@@ -425,14 +444,13 @@ export function DashboardView() {
             className="border border-surface-light bg-card px-4 py-3 hover:border-primary/30 transition-colors"
           >
             <div className="flex items-center gap-2 mb-1">
-              <span
-                className={
+              <CalendarDays
+                className={`w-4 h-4 ${
                   streak.currentStreak > 0 ? 'text-accent-success' : 'text-muted-foreground'
-                }
+                }`}
+                strokeWidth={1.5}
                 aria-hidden="true"
-              >
-                {ICON_MAP.calendar}
-              </span>
+              />
               <span className="font-mono text-lg text-white">
                 {streak.currentStreak > 0 ? `${streak.currentStreak}` : '0'}
               </span>
@@ -448,9 +466,7 @@ export function DashboardView() {
             className="border border-surface-light bg-card px-4 py-3 hover:border-primary/30 transition-colors"
           >
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-primary" aria-hidden="true">
-                {ICON_MAP.xp}
-              </span>
+              <Award className="w-4 h-4 text-primary" strokeWidth={1.5} aria-hidden="true" />
               <span className="font-mono text-lg text-white">Lvl {currentLevel}</span>
             </div>
             <div className="h-1 w-full bg-surface-light mt-1">
@@ -470,12 +486,11 @@ export function DashboardView() {
             className="border border-surface-light bg-card px-4 py-3 hover:border-primary/30 transition-colors"
           >
             <div className="flex items-center gap-2 mb-1">
-              <span
-                className={unlockedCount > 0 ? 'text-accent-success' : 'text-muted-foreground'}
+              <Dumbbell
+                className={`w-4 h-4 ${unlockedCount > 0 ? 'text-accent-success' : 'text-muted-foreground'}`}
+                strokeWidth={1.5}
                 aria-hidden="true"
-              >
-                {ICON_MAP.drill}
-              </span>
+              />
               <span className="font-mono text-lg text-white">{unlockedCount}</span>
             </div>
             <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">

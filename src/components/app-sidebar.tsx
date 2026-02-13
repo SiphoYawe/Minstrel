@@ -68,18 +68,13 @@ export function AppSidebar() {
           aria-label="Minstrel home"
         >
           <Image
-            src="/minstrel-symbol.svg"
+            src="/minstrel-logo-white.svg"
             alt=""
-            width={20}
+            width={collapsed ? 20 : 90}
             height={20}
-            className="shrink-0 invert"
+            className="shrink-0"
             aria-hidden="true"
           />
-          {!collapsed && (
-            <span className="font-mono text-xs uppercase tracking-[0.1em] text-foreground truncate">
-              Minstrel
-            </span>
-          )}
         </a>
         <button
           type="button"

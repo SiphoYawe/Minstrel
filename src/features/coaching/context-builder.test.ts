@@ -941,12 +941,12 @@ describe('formatContinuitySection', () => {
           keyInsight: null,
         },
       ],
-      timingTrend: '72% → 78% → 83%',
+      timingTrend: '72% ▶ 78% ▶ 83%',
       lastInsight: null,
       rankedWeaknesses: [],
     };
     const result = formatContinuitySection(ctx);
-    expect(result).toContain('TIMING TREND: 72% → 78% → 83%');
+    expect(result).toContain('TIMING TREND: 72% ▶ 78% ▶ 83%');
   });
 
   it('includes ranked weaknesses with trend icons', () => {
@@ -969,8 +969,8 @@ describe('formatContinuitySection', () => {
       ],
     };
     const result = formatContinuitySection(ctx);
-    expect(result).toContain('↓ timing');
-    expect(result).toContain('↑ voicing');
+    expect(result).toContain('▼ timing');
+    expect(result).toContain('▲ voicing');
   });
 
   it('uses stable trend icon for stable weakness', () => {
@@ -992,7 +992,7 @@ describe('formatContinuitySection', () => {
       ],
     };
     const result = formatContinuitySection(ctx);
-    expect(result).toContain('→ rhythm');
+    expect(result).toContain('▶ rhythm');
   });
 
   it('limits weaknesses to 5', () => {

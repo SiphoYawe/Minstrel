@@ -266,7 +266,7 @@ export function buildChordWarmup(
 
   return {
     id: crypto.randomUUID(),
-    title: `Chord transitions: ${chords.join(' → ')}`,
+    title: `Chord transitions: ${chords.join(' \u203A ')}`,
     sequence,
     targetTempo: tempo,
     durationSeconds,

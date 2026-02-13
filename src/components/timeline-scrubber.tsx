@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { Play, Pause } from 'lucide-react';
+import { Play, Pause, RotateCcw } from 'lucide-react';
 import { REPLAY_SPEEDS, SCRUB_STEP_SMALL_MS, SCRUB_STEP_LARGE_MS } from '@/lib/constants';
 
 // --- Types ---
@@ -21,6 +21,7 @@ export interface TimelineScrubberProps {
   onPositionChange: (positionMs: number) => void;
   onPlayPause: () => void;
   onSpeedChange: (speed: number) => void;
+  onRestart?: () => void;
 }
 
 // --- Helpers ---
@@ -46,10 +47,10 @@ function formatTimeAria(ms: number): string {
   return parts.join(' ');
 }
 
-const MARKER_ICONS: Record<TimelineMarker['type'], { char: string; color: string }> = {
-  snapshot: { char: '◆', color: 'hsl(var(--primary))' },
-  drill: { char: '●', color: 'hsl(var(--accent-success))' },
-  insight: { char: '★', color: 'hsl(var(--accent-warm))' },
+const MARKER_COLORS: Record<TimelineMarker['type'], string> = {
+  snapshot: 'hsl(var(--primary))',
+  drill: 'hsl(var(--accent-success))',
+  insight: 'hsl(var(--accent-warm))',
 };
 
 // --- Component ---
@@ -63,6 +64,7 @@ export function TimelineScrubber({
   onPositionChange,
   onPlayPause,
   onSpeedChange,
+  onRestart,
 }: TimelineScrubberProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
@@ -239,7 +241,7 @@ export function TimelineScrubber({
           {/* Event markers */}
           {markers.map((marker, i) => {
             const markerPercent = (marker.timestamp / effectiveDuration) * 100;
-            const icon = MARKER_ICONS[marker.type];
+            const markerColor = MARKER_COLORS[marker.type];
             return (
               <div
                 key={`${marker.type}-${marker.timestamp}-${i}`}
@@ -257,11 +259,13 @@ export function TimelineScrubber({
                   onBlur={() => setHoveredMarker(null)}
                   aria-label={`${marker.type}: ${marker.summary}`}
                   className="flex items-center justify-center w-4 h-4
-                    text-[9px] leading-none cursor-pointer
-                    hover:scale-150 transition-transform duration-100"
-                  style={{ color: icon.color }}
+                    cursor-pointer hover:scale-150 transition-transform duration-100"
                 >
-                  {icon.char}
+                  <span
+                    className="block w-2 h-2"
+                    style={{ backgroundColor: markerColor }}
+                    aria-hidden="true"
+                  />
                 </button>
 
                 {/* Tooltip */}
@@ -273,9 +277,11 @@ export function TimelineScrubber({
                       pointer-events-none z-20"
                     role="tooltip"
                   >
-                    <span style={{ color: icon.color }} className="mr-1">
-                      {icon.char}
-                    </span>
+                    <span
+                      className="inline-block w-1.5 h-1.5 mr-1.5 align-middle"
+                      style={{ backgroundColor: markerColor }}
+                      aria-hidden="true"
+                    />
                     {marker.summary}
                   </div>
                 )}
@@ -302,6 +308,20 @@ export function TimelineScrubber({
             <Play className="w-3.5 h-3.5" strokeWidth={1.5} />
           )}
         </button>
+
+        {/* Restart */}
+        {onRestart && (
+          <button
+            onClick={onRestart}
+            aria-label="Restart playback"
+            className="flex items-center justify-center w-8 h-8
+              text-muted-foreground hover:text-primary
+              border border-surface-light hover:border-surface-border
+              bg-transparent transition-colors duration-150"
+          >
+            <RotateCcw className="w-3.5 h-3.5" strokeWidth={1.5} />
+          </button>
+        )}
 
         {/* Speed controls */}
         <div className="flex items-center gap-1">

@@ -110,8 +110,8 @@ export function ModeSwitcher() {
                 aria-keyshortcuts={`Alt+${config.shortcut}`}
                 onClick={() => switchMode(mode)}
                 className={`
-                  relative flex items-center gap-1.5 px-2.5 py-1
-                  font-mono text-[10px] uppercase tracking-[0.08em]
+                  relative flex items-center gap-1.5 px-3 py-1.5
+                  font-mono text-xs uppercase tracking-[0.08em]
                   transition-all duration-150
                   focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary
                   ${
@@ -121,7 +121,7 @@ export function ModeSwitcher() {
                   }
                 `}
               >
-                <Icon className="w-3 h-3" strokeWidth={1.5} aria-hidden="true" />
+                <Icon className="w-4 h-4" strokeWidth={1.5} aria-hidden="true" />
                 <span aria-label={config.label}>{MODE_LABELS[mode]}</span>
                 {isActive && (
                   <span

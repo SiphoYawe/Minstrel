@@ -212,7 +212,7 @@ export async function stopRecording(): Promise<number | null> {
 
   await db.sessions.update(sessionId, {
     endedAt,
-    duration: endedAt - startedAt,
+    duration: Math.round((endedAt - startedAt) / 1000),
     status: 'completed',
   });
 

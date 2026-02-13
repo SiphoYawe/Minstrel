@@ -21,6 +21,7 @@ vi.mock('@/features/session/replay-engine', () => ({
   setPlaybackSpeed: vi.fn((speed: number) => {
     useSessionStore.getState().setReplaySpeed(speed);
   }),
+  seekTo: vi.fn(),
 }));
 
 // Mock replay chat hook
@@ -274,12 +275,12 @@ describe('ReplayStudio', () => {
 
     it('renders play button when paused', () => {
       render(<ReplayStudio sessionId={1} />);
-      expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
     });
 
     it('toggles to pause on play click', () => {
       render(<ReplayStudio sessionId={1} />);
-      fireEvent.click(screen.getByRole('button', { name: /play/i }));
+      fireEvent.click(screen.getByRole('button', { name: 'Play' }));
       expect(useSessionStore.getState().replayState).toBe('playing');
     });
 

@@ -11,6 +11,7 @@ describe('WarmUpPrompt', () => {
   beforeEach(() => {
     onStartWarmUp.mockClear();
     onSkip.mockClear();
+    localStorage.removeItem('minstrel:warmup-dismissed');
 
     // Set up a returning authenticated user with skill profile and recent sessions
     useAppStore.setState({ isAuthenticated: true });

@@ -298,7 +298,7 @@ describe('formatTimingDelta', () => {
       makeRepResult({ timingDeviationMs: 280 }),
       makeRepResult({ timingDeviationMs: 180 }),
     ];
-    expect(formatTimingDelta(reps)).toBe('400ms \u2192 280ms \u2192 180ms');
+    expect(formatTimingDelta(reps)).toBe('400ms \u203A 280ms \u203A 180ms');
   });
 
   it('rounds to integers', () => {
@@ -306,7 +306,7 @@ describe('formatTimingDelta', () => {
       makeRepResult({ timingDeviationMs: 45.7 }),
       makeRepResult({ timingDeviationMs: 32.3 }),
     ];
-    expect(formatTimingDelta(reps)).toBe('46ms \u2192 32ms');
+    expect(formatTimingDelta(reps)).toBe('46ms \u203A 32ms');
   });
 
   it('handles single rep', () => {
@@ -321,17 +321,17 @@ describe('formatAccuracyDelta', () => {
       makeRepResult({ accuracy: 0.78 }),
       makeRepResult({ accuracy: 0.88 }),
     ];
-    expect(formatAccuracyDelta(reps)).toBe('65% \u2192 78% \u2192 88%');
+    expect(formatAccuracyDelta(reps)).toBe('65% \u203A 78% \u203A 88%');
   });
 });
 
 describe('formatImprovementPercent', () => {
   it('formats positive improvement', () => {
-    expect(formatImprovementPercent(0.5, 0.85)).toBe('\u2191 70%');
+    expect(formatImprovementPercent(0.5, 0.85)).toBe('\u25B2 70%');
   });
 
   it('formats negative change', () => {
-    expect(formatImprovementPercent(0.85, 0.5)).toBe('\u2193 41%');
+    expect(formatImprovementPercent(0.85, 0.5)).toBe('\u25BC 41%');
   });
 
   it('returns null for zero baseline', () => {

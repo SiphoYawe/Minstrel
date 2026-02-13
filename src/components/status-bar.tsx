@@ -5,7 +5,7 @@ import { useMidiStore } from '@/stores/midi-store';
 import { useSessionStore } from '@/stores/session-store';
 import { useAppStore } from '@/stores/app-store';
 import { useStreak } from '@/features/engagement/use-streak';
-import { useOnlineStatus } from '@/hooks/use-online-status';
+// Online status handled by OfflineIndicator in layout
 import { StreakBadge } from '@/components/streak-badge';
 import { WarmUpProgress } from '@/components/warm-up-progress';
 import { ModeSwitcher } from '@/features/modes/mode-switcher';
@@ -68,27 +68,28 @@ export function StatusBar() {
   const sessionStartTimestamp = useSessionStore((s) => s.sessionStartTimestamp);
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
   const isWarmingUp = useSessionStore((s) => s.isWarmingUp);
+  const currentMode = useSessionStore((s) => s.currentMode);
   const { streak } = useStreak();
-  const { isOnline, wasOffline } = useOnlineStatus();
+  // Online status handled by root OfflineIndicator
 
   const config = statusConfig[connectionStatus];
 
   // Session timer — ticks every second via interval callback
-  const [elapsed, setElapsed] = useState(() =>
-    sessionStartTimestamp !== null ? Math.max(0, Date.now() - sessionStartTimestamp) : 0
-  );
+  // Don't run in replay mode
+  const isReplay = currentMode === 'replay-studio';
+  const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
-    if (sessionStartTimestamp === null) return;
+    if (sessionStartTimestamp === null || isReplay) return;
 
     const interval = setInterval(() => {
       setElapsed(Math.max(0, Date.now() - sessionStartTimestamp));
     }, 1000);
 
-    return () => {
-      clearInterval(interval);
-      setElapsed(0);
-    };
-  }, [sessionStartTimestamp]);
+    return () => clearInterval(interval);
+  }, [sessionStartTimestamp, isReplay]);
+
+  // Show 0 when no active session or in replay mode
+  const displayedElapsed = sessionStartTimestamp !== null && !isReplay ? elapsed : 0;
 
   return (
     <header
@@ -171,28 +172,6 @@ export function StatusBar() {
             </>
           )}
 
-          {/* Offline / Back-online indicator */}
-          {!isOnline && (
-            <span className="flex items-center gap-1.5" role="status" aria-live="polite">
-              <span className="inline-block h-2 w-2 bg-accent-warm" aria-hidden="true" />
-              <span className="font-mono text-caption uppercase tracking-[0.08em] text-accent-warm">
-                Offline
-              </span>
-            </span>
-          )}
-          {isOnline && wasOffline && (
-            <span className="flex items-center gap-1.5" role="status" aria-live="polite">
-              <span className="inline-block h-2 w-2 bg-accent-success" aria-hidden="true" />
-              <span className="font-mono text-caption uppercase tracking-[0.08em] text-accent-success">
-                Back online
-              </span>
-            </span>
-          )}
-
-          {(!isOnline || wasOffline) && (
-            <span className="h-3 w-px bg-surface-border" aria-hidden="true" />
-          )}
-
           {isAuthenticated && streak.currentStreak > 0 && (
             <>
               <StreakBadge streak={streak} />
@@ -201,9 +180,9 @@ export function StatusBar() {
           )}
           <span
             className="font-mono text-caption tracking-wider text-muted-foreground tabular-nums"
-            aria-label={`Session time: ${formatElapsed(elapsed)}`}
+            aria-label={`Session time: ${formatElapsed(displayedElapsed)}`}
           >
-            {formatElapsed(elapsed)}
+            {formatElapsed(displayedElapsed)}
           </span>
         </div>
       </div>

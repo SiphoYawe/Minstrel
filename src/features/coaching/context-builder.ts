@@ -285,7 +285,8 @@ export function formatContinuitySection(context: ContinuityContext): string {
   if (context.rankedWeaknesses.length > 0) {
     lines.push('PRIORITY WEAKNESSES (ranked):');
     for (const w of context.rankedWeaknesses.slice(0, 5)) {
-      const trendIcon = w.trend === 'improving' ? '↑' : w.trend === 'declining' ? '↓' : '→';
+      const trendIcon =
+        w.trend === 'improving' ? '\u25B2' : w.trend === 'declining' ? '\u25BC' : '\u25B6';
       lines.push(
         `  ${trendIcon} ${w.skill} (severity: ${Math.round(w.severity * 100)}%, trend: ${w.trend})`
       );

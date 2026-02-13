@@ -240,14 +240,14 @@ export function calculateImprovementDelta(repHistory: DrillRepResult[]): Improve
  * Format timing values across reps as "400ms -> 280ms -> 180ms".
  */
 export function formatTimingDelta(repHistory: DrillRepResult[]): string {
-  return repHistory.map((r) => `${Math.round(r.timingDeviationMs)}ms`).join(' \u2192 ');
+  return repHistory.map((r) => `${Math.round(r.timingDeviationMs)}ms`).join(' \u203A ');
 }
 
 /**
  * Format accuracy values across reps as "65% -> 78% -> 88%".
  */
 export function formatAccuracyDelta(repHistory: DrillRepResult[]): string {
-  return repHistory.map((r) => `${Math.round(r.accuracy * 100)}%`).join(' \u2192 ');
+  return repHistory.map((r) => `${Math.round(r.accuracy * 100)}%`).join(' \u203A ');
 }
 
 /**
@@ -257,7 +257,7 @@ export function formatImprovementPercent(first: number, last: number): string | 
   if (first === 0) return null;
   const improvement = ((last - first) / first) * 100;
   const rounded = Math.round(improvement);
-  return rounded >= 0 ? `\u2191 ${rounded}%` : `\u2193 ${Math.abs(rounded)}%`;
+  return rounded >= 0 ? `\u25B2 ${rounded}%` : `\u25BC ${Math.abs(rounded)}%`;
 }
 
 /**

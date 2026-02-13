@@ -248,7 +248,7 @@ export function DrillController({
                     : 'text-accent-warm'
               }`}
             >
-              {improvementPercent >= 0 ? '\u2191' : '\u2193'} {Math.abs(improvementPercent)}%
+              {improvementPercent >= 0 ? '\u25B2' : '\u25BC'} {Math.abs(improvementPercent)}%
             </span>
           )}
         </div>

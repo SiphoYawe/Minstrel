@@ -94,7 +94,7 @@ describe('buildContinuityContext', () => {
       makeSummary({ id: 3, date: '2026-02-11T10:00:00Z', timingAccuracy: 0.72 }),
     ];
     const ctx = buildContinuityContext(sessions);
-    expect(ctx.timingTrend).toBe('72% → 78% → 83%');
+    expect(ctx.timingTrend).toBe('72% › 78% › 83%');
   });
 
   it('returns null timing trend with single session', () => {

@@ -66,7 +66,7 @@ function computeTimingTrend(sessions: ContinuitySessionSummary[]): string | null
   if (accuracies.length < 2) return null;
 
   // Sessions are most-recent-first; reverse for chronological order
-  return accuracies.reverse().join('% → ') + '%';
+  return accuracies.reverse().join('% \u203A ') + '%';
 }
 
 /**
