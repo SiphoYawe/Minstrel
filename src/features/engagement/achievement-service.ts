@@ -14,7 +14,7 @@ import { achievementRegistry } from './achievement-definitions';
 export async function fetchUnlockedAchievements(userId: string): Promise<UnlockedAchievement[]> {
   const supabase = createClient();
   const { data, error } = await supabase
-    .from('achievements')
+    .from('user_achievements')
     .select('achievement_id, user_id, unlocked_at, session_id')
     .eq('user_id', userId);
 
@@ -43,7 +43,7 @@ export async function saveUnlockedAchievements(achievements: UnlockedAchievement
   }));
 
   const { error } = await supabase
-    .from('achievements')
+    .from('user_achievements')
     .upsert(rows, { onConflict: 'user_id,achievement_id' });
 
   if (error) {

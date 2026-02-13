@@ -56,16 +56,15 @@ describe('AIChatPanel', () => {
 
   it('renders empty state when no messages', () => {
     renderPanel();
-    expect(screen.getByText(/Studio Engineer is listening/)).toBeInTheDocument();
+    expect(screen.getByText(/Studio Engineer online/)).toBeInTheDocument();
   });
 
   it('renders messages', () => {
     renderPanel({ messages: createMockMessages() });
     expect(screen.getByText('How is my timing?')).toBeInTheDocument();
-    // Assistant text is segmented with highlights, so use a function matcher
-    expect(
-      screen.getByText((_, element) => element?.textContent === 'Your timing is at 73%.')
-    ).toBeInTheDocument();
+    // Assistant text is segmented with highlights via parseRichSegments
+    expect(screen.getByText(/Your timing is at/)).toBeInTheDocument();
+    expect(screen.getByText('73%')).toBeInTheDocument();
   });
 
   it('shows typing indicator when loading', () => {
@@ -87,7 +86,7 @@ describe('AIChatPanel', () => {
     useAppStore.setState({ hasApiKey: false });
     renderPanel();
     expect(screen.getByText(/Connect your API key/)).toBeInTheDocument();
-    expect(screen.getByText('Go to Settings')).toHaveAttribute('href', '/settings');
+    expect(screen.getByText('Configure API Key')).toHaveAttribute('href', '/settings');
   });
 
   it('has aria-live on message area', () => {
@@ -98,9 +97,7 @@ describe('AIChatPanel', () => {
   it('styles user messages differently from assistant messages', () => {
     renderPanel({ messages: createMockMessages() });
     const userMsg = screen.getByText('How is my timing?').closest('div');
-    const aiMsg = screen
-      .getByText((_, element) => element?.textContent === 'Your timing is at 73%.')
-      .closest('div');
+    const aiMsg = screen.getByText('73%').closest('div[class*="border-l-2"]')?.parentElement;
     expect(userMsg?.className).toContain('self-end');
     expect(aiMsg?.className).toContain('self-start');
   });

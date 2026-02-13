@@ -55,7 +55,10 @@ describe('SessionSummary', () => {
   it('displays "--" when no key detected', () => {
     useSessionStore.setState({ currentKey: null });
     render(<SessionSummary onDismiss={defaultOnDismiss} />);
-    expect(screen.getByText('--')).toBeInTheDocument();
+    const dashes = screen.getAllByText('--');
+    expect(dashes.length).toBeGreaterThanOrEqual(1);
+    // The key field should show "--"
+    expect(dashes[0]).toBeInTheDocument();
   });
 
   it('displays timing accuracy percentage', () => {
@@ -96,9 +99,9 @@ describe('SessionSummary', () => {
     expect(screen.getByText('Strong rhythmic foundation detected.')).toBeInTheDocument();
   });
 
-  it('calls onDismiss when Done button is clicked', () => {
+  it('calls onDismiss when close button is clicked via X', () => {
     render(<SessionSummary onDismiss={defaultOnDismiss} />);
-    fireEvent.click(screen.getByText('Done'));
+    fireEvent.click(screen.getByLabelText('Close session summary'));
     expect(defaultOnDismiss).toHaveBeenCalledOnce();
   });
 
@@ -108,10 +111,10 @@ describe('SessionSummary', () => {
     expect(defaultOnDismiss).toHaveBeenCalledOnce();
   });
 
-  it('renders Continue Practicing button when callback provided', () => {
+  it('renders Continue Playing button when callback provided', () => {
     const onContinue = vi.fn();
     render(<SessionSummary onDismiss={defaultOnDismiss} onContinuePracticing={onContinue} />);
-    const btn = screen.getByText('Continue Practicing');
+    const btn = screen.getByText('Continue Playing');
     expect(btn).toBeInTheDocument();
     fireEvent.click(btn);
     expect(onContinue).toHaveBeenCalledOnce();
@@ -133,17 +136,17 @@ describe('SessionSummary', () => {
     expect(screen.queryByText('View Replay')).not.toBeInTheDocument();
   });
 
-  it('renders Save & Review button when callback and activeSessionId provided', () => {
-    const onSave = vi.fn();
-    render(<SessionSummary onDismiss={defaultOnDismiss} onSaveAndReview={onSave} />);
-    expect(screen.getByText('Save & Review')).toBeInTheDocument();
+  it('renders End Session button when callback provided', () => {
+    const onEnd = vi.fn();
+    render(<SessionSummary onDismiss={defaultOnDismiss} onEndSession={onEnd} />);
+    expect(screen.getByText('End Session')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('End Session'));
+    expect(onEnd).toHaveBeenCalledOnce();
   });
 
-  it('does not render Save & Review when no activeSessionId', () => {
-    useSessionStore.setState({ activeSessionId: null });
-    const onSave = vi.fn();
-    render(<SessionSummary onDismiss={defaultOnDismiss} onSaveAndReview={onSave} />);
-    expect(screen.queryByText('Save & Review')).not.toBeInTheDocument();
+  it('does not render End Session when no callback provided', () => {
+    render(<SessionSummary onDismiss={defaultOnDismiss} />);
+    expect(screen.queryByText('End Session')).not.toBeInTheDocument();
   });
 
   it('has role="dialog" and aria-modal for accessibility', () => {

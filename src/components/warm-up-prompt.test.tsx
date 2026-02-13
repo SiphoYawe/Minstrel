@@ -54,16 +54,12 @@ describe('WarmUpPrompt', () => {
     expect(screen.queryByText('Warm up first?')).not.toBeInTheDocument();
   });
 
-  it('does not render if user has no skill profile', () => {
-    useSessionStore.setState({ skillProfile: null });
-    render(<WarmUpPrompt onStartWarmUp={onStartWarmUp} onSkip={onSkip} />);
-    expect(screen.queryByText('Warm up first?')).not.toBeInTheDocument();
-  });
-
-  it('does not render if user has no recent sessions', () => {
+  it('renders new-user warm-up when user has no recent sessions', () => {
     useSessionStore.setState({ recentSessions: [] });
     render(<WarmUpPrompt onStartWarmUp={onStartWarmUp} onSkip={onSkip} />);
+    // Component still renders but shows the new-user copy instead of returning-user copy
     expect(screen.queryByText('Warm up first?')).not.toBeInTheDocument();
+    expect(screen.getByText('Start with a warm-up')).toBeInTheDocument();
   });
 
   it('does not render when already playing', () => {

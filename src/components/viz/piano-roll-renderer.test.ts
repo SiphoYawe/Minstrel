@@ -126,8 +126,8 @@ describe('renderNotes', () => {
 
     const result = renderNotes(ctx, activeNotes, [], 800, 600, 1000);
 
-    // fillRect called: once for clearCanvas, once for the active note
-    expect(ctx.fillRect).toHaveBeenCalledTimes(2);
+    // fillRect called: once for clearCanvas, once for glow, once for the active note
+    expect(ctx.fillRect).toHaveBeenCalledTimes(3);
     // fillText called for note name label
     expect(ctx.fillText).toHaveBeenCalledTimes(1);
     expect(ctx.fillText).toHaveBeenCalledWith('C4', expect.any(Number), expect.any(Number));
@@ -195,8 +195,8 @@ describe('renderNotes', () => {
 
     renderNotes(ctx, activeNotes, [], 800, 600, 1000);
 
-    // clearCanvas + 2 active notes
-    expect(ctx.fillRect).toHaveBeenCalledTimes(3);
+    // clearCanvas + 2 active notes (each with glow + main bar = 2 fillRect per note)
+    expect(ctx.fillRect).toHaveBeenCalledTimes(5);
     // fillText called for each note name label
     expect(ctx.fillText).toHaveBeenCalledTimes(2);
   });

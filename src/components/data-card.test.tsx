@@ -46,7 +46,7 @@ describe('DataCard', () => {
     render(<DataCard />);
     const el = screen.getByLabelText(/Timing accuracy: 85%/);
     expect(el).toBeInTheDocument();
-    expect(el.className).toContain('text-primary');
+    expect(el.className).toContain('text-accent-success');
   });
 
   it('displays timing accuracy with amber color when low', () => {

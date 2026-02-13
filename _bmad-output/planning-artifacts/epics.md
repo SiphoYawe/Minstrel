@@ -1,15 +1,16 @@
 ---
 stepsCompleted: [1, 2, 3, 4]
 status: 'complete'
-completedAt: '2026-02-12'
+completedAt: '2026-02-13'
 inputDocuments:
   - '_bmad-output/planning-artifacts/prd.md'
   - '_bmad-output/planning-artifacts/architecture.md'
   - '_bmad-output/planning-artifacts/ux-design-specification.md'
+  - '_bmad-output/planning-artifacts/code-review-findings-epics-8-11.md'
 workflowType: 'epics-and-stories'
 project_name: 'Minstrel'
 user_name: 'Melchizedek'
-date: '2026-02-12'
+date: '2026-02-13'
 ---
 
 # Minstrel - Epic Breakdown
@@ -291,6 +292,26 @@ New screens and flows completing the end-to-end user experience across all 4 use
 
 Wire up existing but unused AI coaching infrastructure and resolve data integrity issues in engagement features.
 **Source:** AI-1 through AI-6, DATA-1 through DATA-6, MISS-8, MISS-11
+
+### Epic 12: Critical Security & Data Integrity
+
+17 CRITICAL code review findings from adversarial security, state management, UI, and AI reviews. Must be resolved before launch — blocks deployment.
+**Source:** SEC-C1, SEC-C2, STATE-C1–C5, UI-C1–C5, AI-C1–C5
+
+### Epic 13: High Priority Accessibility & State Fixes
+
+27 HIGH code review findings covering distributed rate limiting, stale closures, atomic operations, token estimation, and comprehensive ARIA/keyboard accessibility.
+**Source:** SEC-H1–H3, STATE-H1–H5, AI-H1–H7, UI-H1–H12
+
+### Epic 14: Medium Priority Polish
+
+35 MEDIUM code review findings covering CI security checks, timezone persistence, dead code removal, drill validation, screen reader fixes, animation accessibility, and performance virtualization.
+**Source:** SEC-M1–M4, STATE-M1–M7, AI-M1–M2, AI-M4–M11, UI-M1–M13
+
+### Epic 15: Low Priority Cleanup
+
+20 LOW code review findings covering middleware hardening, DST edge cases, cache invalidation, dead code removal, export compression, and UI polish. Post-launch acceptable.
+**Source:** SEC-L1–L3, STATE-L1–L6, AI-L1–L6, UI-L1–L4
 
 ---
 
@@ -1485,13 +1506,666 @@ So that I can exercise my right to data portability under GDPR.
 
 ---
 
+## Epic 12: Critical Security & Data Integrity
+
+17 CRITICAL code review findings that must be resolved before launch. Covers CSRF protection, encryption key hardening, session data loss prevention, race conditions in XP/streaks, memory leaks, semantic landmarks, token tracking, growth mindset streaming, and rate limit separation.
+**Source:** Adversarial Code Review Findings — SEC-C1, SEC-C2, STATE-C1–C5, UI-C1–C5, AI-C1–C5
+
+### Story 12.1: CSRF Protection for All API Routes
+
+As a user,
+I want all API routes protected against cross-site request forgery,
+So that attackers cannot force my browser to trigger expensive AI operations, delete my API keys, or export my data.
+
+**Acceptance Criteria:**
+
+**Given** any POST or DELETE API route (`/api/ai/chat`, `/api/user/keys`, `/api/user/export`, `/api/ai/drill`, `/api/ai/analyze`, `/api/ai/recalibrate`)
+**When** a request arrives from a cross-origin source
+**Then** the server validates the `Origin` header matches the expected domain before processing
+**And** requests without a valid `Origin` or `Referer` header are rejected with 403 Forbidden
+**And** GET requests (read-only) are exempt from CSRF checks
+**And** all existing API route tests are updated to include CSRF origin validation (NFR9)
+
+**Finding:** SEC-C1
+**Test Coverage Gap Addressed:** #6 — CSRF protection verification on all POST routes
+
+### Story 12.2: Encryption Key Entropy Validation and Rotation
+
+As a developer,
+I want encryption key validation to enforce entropy requirements and support key rotation,
+So that weak keys cannot be used and compromised keys can be replaced without data loss.
+
+**Acceptance Criteria:**
+
+**Given** the application starts and reads the encryption key from environment
+**When** `src/lib/crypto.ts` validates the key (lines 32-34, 52-54)
+**Then** entropy validation rejects keys with Shannon entropy below 3.5 bits/char (blocking keys like `"a".repeat(32)`)
+**And** a key version identifier is stored alongside encrypted data to support rotation
+**And** a rotation mechanism allows decrypting with old key and re-encrypting with new key
+**And** startup fails with a clear error message if the encryption key fails entropy validation (NFR12)
+**And** all crypto operations are covered by unit tests with both valid and weak key inputs
+
+**Finding:** SEC-C2
+
+### Story 12.3: Session Buffer Crash Protection
+
+As a musician,
+I want my session data preserved even if the browser tab closes unexpectedly,
+So that I never lose more than a few seconds of practice data.
+
+**Acceptance Criteria:**
+
+**Given** an active recording session with buffered events in `session-recorder.ts` (lines 126-143, 196-243)
+**When** the browser tab is closed or crashes
+**Then** a `beforeunload` event listener force-flushes the event buffer using `navigator.sendBeacon` for reliable delivery (STATE-C1)
+**And** the flush mechanism uses a queue pattern instead of re-appending failed events to the buffer (STATE-C4)
+**And** the queue processes sequentially, preventing data loss and order corruption from the reentrancy race condition
+**And** the `flushInProgress` guard is replaced with a proper async queue that handles errors without re-appending
+**And** session recording integrity approaches 100% (NFR26)
+
+**Findings:** STATE-C1, STATE-C4
+**Test Coverage Gap Addressed:** #2 — Browser crash simulation (close tab during active recording)
+
+### Story 12.4: Atomic XP and Streak Updates
+
+As a musician,
+I want XP awards and streak increments to be accurate even when triggered from multiple sources,
+So that my progress data is never lost to race conditions.
+
+**Acceptance Criteria:**
+
+**Given** concurrent XP award sources (session end + achievement unlock) in `use-xp.ts` (lines 49-70)
+**When** both trigger simultaneously
+**Then** Supabase RPC atomic increment is used instead of optimistic local state update (STATE-C2)
+**And** local React state is set from the Supabase RPC return value, not from stale `lifetimeXp`
+**And** streak updates in `use-streak.ts` (lines 46-55) use Supabase RPC for atomic increment (STATE-C3)
+**And** `streakRef.current` is updated from the RPC return value, preventing last-write-wins in multi-tab scenarios
+
+**Findings:** STATE-C2, STATE-C3
+**Test Coverage Gap Addressed:** #1 — Concurrent `awardSessionXp` calls from different sources
+
+### Story 12.5: Memory Leak Fixes — Analysis Pipeline and Pointer Capture
+
+As a musician in a long practice session,
+I want the application to release resources properly,
+So that memory doesn't grow unbounded and block other interactions.
+
+**Acceptance Criteria:**
+
+**Given** the analysis pipeline in `use-analysis-pipeline.ts` (lines 105, 349)
+**When** the component unmounts during async operations
+**Then** the `patternInterval` ID stored in a ref is cleared on unmount before any async cleanup (STATE-C5)
+**And** the interval does not fire after component destruction, preventing access to stale Zustand getters
+**And** in `timeline-scrubber.tsx` (lines 100-123), pointer capture is released in a `useEffect` cleanup function (UI-C3)
+**And** `document.body.style.userSelect` is reset on unmount, preventing stuck pointer states
+
+**Findings:** STATE-C5, UI-C3
+**Test Coverage Gap Addressed:** #5 — Component unmount during async session start
+
+### Story 12.6: Semantic Landmarks and Session Switch Error Handling
+
+As a user who relies on assistive technology,
+I want semantic landmarks and stable rendering in the application,
+So that I can navigate efficiently and the UI doesn't degrade with large datasets.
+
+**Acceptance Criteria:**
+
+**Given** `dashboard-chat.tsx` (line 39) uses `<div id="main-content">`
+**When** the component renders
+**Then** the `<div>` is replaced with `<main id="main-content">` providing a proper main landmark (UI-C1, NFR19)
+**And** the session switch Promise chain in `replay-studio.tsx` (lines 556-577) has a `.catch()` handler with user-facing error state (UI-C2)
+**And** session history in `session-history-list.tsx` (lines 54-94) batches state updates using a single `setSessions` call instead of individual re-renders per session (UI-C4)
+**And** tab buttons in `replay-studio.tsx` (lines 166-193) have stable keys and memoized rendering to prevent full re-renders on session change (UI-C5)
+
+**Findings:** UI-C1, UI-C2, UI-C4, UI-C5
+
+### Story 12.7: Fix Token Usage Extraction and Silent Tracking Failures
+
+As a user tracking my API costs,
+I want token usage accurately extracted from AI responses and failures never silently swallowed,
+So that cost tracking and rate limiting are reliable.
+
+**Acceptance Criteria:**
+
+**Given** the chat route in `src/app/api/ai/chat/route.ts` (lines 168-174)
+**When** `extractTokenUsage` is called after `streamText` completes
+**Then** it receives the full `result` object from `streamText` which contains `result.usage`, not the `{ text }` shorthand (AI-C1)
+**And** the character-based estimation fallback is only used when `result.usage` is genuinely unavailable
+**And** token tracking failures in `token-tracker.ts` (lines 90-92, 125-127) are reported to Sentry instead of silently swallowed (AI-C2)
+**And** an IndexedDB fallback stores failed token writes for later sync
+**And** retry with exponential backoff (1s, 2s, 4s) is implemented for failed writes
+
+**Findings:** AI-C1, AI-C2
+**Test Coverage Gap Addressed:** #10 — Token usage extraction accuracy vs estimation
+
+### Story 12.8: Growth Mindset Stream Transform and Prompt Injection Protection
+
+As a musician,
+I want growth mindset language enforced during streaming (not just after) and protection against prompt manipulation,
+So that I never see prohibited words in real-time and the Studio Engineer persona cannot be overridden.
+
+**Acceptance Criteria:**
+
+**Given** the chat route streams text to the client in `src/app/api/ai/chat/route.ts` (lines 153-158)
+**When** text chunks arrive from the LLM
+**Then** the `createGrowthMindsetTransform()` TransformStream (defined in `growth-mindset-rules.ts` lines 64-92) is piped through `textStream` before returning to client (AI-C3)
+**And** users never see prohibited words ("wrong", "bad", "failed") during real-time streaming
+**And** user message content is wrapped in XML-style delimiters (`<user_message>...</user_message>`) before insertion into the prompt (AI-C4)
+**And** existing XML tags in user input are escaped to prevent delimiter injection
+**And** the system prompt includes explicit role-override rejection instructions
+
+**Findings:** AI-C3, AI-C4
+**Test Coverage Gap Addressed:** #9 — Growth mindset word filtering in streamed responses
+
+### Story 12.9: Separate Rate Limits for Drill Generation
+
+As a musician,
+I want drill generation to have its own rate limit separate from chat,
+So that chat usage cannot exhaust my quota for expensive drill generation.
+
+**Acceptance Criteria:**
+
+**Given** the drill route in `src/app/api/ai/drill/route.ts` (lines 31-34)
+**When** rate limiting is checked
+**Then** drill generation has a separate rate limit bucket (10 requests/min) from chat (100 requests/min)
+**And** each route type (chat, drill, analyze, recalibrate) has its own rate limit configuration
+**And** exceeding the drill rate limit returns 429 with a message specific to drill generation
+**And** the rate limit separation prevents expensive structured output generation from being blocked by chat (NFR13)
+
+**Finding:** AI-C5
+
+---
+
+## Epic 13: High Priority Accessibility & State Fixes
+
+27 HIGH code review findings covering distributed rate limiting, non-charging API key validation, stale closures, atomic IndexedDB writes, token estimation, AI context management, drill timeouts, and comprehensive ARIA/keyboard accessibility across dashboard, replay, and modal components.
+**Source:** Adversarial Code Review Findings — SEC-H1–H3, STATE-H1–H5, AI-H1–H7, UI-H1–H12
+
+### Story 13.1: Distributed Rate Limiting with Upstash
+
+As a developer,
+I want rate limiting backed by distributed storage,
+So that limits cannot be bypassed via cold starts or multi-instance deployment.
+
+**Acceptance Criteria:**
+
+**Given** the current in-memory rate limiter in `rate-limiter.ts` (line 10) and `keys/rate-limit.ts` (line 7)
+**When** migrated to distributed storage
+**Then** rate limit state is stored in Upstash Redis (or Vercel KV) shared across all serverless isolates
+**And** cold starts do not reset rate limit counters
+**And** the migration replaces both `rate-limiter.ts` and `keys/rate-limit.ts` instances
+**And** AI-M3 (duplicate of SEC-H1) is resolved by this same fix — no separate story needed (NFR13)
+
+**Finding:** SEC-H1 (also resolves AI-M3 duplicate)
+**Test Coverage Gap Addressed:** #7 — Rate limit bypass via cold start simulation
+
+### Story 13.2: Non-Charging API Key Validation
+
+As a user,
+I want API key validation to not consume my LLM quota,
+So that validating my key doesn't cost money and can't be weaponized to drain my account.
+
+**Acceptance Criteria:**
+
+**Given** the validation endpoint in `src/app/api/user/keys/validate.ts` (lines 52-63, 82-94)
+**When** a user validates their API key
+**Then** OpenAI keys are validated via `GET /v1/models` (non-charging endpoint)
+**And** Anthropic keys are validated via key format check and lightweight metadata endpoint
+**And** no `max_tokens: 1` generation call is made during validation
+**And** repeated validation requests cannot drain a user's API account
+
+**Finding:** SEC-H2
+
+### Story 13.3: Rate Limit Response Headers
+
+As a developer or API consumer,
+I want standard rate limit headers on all 429 responses,
+So that clients can implement proper backoff and retry logic.
+
+**Acceptance Criteria:**
+
+**Given** any API route returns a 429 status
+**When** the response is constructed
+**Then** it includes `Retry-After` header (seconds until limit resets)
+**And** `X-RateLimit-Limit` header (max requests allowed in window)
+**And** `X-RateLimit-Remaining` header (requests remaining in window)
+**And** `X-RateLimit-Reset` header (unix timestamp when limit resets)
+**And** all API routes consistently include these headers on rate-limited responses
+
+**Finding:** SEC-H3
+
+### Story 13.4: Stale Closure and Reentrancy Fixes
+
+As a developer,
+I want stale closure and reentrancy bugs fixed in state management hooks,
+So that concurrent operations produce correct results.
+
+**Acceptance Criteria:**
+
+**Given** `use-streak.ts` (lines 18-22, 52) uses `streakRef` for streak data
+**When** `recordSession` is called
+**Then** it reads from Zustand `getState()` directly instead of the ref, preventing stale reads from React batching (STATE-H1)
+**And** `startMetadataSync` in `session-recorder.ts` (lines 180-191) has a guard using a ref or flag to prevent multiple concurrent intervals if called in rapid succession (STATE-H4)
+**And** `addDrillRepResult` in `session-store.ts` (lines 343-372) uses Zustand's `set` with an updater function pattern to ensure sequential state reads (STATE-H5)
+
+**Findings:** STATE-H1, STATE-H4, STATE-H5
+
+### Story 13.5: Atomic IndexedDB Transactions and Metadata Writes
+
+As a musician,
+I want session data written atomically and metadata updates not skipped,
+So that I never have orphan sessions or missing metadata.
+
+**Acceptance Criteria:**
+
+**Given** session creation and event writing in `session-recorder.ts` (lines 36-48, 135)
+**When** a new recording session starts
+**Then** session creation and initial events are wrapped in a Dexie transaction for atomic write (STATE-H3)
+**And** browser crash between operations cannot create orphan sessions with zero events
+**And** `updateMetadata` in `session-recorder.ts` (lines 149-159) always writes metadata on interval, not just on change (STATE-H2)
+**And** rapid key changes (C→D→C) within the 10s interval are not skipped due to stale cache comparison
+
+**Findings:** STATE-H2, STATE-H3
+
+### Story 13.6: Token Estimation and Budget Enforcement
+
+As a user managing API costs,
+I want accurate token estimation and a hard cap on per-request cost,
+So that a single request cannot cost hundreds of dollars.
+
+**Acceptance Criteria:**
+
+**Given** the context length manager in `context-length-manager.ts` (lines 27-29) uses a fixed 4 chars/token heuristic
+**When** estimating tokens
+**Then** a lightweight tokenizer (e.g., `gpt-tokenizer` npm package) is used for accurate BPE estimation (AI-H1)
+**And** technical content and code-heavy prompts (MIDI sequences) are accurately counted
+**And** a hard maximum token budget of ~8K tokens per request is enforced in the chat route (AI-H2)
+**And** requests exceeding the budget are trimmed with a notice to the user, not silently truncated
+**And** the maximum cost per request is capped at approximately $0.10
+
+**Findings:** AI-H1, AI-H2
+
+### Story 13.7: Context Trimming, Replay Window, and Error Classification
+
+As a musician,
+I want AI context managed correctly and errors classified reliably,
+So that conversations flow naturally and error handling doesn't break on provider updates.
+
+**Acceptance Criteria:**
+
+**Given** the context trimming in `chat/route.ts` (lines 141-143)
+**When** truncation occurs
+**Then** the summary is injected as a system message (not `role: 'assistant'`), preventing the model from referencing it as its own response (AI-H3)
+**And** the replay context window in `context-builder.ts` (lines 131, 172) adapts based on detected tempo (e.g., always 16 beats) instead of hardcoded 10 seconds (AI-H4)
+**And** error classification in `errors.ts` (lines 43-62) uses structured error response parsing (`errorBody.error?.code`) instead of regex on error messages (AI-H5)
+**And** new error formats from providers don't break classification
+
+**Findings:** AI-H3, AI-H4, AI-H5
+
+### Story 13.8: Drill Timeout and Genre Logging
+
+As a musician,
+I want drill generation to have a timeout and unknown genres to be tracked,
+So that the UI never hangs and genre coverage gaps are discovered.
+
+**Acceptance Criteria:**
+
+**Given** the drill route in `src/app/api/ai/drill/route.ts` (lines 68-73)
+**When** `generateText` with structured output is called
+**Then** an AbortController with a 20s timeout is attached (AI-H6)
+**And** timeout produces a user-friendly message ("Drill generation took too long — try again")
+**And** unknown genres in `genre-terminology.ts` (lines 447-450) that fall back to GENERIC are logged to Sentry with the unknown genre name (AI-H7)
+**And** Sentry alerts enable monitoring for when new genres need to be added
+
+**Findings:** AI-H6, AI-H7
+
+### Story 13.9: Dashboard and Replay Accessibility — ARIA Attributes
+
+As a user relying on assistive technology,
+I want dashboard and replay components to have proper ARIA attributes,
+So that I can navigate and understand state changes with a screen reader.
+
+**Acceptance Criteria:**
+
+**Given** the engagement toggle in `dashboard-chat.tsx` (lines 62-72)
+**When** the button renders
+**Then** it includes `aria-expanded={showEngagement}` for screen reader state announcement (UI-H1)
+**And** an `aria-live` region announces accordion open/close state changes (UI-H2, NFR21)
+**And** the replay loading spinner in `replay-studio.tsx` (lines 90-116) has `aria-live="assertive"` to announce loading state (UI-H4)
+**And** the AI chat textarea in `ai-chat-panel.tsx` (lines 205-214) has a visible `<label>` element satisfying WCAG 2.5.3 Label in Name (UI-H5, NFR19)
+**And** snapshot CTAs in `snapshot-cta.tsx` (lines 14-41) auto-focus the first button on mount for keyboard discoverability (UI-H6)
+**And** the replay tab list in `replay-studio.tsx` (lines 166-193) implements Left/Right arrow key navigation with roving tabindex per ARIA tablist spec (UI-H3, NFR20)
+
+**Findings:** UI-H1, UI-H2, UI-H3, UI-H4, UI-H5, UI-H6
+
+### Story 13.10: Keyboard Navigation, Focus Traps, and Modal Fixes
+
+As a keyboard-only user,
+I want focus properly managed in modals and interactive elements,
+So that I never lose my place or get trapped behind overlays.
+
+**Acceptance Criteria:**
+
+**Given** the return session banner in `return-session-banner.tsx` (lines 57-70)
+**When** it auto-dismisses on MIDI input
+**Then** it checks whether the banner currently has focus before dismissing, preserving keyboard flow (UI-H7)
+**And** the keyboard shortcuts panel in `keyboard-shortcuts-panel.tsx` (lines 58-110) has a focus trap preventing Tab from escaping to background content (UI-H8, NFR20)
+**And** the mobile redirect overlay in `mobile-redirect.tsx` (lines 48-76) adds `aria-hidden="true"` to background content when active (UI-H9)
+**And** the drill controller in `drill-controller.tsx` (lines 176-185) has a keyboard shortcut hint or visible focus indicator for the Start button (UI-H10)
+**And** timeline marker buttons in `timeline-scrubber.tsx` (lines 238-282) are wrapped in `role="list"` / `role="listitem"` semantic structure (UI-H11)
+**And** the AI chat textarea auto-resize in `ai-chat-panel.tsx` (lines 93-98) has an `aria-live` announcement for layout changes (UI-H12)
+
+**Findings:** UI-H7, UI-H8, UI-H9, UI-H10, UI-H11, UI-H12
+
+---
+
+## Epic 14: Medium Priority Polish
+
+35 MEDIUM code review findings covering CI security automation, timezone persistence, XP error propagation, drill timer cleanup, stale closure fixes, export completeness, dead code removal, schema validation, analytics attribution, screen reader landmarks, chat UX polish, animation accessibility, and performance virtualization.
+**Source:** Adversarial Code Review Findings — SEC-M1–M4, STATE-M1–M7, AI-M1–M2, AI-M4–M11, UI-M1–M13
+
+### Story 14.1: CI Security Checks and Token Tracker Server Import
+
+As a developer,
+I want CI checks for security violations and correct imports in server-side code,
+So that accidental misconfigurations don't reach production.
+
+**Acceptance Criteria:**
+
+**Given** the codebase CI pipeline
+**When** a build runs
+**Then** a CI check detects any `service_role` usage outside admin code paths (SEC-M1)
+**And** `token-tracker.ts` (line 1) imports from `@/lib/supabase/server` instead of `@/lib/supabase/client` for server-side execution (SEC-M2)
+**And** error messages in `errors.ts` (lines 13-18) use generic text in production, only revealing implementation details in development mode (SEC-M3)
+**And** `sessionId` in `token-tracker.ts` (line 170) has UUID format validation before database insert (SEC-M4)
+
+**Findings:** SEC-M1, SEC-M2, SEC-M3, SEC-M4
+
+### Story 14.2: Streak Timezone Persistence and XP Error Propagation
+
+As a musician who travels or lives in non-UTC timezones,
+I want my streak calculations consistent regardless of timezone changes,
+So that travel or DST doesn't break or double-count my streaks.
+
+**Acceptance Criteria:**
+
+**Given** `use-streak.ts` (lines 32, 52) computes timezone offset from `Date.getTimezoneOffset()`
+**When** the user's timezone is detected
+**Then** the user's primary timezone is persisted to their profile on first session (STATE-M1)
+**And** subsequent streak calculations use the stored timezone, not the current browser offset
+**And** `awardXp` in `xp-service.ts` (lines 40-54) returns an error status instead of silently logging failures (STATE-M2)
+**And** callers handle the error and sync local state from the database return value
+
+**Findings:** STATE-M1, STATE-M2
+**Test Coverage Gap Addressed:** #3 — Timezone changes mid-session
+
+### Story 14.3: Drill Player Timer and Audio Node Cleanup
+
+As a musician stopping drills early,
+I want timers and audio nodes cleaned up properly,
+So that callbacks don't fire after stop and audio nodes don't accumulate.
+
+**Acceptance Criteria:**
+
+**Given** `drill-player.ts` (lines 63-135) creates setTimeout timers for note playback
+**When** `stop()` is called before all timers have been created
+**Then** a `stopped` flag check inside each timer callback prevents `onNotePlay` from firing after stop (STATE-M3)
+**And** the listen phase timer in `drill-player.ts` (lines 216-220, 229) also checks the `stopped` flag at start of callback (STATE-M4)
+**And** oscillator and gain nodes in `drill-player.ts` (lines 142-172) are explicitly disconnected after playback completes, preventing audio node accumulation (STATE-M6)
+
+**Findings:** STATE-M3, STATE-M4, STATE-M6
+**Test Coverage Gap Addressed:** #4 — Drill playback early stop with pending timers
+
+### Story 14.4: Stale Closure and Reentrancy Fixes
+
+As a developer,
+I want MIDI callback and session recorder reentrancy bugs fixed,
+So that retrying connections and starting sessions don't produce stale state.
+
+**Acceptance Criteria:**
+
+**Given** `use-midi.ts` (lines 13-51, 78, 101) creates callbacks with `createMidiCallbacks()`
+**When** `retryConnection` is called
+**Then** `channelChecked` is reset to false before creating new callbacks, ensuring drum channel detection runs again (STATE-M5)
+**And** `session-recorder.ts` (lines 54-68) has a reentrancy guard with async lock on `startRecording` (STATE-M7)
+**And** calling `recordEvent` before `startRecording` completes uses the pending buffer without race conditions
+
+**Findings:** STATE-M5, STATE-M7
+
+### Story 14.5: Data Export Completeness and Token Summary
+
+As a user exercising GDPR data portability rights,
+I want my data export to be complete and include cost breakdowns,
+So that I have a full picture of my data and spending.
+
+**Acceptance Criteria:**
+
+**Given** the data export in `data-export.ts` (lines 50-67) and `export/route.ts` (line 31)
+**When** IndexedDB queries fail during export
+**Then** export status flags indicate which data sources succeeded and which failed (AI-M1)
+**And** the user is notified of partial export with an option to retry (NFR15)
+**And** the server export includes an aggregated token usage summary by provider and model (AI-M2)
+**And** users can see a cost breakdown per provider in their export
+
+**Findings:** AI-M1, AI-M2
+
+### Story 14.6: Dead Code Removal and Growth Mindset Monitoring
+
+As a developer,
+I want dead code removed and growth mindset violations logged,
+So that the codebase stays clean and content quality issues are detectable.
+
+**Acceptance Criteria:**
+
+**Given** `constants.ts` (lines 33-34) defines `SNAPSHOT_FADE_IN_MS` and `SNAPSHOT_FADE_OUT_MS`
+**When** these constants are audited
+**Then** they are either wired to their intended consumers or removed as dead code (AI-M4)
+**And** `validateGrowthMindset` violations in `response-processor.ts` (line 24) are logged to Sentry with the specific violations array for monitoring (AI-M5)
+**And** `parseChatError` in `chat-error-handler.ts` (lines 40, 48) returns error + suggested action instead of directly mutating global app store (AI-M7)
+**And** callers are updated to handle the returned error action
+
+**Findings:** AI-M4, AI-M5, AI-M7
+
+### Story 14.7: Drill Schema Validation and PostHog User ID
+
+As a developer,
+I want drill schemas validated, analytics attributed to real users, and non-text message parts logged,
+So that drills are well-formed, analytics are useful, and future features don't silently break.
+
+**Acceptance Criteria:**
+
+**Given** the drill generator in `drill-generator.ts` (lines 29-40)
+**When** a drill request is built
+**Then** `sessionContext.genre` is included in the drill prompt for genre-specific terminology (AI-M6)
+**And** `timingAccuracy` conversion in `context-builder.ts` (line 34) / `schemas.ts` (line 8) includes runtime clamping: `Math.max(0, Math.min(1, value / 100))` (AI-M8)
+**And** `DrillNoteSchema` array has `.max(64)` to prevent absurdly long AI-generated note sequences (AI-M9)
+**And** PostHog `distinctId` in `drill/route.ts` (line 90) uses `authResult.userId` instead of hardcoded `'server'` (AI-M10)
+**And** `uiMessagesToSimple` in `message-adapter.ts` (lines 14-17) logs when non-text parts are encountered and silently dropped (AI-M11)
+
+**Findings:** AI-M6, AI-M8, AI-M9, AI-M10, AI-M11
+
+### Story 14.8: Landmark and Screen Reader Fixes
+
+As a screen reader user,
+I want all views to have proper landmarks and no duplicate announcements,
+So that navigation is efficient and not confusing.
+
+**Acceptance Criteria:**
+
+**Given** `silent-coach.tsx` (lines 14-30)
+**When** the component renders
+**Then** it wraps content in a `<main>` element providing a main landmark (UI-M1, NFR19)
+**And** the mode switcher in `mode-switcher.tsx` (lines 103-106) uses `aria-label` with full text so screen readers read "Silent Coach" not just "Coach" (UI-M2)
+**And** the manual `textContent` update in `mode-switcher.tsx` (lines 56-61) is removed to prevent duplicate announcements from the existing `role="status"` (UI-M3)
+
+**Findings:** UI-M1, UI-M2, UI-M3
+
+### Story 14.9: Chat UX Improvements — Scroll, Submit, Color Logic
+
+As a musician using the AI chat,
+I want smooth scrolling behavior, standard form submission, and correct feedback colors,
+So that the chat experience is polished and intuitive.
+
+**Acceptance Criteria:**
+
+**Given** the chat panel in `ai-chat-panel.tsx` (lines 76-80)
+**When** a new message appears
+**Then** `scrollIntoView` only fires if the user is already at the bottom of the chat, not interrupting reading of earlier messages (UI-M4)
+**And** form submission in `ai-chat-panel.tsx` (lines 85-86) uses `form.requestSubmit()` instead of synthetic `dispatchEvent` (UI-M5)
+**And** improvement color logic in `drill-controller.tsx` (lines 236-248) distinguishes between negative (regression), zero (stagnation), and positive (improvement) with three distinct color treatments (UI-M6)
+
+**Findings:** UI-M4, UI-M5, UI-M6
+
+### Story 14.10: Animation Accessibility and Focus Traps
+
+As a user with motion sensitivity,
+I want animations to respect my system preferences and modals to trap focus,
+So that the UI doesn't cause discomfort and keyboard navigation works correctly.
+
+**Acceptance Criteria:**
+
+**Given** the timeline scrubber in `timeline-scrubber.tsx` (lines 120-123)
+**When** the component is used
+**Then** a `useEffect` cleanup resets `document.body.style.userSelect` on unmount (UI-M7)
+**And** session summary animation in `session-summary.tsx` (lines 74-82) uses CSS animation that respects `prefers-reduced-motion` media query (UI-M8, NFR23)
+**And** the session summary modal in `session-summary.tsx` (lines 72-188) auto-focuses the first button and implements a focus trap (UI-M9, NFR20)
+**And** return session banner animation in `return-session-banner.tsx` (line 97) adds a `prefers-reduced-motion` check (UI-M10, NFR23)
+
+**Findings:** UI-M7, UI-M8, UI-M9, UI-M10
+
+### Story 14.11: Performance — Virtualization and Pagination
+
+As a musician with many sessions and achievements,
+I want lists virtualized or paginated for performance,
+So that the UI stays responsive even with hundreds of items.
+
+**Acceptance Criteria:**
+
+**Given** the achievement gallery in `achievement-gallery.tsx` (lines 179-242)
+**When** rendering 43+ achievement cards
+**Then** virtual scrolling or pagination limits the DOM to a manageable number of elements (UI-M11)
+**And** session history in `session-history-list.tsx` (lines 54-56) implements pagination or limits to recent 50 sessions (UI-M12)
+**And** media query listener cleanup in `small-screen-banner.tsx` (lines 15-29) is verified to handle fast unmount/remount without memory leaks (UI-M13)
+
+**Findings:** UI-M11, UI-M12, UI-M13
+
+---
+
+## Epic 15: Low Priority Cleanup
+
+20 LOW code review findings covering middleware redirect hardening, RLS test automation, DST edge cases, accumulator resets, timer cleanup, cache invalidation, MIDI subscription cleanup, metadata write timing, dead code removal, retry/pricing staleness, export compression, growth mindset expansion, and UI polish. Post-launch acceptable.
+**Source:** Adversarial Code Review Findings — SEC-L1–L3, STATE-L1–L6, AI-L1–L6, UI-L1–L4
+
+**Note:** STATE-L7 (Guest Session Double-Start) was verified as NOT a bug — `startingRef` guard works correctly. Excluded from stories.
+
+### Story 15.1: Middleware and RLS Security Hardening
+
+As a developer,
+I want defense-in-depth protections for middleware and database access,
+So that even if one layer fails, data remains protected.
+
+**Acceptance Criteria:**
+
+**Given** the middleware redirect in `middleware.ts` (lines 43-46)
+**When** a redirect occurs
+**Then** pathname validation ensures `pathname.startsWith('/') && !pathname.includes('://')` to prevent open redirects (SEC-L1)
+**And** the middleware config is documented with inline comments to explain why API routes are excluded from the matcher (SEC-L2)
+**And** automated tests verify RLS policies exist on all user data tables (SEC-L3, NFR11)
+
+**Findings:** SEC-L1, SEC-L2, SEC-L3
+**Test Coverage Gap Addressed:** #8 — RLS policy verification for all tables
+
+### Story 15.2: DST, Accumulator, and Timer Edge Cases
+
+As a musician,
+I want edge cases in streaks, analysis, and timers handled correctly,
+So that DST transitions, component remounts, and unmounts don't cause subtle bugs.
+
+**Acceptance Criteria:**
+
+**Given** the streak calculation in `streak-tracker.ts` (lines 12-21)
+**When** a DST switch occurs
+**Then** `isSameCalendarDay` uses `Intl.DateTimeFormat` for timezone-aware date comparison instead of manual offset application (STATE-L1)
+**And** `resetAccumulator()` in `use-analysis-pipeline.ts` (lines 58-79) resets all properties including `startTimestamp` (STATE-L2)
+**And** the 10-second silence timeout in `use-analysis-pipeline.ts` (lines 169-217, 351) checks a mounted flag before firing, preventing CPU waste on unmounted components (STATE-L3)
+
+**Findings:** STATE-L1, STATE-L2, STATE-L3
+
+### Story 15.3: Cache Invalidation and MIDI Subscription Cleanup
+
+As a musician,
+I want session caches invalidated after completion and MIDI subscriptions cleaned up properly,
+So that I see my latest data and no subscriptions leak.
+
+**Acceptance Criteria:**
+
+**Given** the continuity context cache in `session-manager.ts` (lines 112-143)
+**When** a session completes
+**Then** the cache is invalidated so the just-completed session appears without requiring a page reload (STATE-L4)
+**And** MIDI access requests in `use-midi.ts` (lines 64-94) add a mounted check after async resolve to prevent subscription creation after cleanup (STATE-L5)
+**And** first metadata detection in `session-recorder.ts` (lines 149-159, 185-190) writes metadata immediately on first detection instead of waiting for the next 10s interval (STATE-L6)
+
+**Findings:** STATE-L4, STATE-L5, STATE-L6
+
+### Story 15.4: Dead Code Removal and Retry/Pricing Staleness
+
+As a developer,
+I want unused code removed, retry logic improved, and pricing freshness ensured,
+So that the codebase is clean and operational concerns are addressed.
+
+**Acceptance Criteria:**
+
+**Given** `trackTokenUsage` in `token-tracker.ts` (lines 100-128) is never imported
+**When** the codebase is audited
+**Then** the dead function is either removed or documented with a `// TODO: wire in story X.Y` comment (AI-L1)
+**And** chat route retry logic in `chat/route.ts` (lines 17, 63) parses the `Retry-After` header from 429 responses to honor provider-specified backoff (AI-L2)
+**And** the `drill-parser.ts` reference is resolved — either the file is created if needed or the reference is removed (AI-L3)
+**And** `pricing.ts` (line 12) has an automated check that logs a Sentry warning when `PRICING_LAST_UPDATED` is >30 days stale (AI-L4)
+
+**Findings:** AI-L1, AI-L2, AI-L3, AI-L4
+
+### Story 15.5: Export Compression and Growth Mindset Expansion
+
+As a user with many sessions,
+I want data exports compressed and growth mindset coverage expanded,
+So that exports don't hit size limits and AI responses are more thoroughly filtered.
+
+**Acceptance Criteria:**
+
+**Given** the export endpoint in `export/route.ts` (line 50)
+**When** the export is generated
+**Then** large exports are gzip compressed to stay within Vercel's 4.5MB response limit (AI-L5)
+**And** streaming response is used for exports exceeding the size limit
+**And** the prohibited word list in `growth-mindset-rules.ts` (lines 1-12) is expanded to include common negatives ("can't", "never", "impossible") (AI-L6)
+
+**Findings:** AI-L5, AI-L6
+
+### Story 15.6: UI Polish — Limits, Magic Numbers, Typography, localStorage
+
+As a user,
+I want polish fixes for session limits, responsive sizing, consistent typography, and safe storage access,
+So that the UI handles edge cases gracefully.
+
+**Acceptance Criteria:**
+
+**Given** the replay studio in `replay-studio.tsx` (line 520)
+**When** the session limit is applied
+**Then** the `.limit(20)` is made configurable or a "Load More" button is added for users with >20 sessions (UI-L1)
+**And** the chat textarea max height in `ai-chat-panel.tsx` (line 97) uses a CSS `max-height` or viewport-based calculation instead of the magic number `120` (UI-L2)
+**And** the drill controller in `drill-controller.tsx` (lines 134, 202, 256) uses consistent design token classes instead of mixed raw `text-xs` (UI-L3)
+**And** all `localStorage` access in `mobile-redirect.tsx` (lines 27, 32, 36, 41) is wrapped in try/catch with a fallback for disabled or quota-exceeded storage (UI-L4)
+
+**Findings:** UI-L1, UI-L2, UI-L3, UI-L4
+
+---
+
 ## Validation Summary
 
 ### FR Coverage: Complete
 
 All 50 Functional Requirements are covered across 7 epics with 43 stories. Every FR maps to at least one story with specific acceptance criteria.
 
-### UX Critique Coverage: Complete
+### UX Critique Coverage: Complete (Epics 8-11)
 
 All adversarial UX critique items are covered across Epics 8-11 with 28 stories:
 
@@ -1504,19 +2178,48 @@ All adversarial UX critique items are covered across Epics 8-11 with 28 stories:
 - **ARCH-1**: Epic 8 (Story 8.7)
 - **NEW-1 through NEW-12**: Epics 10, 11 (distributed by domain)
 
+### Code Review Coverage: Complete (Epics 12-15)
+
+All 99 adversarial code review findings from Epics 8-11 are covered across 4 remediation epics with 36 stories:
+
+**Exclusions:**
+
+- **STATE-L7** (Guest Session Double-Start): Verified as NOT a bug — `startingRef` guard works correctly. Excluded.
+- **AI-M3** (Rate Limiter In-Memory Store): Duplicate of SEC-H1. Resolved in Story 13.1.
+
+**Total unique findings addressed:** 97 (99 total − 1 not-a-bug − 1 duplicate)
+
+| Epic      | Severity | Findings | Stories | IDs Covered                                                |
+| --------- | -------- | -------- | ------- | ---------------------------------------------------------- |
+| Epic 12   | CRITICAL | 17       | 9       | SEC-C1–C2, STATE-C1–C5, UI-C1–C5, AI-C1–C5                 |
+| Epic 13   | HIGH     | 27       | 10      | SEC-H1–H3, STATE-H1–H5, AI-H1–H7, UI-H1–H12 (+AI-M3 dedup) |
+| Epic 14   | MEDIUM   | 34       | 11      | SEC-M1–M4, STATE-M1–M7, AI-M1–M2, AI-M4–M11, UI-M1–M13     |
+| Epic 15   | LOW      | 19       | 6       | SEC-L1–L3, STATE-L1–L6, AI-L1–L6, UI-L1–L4                 |
+| **Total** |          | **97**   | **36**  |                                                            |
+
+### Test Coverage Gaps: Mapped
+
+All 10 test coverage gaps from the code review are mapped to specific stories:
+
+1. Concurrent `awardSessionXp` calls → **Story 12.4**
+2. Browser crash simulation → **Story 12.3**
+3. Timezone changes mid-session → **Story 14.2**
+4. Drill playback early stop → **Story 14.3**
+5. Component unmount during async → **Story 12.5**
+6. CSRF protection verification → **Story 12.1**
+7. Rate limit bypass via cold start → **Story 13.1**
+8. RLS policy verification → **Story 15.1**
+9. Growth mindset streaming → **Story 12.8**
+10. Token usage extraction accuracy → **Story 12.7**
+
 ### Epic Independence: Verified
 
-- **Epic 1** — Standalone foundation
-- **Epic 2** — Depends on Epic 1 only
-- **Epic 3** — Depends on Epic 1 only (parallelizable with Epic 2)
-- **Epic 4** — Depends on Epic 2 + Epic 3
-- **Epic 5** — Depends on Epic 2 + Epic 4
-- **Epic 6** — Depends on Epic 2, optionally Epic 4
-- **Epic 7** — Depends on Epic 2
-- **Epic 8** — Depends on Epics 1-5 (fixes existing implementation)
-- **Epic 9** — Depends on Epics 1-2 (design system touches all layers)
-- **Epic 10** — Depends on Epics 1-7 (new screens build on all existing features)
-- **Epic 11** — Depends on Epics 2-5 (AI and data fixes)
+- **Epics 1-7** — Original feature development (43 stories)
+- **Epics 8-11** — UX critique remediation (28 stories, depends on 1-7)
+- **Epic 12** — CRITICAL security & data integrity (9 stories, depends on 8-11, **BLOCKS LAUNCH**)
+- **Epic 13** — HIGH priority a11y & state fixes (10 stories, depends on 12 for rate limit infrastructure)
+- **Epic 14** — MEDIUM priority polish (11 stories, depends on 12-13 for foundational fixes)
+- **Epic 15** — LOW priority cleanup (6 stories, independent of 13-14, post-launch OK)
 
 ### Story Dependencies: Forward-Only
 
@@ -1529,3 +2232,27 @@ Within each epic, stories are ordered so that each story depends only on previou
 - Acceptance criteria reference specific NFRs where applicable
 - BYOK model is fully represented (Epic 3)
 - Growth mindset language enforced across all user-facing stories
+
+### NFR Compliance (Epics 12-15)
+
+Remediation epics address the following Non-Functional Requirements:
+
+- **NFR9** (encryption in transit/at rest): Stories 12.1, 12.2
+- **NFR11** (per-user data isolation): Story 15.1
+- **NFR12** (API key security): Story 12.2
+- **NFR13** (API rate limiting): Stories 12.9, 13.1, 13.3
+- **NFR15** (data export/deletion): Story 14.5
+- **NFR19** (WCAG 2.1 AA): Stories 12.6, 13.9, 14.8
+- **NFR20** (keyboard navigation): Stories 13.9, 13.10, 14.10
+- **NFR21** (screen reader compatibility): Story 13.9
+- **NFR23** (prefers-reduced-motion): Story 14.10
+- **NFR26** (session recording integrity): Story 12.3
+
+### Cumulative Totals
+
+| Scope               | Epics  | Stories | Source                       |
+| ------------------- | ------ | ------- | ---------------------------- |
+| Feature Development | 1-7    | 43      | PRD Functional Requirements  |
+| UX Remediation      | 8-11   | 28      | Adversarial UX Critique      |
+| Code Review Fixes   | 12-15  | 36      | Adversarial Code Review (99) |
+| **Total**           | **15** | **107** |                              |

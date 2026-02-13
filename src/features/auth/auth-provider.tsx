@@ -17,6 +17,7 @@ function handleAuthenticated(userId: string): void {
     import('./api-key-manager').then(({ getApiKeyMetadata }) => {
       getApiKeyMetadata().then((result) => {
         useAppStore.getState().setHasApiKey(!!result.data);
+        useAppStore.getState().setApiKeyProvider(result.data?.provider ?? null);
       });
     });
   }, 100);

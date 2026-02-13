@@ -57,11 +57,13 @@ function createMockSupabase(user: { id: string } | null = { id: 'user-123' }) {
 
 function makeRequest(method: string, body?: Record<string, unknown>) {
   const init: RequestInit = { method };
+  const headers: Record<string, string> = { Origin: 'http://localhost:3000' };
   if (body) {
     init.body = JSON.stringify(body);
-    init.headers = { 'Content-Type': 'application/json' };
+    headers['Content-Type'] = 'application/json';
   }
-  return new NextRequest('http://localhost/api/user/keys', init);
+  init.headers = headers;
+  return new NextRequest('http://localhost:3000/api/user/keys', init);
 }
 
 async function parseResponse(response: Response) {

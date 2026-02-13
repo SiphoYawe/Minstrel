@@ -307,17 +307,19 @@ describe('SessionHistoryList empty state', () => {
   it('renders empty state when no sessions', async () => {
     render(<SessionHistoryList />);
 
-    const emptyMessage = await screen.findByText('No sessions yet');
+    const emptyMessage = await screen.findByText(
+      'Play your first note to see your music come alive'
+    );
     expect(emptyMessage).toBeInTheDocument();
-    expect(screen.getByText('Start Practicing')).toBeInTheDocument();
+    expect(screen.getByText('Start Playing')).toBeInTheDocument();
   });
 
   it('links to session page from empty state', async () => {
     render(<SessionHistoryList />);
 
-    await screen.findByText('No sessions yet');
+    await screen.findByText('Play your first note to see your music come alive');
 
-    const link = screen.getByText('Start Practicing').closest('a');
+    const link = screen.getByText('Start Playing').closest('a');
     expect(link).toHaveAttribute('href', '/session');
   });
 });
