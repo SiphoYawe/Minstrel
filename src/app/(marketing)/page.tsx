@@ -46,7 +46,7 @@ export default function MarketingPage() {
               Start Playing
             </Link>
             <Link
-              href="/auth/sign-up"
+              href="/signup"
               className="inline-flex h-12 items-center border border-border bg-transparent px-8 text-sm font-medium text-foreground transition-colors duration-micro hover:bg-surface-light"
             >
               Create Account

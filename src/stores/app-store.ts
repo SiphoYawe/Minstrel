@@ -1,8 +1,24 @@
 import { create } from 'zustand';
+import type { AuthUser } from '@/features/auth/auth-types';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- Populated in later stories
-interface AppState {}
+interface AppState {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  hasApiKey: boolean;
+  setUser: (user: AuthUser) => void;
+  clearUser: () => void;
+  setLoading: (loading: boolean) => void;
+  setHasApiKey: (hasKey: boolean) => void;
+}
 
-export const useAppStore = create<AppState>()(() => ({
-  // Initial state TBD
+export const useAppStore = create<AppState>()((set) => ({
+  user: null,
+  isAuthenticated: false,
+  isLoading: true,
+  hasApiKey: false,
+  setUser: (user) => set({ user, isAuthenticated: true }),
+  clearUser: () => set({ user: null, isAuthenticated: false }),
+  setLoading: (isLoading) => set({ isLoading }),
+  setHasApiKey: (hasApiKey) => set({ hasApiKey }),
 }));

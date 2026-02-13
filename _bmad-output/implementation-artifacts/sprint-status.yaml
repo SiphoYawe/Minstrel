@@ -52,7 +52,7 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: Real-Time Analysis & Silent Coach
-  epic-2: in-progress
+  epic-2: done
   2-1-note-and-chord-detection-engine: done
   2-2-timing-accuracy-and-tempo-analysis: done
   2-3-key-center-and-harmonic-analysis: done
@@ -65,7 +65,7 @@ development_status:
 
   # Epic 3: Accounts & API Key Management
   epic-3: in-progress
-  3-1-user-registration-and-login: ready-for-dev
+  3-1-user-registration-and-login: done
   3-2-guest-to-account-data-migration: ready-for-dev
   3-3-llm-api-key-configuration-ui: ready-for-dev
   3-4-api-key-validation-and-encrypted-storage: ready-for-dev

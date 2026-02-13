@@ -1,6 +1,6 @@
 # Story 3.1: User Registration and Login
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -102,6 +102,7 @@ So that my progress and session history are saved across visits.
 ### Project Structure Notes
 
 Files created/modified in this story:
+
 ```
 supabase/migrations/001_users.sql
 supabase/migrations/002_api_keys.sql
