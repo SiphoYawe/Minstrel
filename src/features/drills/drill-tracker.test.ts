@@ -12,7 +12,6 @@ import {
   getDrillMessage,
   generateKeyInsight,
   toRepPerformance,
-  TIMING_WINDOW_MS,
   DRILL_MESSAGES,
 } from './drill-tracker';
 import type { DrillRepResult } from './drill-tracker';

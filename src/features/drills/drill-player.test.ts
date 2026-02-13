@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { playDrill, createDrillCycle, SCHEDULE_AHEAD_MS, LISTEN_PAUSE_MS } from './drill-player';
-import type { DrillOutput, NotePlayCallback } from './drill-player';
+import type { DrillOutput } from './drill-player';
 import { DrillPhase } from './drill-types';
 import type { GeneratedDrill } from './drill-types';
 import { DEFAULT_DIFFICULTY } from '@/features/difficulty/difficulty-engine';

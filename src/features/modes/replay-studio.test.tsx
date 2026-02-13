@@ -231,7 +231,7 @@ describe('ReplayStudio', () => {
       render(<ReplayStudio sessionId={1} />);
       const insightsRegion = screen.getByRole('region', { name: 'Session insights' });
       const durationCard = Array.from(
-        insightsRegion.querySelectorAll('[class*="bg-\\[\\#141414\\]"]')
+        insightsRegion.querySelectorAll('[class*="bg-surface-light"]')
       ).find((el) => el.textContent?.includes('Duration'));
       expect(durationCard?.textContent).toContain('04:00');
     });
@@ -240,7 +240,7 @@ describe('ReplayStudio', () => {
       render(<ReplayStudio sessionId={1} />);
       const insightsRegion = screen.getByRole('region', { name: 'Session insights' });
       const notesCard = Array.from(
-        insightsRegion.querySelectorAll('[class*="bg-\\[\\#141414\\]"]')
+        insightsRegion.querySelectorAll('[class*="bg-surface-light"]')
       ).find((el) => el.textContent?.includes('Notes'));
       expect(notesCard?.textContent).toContain('1');
     });

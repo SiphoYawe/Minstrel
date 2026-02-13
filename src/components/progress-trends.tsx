@@ -153,7 +153,7 @@ function TrendChart({ trend, period }: { trend: TrendLine; period: TrendPeriod }
             y1={y}
             x2={CHART_W - PAD_X}
             y2={y}
-            stroke="#1A1A1A"
+            stroke="hsl(var(--border))"
             strokeWidth="1"
           />
         ))}
@@ -165,7 +165,7 @@ function TrendChart({ trend, period }: { trend: TrendLine; period: TrendPeriod }
               x={PAD_X - 4}
               y={gridYs[0] + 3}
               textAnchor="end"
-              fill="#505050"
+              fill="hsl(var(--muted-foreground))"
               fontSize="8"
               fontFamily="monospace"
             >
@@ -175,7 +175,7 @@ function TrendChart({ trend, period }: { trend: TrendLine; period: TrendPeriod }
               x={PAD_X - 4}
               y={gridYs[1] + 3}
               textAnchor="end"
-              fill="#505050"
+              fill="hsl(var(--muted-foreground))"
               fontSize="8"
               fontFamily="monospace"
             >
@@ -185,7 +185,7 @@ function TrendChart({ trend, period }: { trend: TrendLine; period: TrendPeriod }
               x={PAD_X - 4}
               y={gridYs[2] + 3}
               textAnchor="end"
-              fill="#505050"
+              fill="hsl(var(--muted-foreground))"
               fontSize="8"
               fontFamily="monospace"
             >
@@ -216,7 +216,7 @@ function TrendChart({ trend, period }: { trend: TrendLine; period: TrendPeriod }
             cx={p.x}
             cy={p.y}
             r="2.5"
-            fill="#0F0F0F"
+            fill="hsl(var(--background))"
             stroke={color}
             strokeWidth="1.5"
           />
@@ -229,7 +229,7 @@ function TrendChart({ trend, period }: { trend: TrendLine; period: TrendPeriod }
             x={lbl.x}
             y={CHART_H - 2}
             textAnchor="middle"
-            fill="#505050"
+            fill="hsl(var(--muted-foreground))"
             fontSize="8"
             fontFamily="monospace"
           >

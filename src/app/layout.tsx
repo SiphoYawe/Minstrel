@@ -6,6 +6,8 @@ import { AuthProvider } from '@/features/auth/auth-provider';
 import { MigrationIndicator } from '@/components/migration-indicator';
 import { MobileRedirect } from '@/components/mobile-redirect';
 import { OfflineIndicator } from '@/components/offline-indicator';
+import { SkipToContent } from '@/components/skip-to-content';
+import { SmallScreenBanner } from '@/components/small-screen-banner';
 import './globals.css';
 
 const inter = Inter({
@@ -38,12 +40,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:text-sm"
-        >
-          Skip to content
-        </a>
+        <SkipToContent />
+        <SmallScreenBanner />
         <OfflineIndicator />
         <MobileRedirect />
         <AuthProvider>

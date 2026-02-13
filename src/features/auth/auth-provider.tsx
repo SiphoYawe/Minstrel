@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import { useAppStore } from '@/stores/app-store';
 import { mapSupabaseUser } from './use-auth';
@@ -51,9 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         // Detect session expiry: SIGNED_OUT event that wasn't user-initiated
         if (event === 'SIGNED_OUT' && !userInitiatedSignOut.current) {
-          toast.warning(
-            'Your session expired. Please sign in again to continue using AI features.'
-          );
+          useAppStore.getState().setSessionExpired(true);
         }
         userInitiatedSignOut.current = false;
         useAppStore.getState().clearUser();

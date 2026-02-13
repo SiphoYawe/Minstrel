@@ -5,7 +5,9 @@ import { useMidiStore } from '@/stores/midi-store';
 import { useSessionStore } from '@/stores/session-store';
 import { useAppStore } from '@/stores/app-store';
 import { useStreak } from '@/features/engagement/use-streak';
+import { useOnlineStatus } from '@/hooks/use-online-status';
 import { StreakBadge } from '@/components/streak-badge';
+import { WarmUpProgress } from '@/components/warm-up-progress';
 import type { MidiConnectionStatus } from '@/features/midi/midi-types';
 
 const statusConfig: Record<
@@ -63,7 +65,9 @@ export function StatusBar() {
   const currentTempo = useSessionStore((s) => s.currentTempo);
   const sessionStartTimestamp = useSessionStore((s) => s.sessionStartTimestamp);
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
+  const isWarmingUp = useSessionStore((s) => s.isWarmingUp);
   const { streak } = useStreak();
+  const { isOnline, wasOffline } = useOnlineStatus();
 
   const config = statusConfig[connectionStatus];
 
@@ -153,8 +157,45 @@ export function StatusBar() {
           )}
         </div>
 
-        {/* Right: Streak + Session timer */}
+        {/* Right: Warm-up progress, Offline indicator, Streak, Session timer */}
         <div className="flex items-center gap-3">
+          {isWarmingUp && (
+            <>
+              <WarmUpProgress />
+              <span className="h-3 w-px bg-surface-border" aria-hidden="true" />
+            </>
+          )}
+
+          {/* Offline / Back-online indicator */}
+          {!isOnline && (
+            <span
+              className="flex items-center gap-1.5"
+              role="status"
+              aria-live="polite"
+            >
+              <span className="inline-block h-2 w-2 bg-accent-warm" aria-hidden="true" />
+              <span className="font-mono text-caption uppercase tracking-[0.08em] text-accent-warm">
+                Offline
+              </span>
+            </span>
+          )}
+          {isOnline && wasOffline && (
+            <span
+              className="flex items-center gap-1.5"
+              role="status"
+              aria-live="polite"
+            >
+              <span className="inline-block h-2 w-2 bg-accent-success" aria-hidden="true" />
+              <span className="font-mono text-caption uppercase tracking-[0.08em] text-accent-success">
+                Back online
+              </span>
+            </span>
+          )}
+
+          {(!isOnline || wasOffline) && (
+            <span className="h-3 w-px bg-surface-border" aria-hidden="true" />
+          )}
+
           {isAuthenticated && streak.currentStreak > 0 && (
             <>
               <StreakBadge streak={streak} />

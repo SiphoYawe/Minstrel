@@ -1,7 +1,8 @@
 import { streamText } from 'ai';
 import type { LanguageModel } from 'ai';
 import { ChatRequestSchema } from '@/lib/ai/schemas';
-import { getModelForProvider } from '@/lib/ai/provider';
+import { getModelForProvider, DEFAULT_MODELS } from '@/lib/ai/provider';
+import type { SupportedProvider } from '@/lib/ai/provider';
 import { buildChatSystemPrompt, buildReplayChatSystemPrompt } from '@/lib/ai/prompts';
 import { authenticateAiRequest, withAiErrorHandling } from '@/lib/ai/route-helpers';
 import { replaceProhibitedWords } from '@/features/coaching/growth-mindset-rules';
@@ -10,6 +11,7 @@ import {
   getContextLimit,
   trimMessagesToFit,
 } from '@/features/coaching/context-length-manager';
+import { extractTokenUsage, recordTokenUsage } from '@/features/coaching/token-tracker';
 
 const MAX_RETRIES = 3;
 const RETRY_BASE_MS = 1_000;
@@ -112,10 +114,11 @@ export async function POST(req: Request): Promise<Response> {
   const authResult = await authenticateAiRequest(providerId);
   if (authResult instanceof Response) return authResult;
 
-  const { apiKey } = authResult;
+  const { apiKey, userId } = authResult;
 
   return withAiErrorHandling(async () => {
     const model = getModelForProvider(providerId, apiKey);
+    const modelId = DEFAULT_MODELS[providerId as SupportedProvider] ?? providerId;
     const systemPrompt =
       mode === 'replay' && replayContext
         ? buildReplayChatSystemPrompt(replayContext)
@@ -158,8 +161,27 @@ export async function POST(req: Request): Promise<Response> {
       messages: finalMessages,
       onFinish: ({ text }) => {
         // Apply growth mindset word replacement to the final streamed text.
-        // The filtered text is available via the result promise for downstream consumers.
         replaceProhibitedWords(text);
+
+        // Track token usage asynchronously — fire and forget.
+        // The result object exposes usage after the stream completes.
+        const tokenUsage = extractTokenUsage({ text });
+        recordTokenUsage({
+          sessionId: '',
+          userId,
+          role: 'assistant',
+          content: text.slice(0, 500), // Truncate for storage
+          tokenCount: tokenUsage.totalTokens,
+          model: modelId,
+          provider: providerId,
+          metadata: {
+            prompt_tokens: tokenUsage.promptTokens,
+            completion_tokens: tokenUsage.completionTokens,
+            mode,
+          },
+        }).catch(() => {
+          // Token tracking is non-critical — silently degrade
+        });
       },
     });
 

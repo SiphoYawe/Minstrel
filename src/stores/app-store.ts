@@ -18,6 +18,7 @@ interface AppState {
   apiKeyProvider: string | null;
   migrationStatus: MigrationStatus;
   migrationProgress: MigrationProgress;
+  sessionExpired: boolean;
   setUser: (user: AuthUser) => void;
   clearUser: () => void;
   setLoading: (loading: boolean) => void;
@@ -26,6 +27,7 @@ interface AppState {
   setApiKeyProvider: (provider: string | null) => void;
   setMigrationStatus: (status: MigrationStatus) => void;
   setMigrationProgress: (progress: MigrationProgress) => void;
+  setSessionExpired: (expired: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()((set) => ({
@@ -37,7 +39,8 @@ export const useAppStore = create<AppState>()((set) => ({
   apiKeyProvider: null,
   migrationStatus: 'idle',
   migrationProgress: { synced: 0, total: 0 },
-  setUser: (user) => set({ user, isAuthenticated: true }),
+  sessionExpired: false,
+  setUser: (user) => set({ user, isAuthenticated: true, sessionExpired: false }),
   clearUser: () =>
     set({
       user: null,
@@ -60,4 +63,5 @@ export const useAppStore = create<AppState>()((set) => ({
   setApiKeyProvider: (apiKeyProvider) => set({ apiKeyProvider }),
   setMigrationStatus: (migrationStatus) => set({ migrationStatus }),
   setMigrationProgress: (migrationProgress) => set({ migrationProgress }),
+  setSessionExpired: (sessionExpired) => set({ sessionExpired }),
 }));

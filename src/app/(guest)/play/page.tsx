@@ -1,8 +1,10 @@
 'use client';
 
+import { useCallback, useState } from 'react';
 import { TroubleshootingPanel } from '@/components/troubleshooting-panel';
 import { KeyboardShortcutsPanel } from '@/components/keyboard-shortcuts-panel';
 import { FirstRunPrompt } from '@/components/first-run-prompt';
+import { SessionSummary } from '@/components/session-summary';
 import { SilentCoach } from '@/features/modes/silent-coach';
 import { DashboardChat } from '@/features/modes/dashboard-chat';
 import { ReplayStudio } from '@/features/modes/replay-studio';
@@ -19,6 +21,7 @@ export default function GuestPlayPage() {
 
   const currentMode = useSessionStore((s) => s.currentMode);
   const activeSessionId = useSessionStore((s) => s.activeSessionId);
+  const [showSummary, setShowSummary] = useState(false);
 
   const {
     connectionStatus,
@@ -31,6 +34,20 @@ export default function GuestPlayPage() {
 
   const steps = getTroubleshootingSteps(connectionStatus, detectedChannel, isAudioSupported());
 
+  const handleDismissSummary = useCallback(() => {
+    setShowSummary(false);
+  }, []);
+
+  const handleContinuePracticing = useCallback(() => {
+    setShowSummary(false);
+    useSessionStore.getState().resetAnalysis();
+  }, []);
+
+  const handleViewReplay = useCallback(() => {
+    setShowSummary(false);
+    useSessionStore.getState().setCurrentMode('replay-studio');
+  }, []);
+
   return (
     <>
       {/* Mode-specific layout */}
@@ -40,6 +57,15 @@ export default function GuestPlayPage() {
         {currentMode === 'dashboard-chat' && <DashboardChat />}
         {currentMode === 'replay-studio' && <ReplayStudio sessionId={activeSessionId} />}
       </div>
+
+      {/* Session summary overlay */}
+      {showSummary && (
+        <SessionSummary
+          onDismiss={handleDismissSummary}
+          onContinuePracticing={handleContinuePracticing}
+          onViewReplay={handleViewReplay}
+        />
+      )}
 
       {/* Troubleshooting overlay (always available regardless of mode) */}
       {showTroubleshooting && (

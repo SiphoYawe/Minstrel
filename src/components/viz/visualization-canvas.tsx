@@ -20,6 +20,7 @@ import type {
 
 export function VisualizationCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const statusRef = useRef<HTMLSpanElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const rafRef = useRef<number>(0);
   const activeNotesRef = useRef<Record<number, MidiEvent>>({});
@@ -38,6 +39,7 @@ export function VisualizationCanvas() {
   const snapshotTransitionRef = useRef<'none' | 'fade-in' | 'fade-out'>('none');
   const snapshotTransitionStartRef = useRef(0);
   const timingAccuracyRef = useRef(100);
+  const prefersReducedMotionRef = useRef(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -46,6 +48,19 @@ export function VisualizationCanvas() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     ctxRef.current = ctx;
+
+    // --- Prefers-reduced-motion detection ---
+    const motionMql = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)')
+      : null;
+    if (motionMql) {
+      prefersReducedMotionRef.current = motionMql.matches;
+    }
+    function handleMotionChange(e: MediaQueryListEvent) {
+      prefersReducedMotionRef.current = e.matches;
+      dirtyRef.current = true;
+    }
+    motionMql?.addEventListener('change', handleMotionChange);
 
     // --- Resize handling with devicePixelRatio ---
     const resizeObserver = new ResizeObserver((entries) => {
@@ -72,12 +87,14 @@ export function VisualizationCanvas() {
       (current) => {
         const prev = prevActiveNotesRef.current;
 
-        // Detect released notes → create fading entries
-        const canvasH = sizeRef.current.h / (window.devicePixelRatio || 1);
-        const now = performance.now();
-        for (const noteKey of Object.keys(prev)) {
-          if (!(noteKey in current)) {
-            fadingNotesRef.current.push(createFadingNote(prev[Number(noteKey)], canvasH, now));
+        // Detect released notes → create fading entries (skip if reduced motion)
+        if (!prefersReducedMotionRef.current) {
+          const canvasH = sizeRef.current.h / (window.devicePixelRatio || 1);
+          const now = performance.now();
+          for (const noteKey of Object.keys(prev)) {
+            if (!(noteKey in current)) {
+              fadingNotesRef.current.push(createFadingNote(prev[Number(noteKey)], canvasH, now));
+            }
           }
         }
 
@@ -151,10 +168,21 @@ export function VisualizationCanvas() {
       const key = keyRef.current;
       const tempo = tempoRef.current;
       const accuracy = timingAccuracyRef.current;
+      const noteCount = Object.keys(activeNotesRef.current).length;
       const label = key
         ? `Playing in ${key.root} ${key.mode}, ${tempo ?? '--'} BPM, timing accuracy ${Math.round(accuracy)}%`
         : 'Music visualization canvas';
       canvas.setAttribute('aria-label', label);
+
+      // Update the live region for screen readers
+      if (statusRef.current) {
+        const description = key
+          ? `Key: ${key.root} ${key.mode}. Tempo: ${tempo ?? '--'} BPM. Accuracy: ${Math.round(accuracy)}%. Active notes: ${noteCount}.`
+          : noteCount > 0
+            ? `${noteCount} note${noteCount !== 1 ? 's' : ''} playing.`
+            : 'Waiting for input.';
+        statusRef.current.textContent = description;
+      }
     }
 
     // --- Zustand vanilla subscription for snapshot display mode ---
@@ -222,17 +250,24 @@ export function VisualizationCanvas() {
           noteAnalysesRef.current
         );
 
-        // Snapshot transition animation
+        // Snapshot transition animation (instant if reduced motion)
         if (snapshotTransitionRef.current !== 'none') {
-          const elapsed = now - snapshotTransitionStartRef.current;
-          if (snapshotTransitionRef.current === 'fade-in') {
-            snapshotAlphaRef.current = Math.min(elapsed / SNAPSHOT_FADE_IN_MS, 1);
-            if (snapshotAlphaRef.current >= 1) snapshotTransitionRef.current = 'none';
+          if (prefersReducedMotionRef.current) {
+            // Skip animation — show/hide instantly
+            snapshotAlphaRef.current = snapshotTransitionRef.current === 'fade-in' ? 1 : 0;
+            if (snapshotAlphaRef.current <= 0) snapshotRef.current = null;
+            snapshotTransitionRef.current = 'none';
           } else {
-            snapshotAlphaRef.current = Math.max(1 - elapsed / SNAPSHOT_FADE_OUT_MS, 0);
-            if (snapshotAlphaRef.current <= 0) {
-              snapshotTransitionRef.current = 'none';
-              snapshotRef.current = null;
+            const elapsed = now - snapshotTransitionStartRef.current;
+            if (snapshotTransitionRef.current === 'fade-in') {
+              snapshotAlphaRef.current = Math.min(elapsed / SNAPSHOT_FADE_IN_MS, 1);
+              if (snapshotAlphaRef.current >= 1) snapshotTransitionRef.current = 'none';
+            } else {
+              snapshotAlphaRef.current = Math.max(1 - elapsed / SNAPSHOT_FADE_OUT_MS, 0);
+              if (snapshotAlphaRef.current <= 0) {
+                snapshotTransitionRef.current = 'none';
+                snapshotRef.current = null;
+              }
             }
           }
           dirtyRef.current = true;
@@ -270,22 +305,33 @@ export function VisualizationCanvas() {
       unsubNoteAnalyses();
       unsubSnapshot();
       unsubTimingAccuracy();
+      motionMql?.removeEventListener('change', handleMotionChange);
       resizeObserver.disconnect();
       ctxRef.current = null;
     };
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      role="img"
-      aria-label="MIDI note visualization"
-      style={{
-        display: 'block',
-        width: '100%',
-        height: '100%',
-        background: 'var(--background)',
-      }}
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        role="img"
+        aria-label="MIDI note visualization"
+        style={{
+          display: 'block',
+          width: '100%',
+          height: '100%',
+          background: 'var(--background)',
+        }}
+      />
+      <span
+        ref={statusRef}
+        role="status"
+        aria-live="polite"
+        className="sr-only"
+      >
+        Waiting for input.
+      </span>
+    </>
   );
 }

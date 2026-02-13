@@ -36,43 +36,43 @@ export function DashboardChat() {
   }, [pendingDrillRequest, handleSubmit, setInput]);
 
   return (
-    <div className="relative h-dvh w-screen bg-background">
+    <div id="main-content" className="relative h-dvh w-screen bg-background">
       <StatusBar />
 
       <div className="fixed right-4 top-12 z-30">
         <ModeSwitcher />
       </div>
 
-      <div className="h-full pt-10 grid grid-cols-1 lg:grid-cols-[3fr_2fr] transition-all duration-300">
-        <div className="min-w-0 h-full relative">
+      <div className="h-full pt-10 grid grid-cols-1 lg:grid-cols-[3fr_2fr] transition-all duration-300 overflow-y-auto lg:overflow-hidden">
+        <div className="min-w-0 min-h-[400px] lg:min-h-0 h-full relative">
           <VisualizationCanvas />
           <SnapshotCTA />
         </div>
 
-        <div className="flex flex-col h-full border-l border-[#1A1A1A] min-w-0">
+        <div className="flex flex-col h-full border-l border-border min-w-0">
           <div className="shrink-0">
             <DataCard />
           </div>
-          <div className="h-px bg-[#1A1A1A] shrink-0" />
+          <div className="h-px bg-border shrink-0" />
 
           {/* Engagement toggle (authenticated users only) */}
           {isAuthenticated && (
             <>
               <button
                 onClick={() => setShowEngagement((v) => !v)}
-                className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-[#1A1A1A] hover:bg-[#141414] transition-colors duration-150"
+                className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-border hover:bg-card transition-colors duration-150"
               >
-                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#666]">
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                   Progress
                 </span>
-                <span className="font-mono text-[10px] text-[#444]">
+                <span className="font-mono text-[10px] text-text-tertiary">
                   {showEngagement ? '−' : '+'}
                 </span>
               </button>
               {showEngagement && (
-                <div className="shrink-0 max-h-[280px] overflow-y-auto border-b border-[#1A1A1A]">
+                <div className="shrink-0 max-h-[280px] overflow-y-auto border-b border-border">
                   <WeeklySummary />
-                  <div className="h-px bg-[#1A1A1A]" />
+                  <div className="h-px bg-border" />
                   <PersonalRecords />
                 </div>
               )}

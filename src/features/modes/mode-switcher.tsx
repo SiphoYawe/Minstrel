@@ -8,6 +8,13 @@ import { MODE_CONFIGS } from '@/features/modes/mode-types';
 
 const MODE_ORDER: SessionMode[] = ['silent-coach', 'dashboard-chat', 'replay-studio'];
 
+/** Responsive label parts: [prefix (hidden on small screens), always-visible suffix] */
+const RESPONSIVE_LABELS: Record<SessionMode, [prefix: string, suffix: string]> = {
+  'silent-coach': ['Silent ', 'Coach'],
+  'dashboard-chat': ['Dash', 'board'],
+  'replay-studio': ['Re', 'play'],
+};
+
 export function ModeSwitcher() {
   const currentMode = useSessionStore((s) => s.currentMode);
   const announceRef = useRef<HTMLSpanElement>(null);
@@ -87,12 +94,12 @@ export function ModeSwitcher() {
                 <span className="absolute inset-x-0 bottom-0 h-px bg-primary" aria-hidden="true" />
               )}
 
-              {/* Shortcut number + label */}
+              {/* Shortcut number + label with responsive abbreviation */}
               <span className="flex items-center gap-1.5">
                 <span className={`text-[10px] ${isActive ? 'text-primary' : 'text-text-tertiary'}`}>
                   {config.shortcut}
                 </span>
-                {config.label}
+                <span aria-label={config.label}><span className="hidden sm:inline">{RESPONSIVE_LABELS[mode][0]}</span>{RESPONSIVE_LABELS[mode][1]}</span>
               </span>
             </button>
           );

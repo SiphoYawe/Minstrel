@@ -32,7 +32,7 @@ describe('mergeSessionSummaries', () => {
     expect(result[0].id).toBe(1); // more recent first
   });
 
-  it('deduplicates by session ID, preferring Supabase', () => {
+  it('deduplicates by date, preferring Supabase', () => {
     const supabase = [makeSummary({ id: 1, date: '2026-02-13T10:00:00Z', timingAccuracy: 0.9 })];
     const dexie = [makeSummary({ id: 1, date: '2026-02-13T10:00:00Z', timingAccuracy: 0.7 })];
     const result = mergeSessionSummaries(supabase, dexie);

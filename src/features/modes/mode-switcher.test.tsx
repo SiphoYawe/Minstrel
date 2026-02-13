@@ -12,9 +12,12 @@ describe('ModeSwitcher', () => {
 
   it('renders three mode tabs', () => {
     render(<ModeSwitcher />);
-    expect(screen.getByText('Silent Coach')).toBeDefined();
-    expect(screen.getByText('Dashboard')).toBeDefined();
-    expect(screen.getByText('Replay')).toBeDefined();
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs).toHaveLength(3);
+    // Verify labels via aria-label on the inner label spans
+    expect(screen.getByLabelText('Silent Coach')).toBeDefined();
+    expect(screen.getByLabelText('Dashboard')).toBeDefined();
+    expect(screen.getByLabelText('Replay')).toBeDefined();
   });
 
   it('marks Silent Coach as active by default', () => {
@@ -27,7 +30,8 @@ describe('ModeSwitcher', () => {
 
   it('switches mode on click', () => {
     render(<ModeSwitcher />);
-    fireEvent.click(screen.getByText('Dashboard'));
+    const tabs = screen.getAllByRole('tab');
+    fireEvent.click(tabs[1]); // Dashboard tab
     expect(useSessionStore.getState().currentMode).toBe('dashboard-chat');
   });
 
@@ -79,5 +83,11 @@ describe('ModeSwitcher', () => {
     cleanup();
     fireEvent.keyDown(window, { key: '2', altKey: true });
     expect(useSessionStore.getState().currentMode).toBe('silent-coach');
+  });
+
+  it('has responsive label abbreviations with hidden prefix', () => {
+    render(<ModeSwitcher />);
+    const hiddenPrefixes = document.querySelectorAll('.hidden.sm\\:inline');
+    expect(hiddenPrefixes.length).toBe(3);
   });
 });

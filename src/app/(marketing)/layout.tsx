@@ -9,7 +9,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       {/* Navigation */}
       <nav
         aria-label="Main navigation"
-        className="fixed inset-x-0 top-0 z-50 h-14 border-b border-[#1A1A1A] bg-[#0F0F0F]/90 backdrop-blur-sm"
+        className="fixed inset-x-0 top-0 z-50 h-14 border-b border-border bg-background/90 backdrop-blur-sm"
       >
         <div className="mx-auto flex h-full max-w-content items-center justify-between px-8">
           {/* Logo */}
@@ -31,7 +31,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-6">
             <Link
               href="/play"
-              className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#666] transition-colors duration-150 hover:text-[#A3A3A3]"
+              className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground transition-colors duration-150 hover:text-foreground/60"
             >
               Try Free
             </Link>
@@ -43,7 +43,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       </nav>
 
       {/* Content with top padding for fixed nav */}
-      <div className="flex flex-1 flex-col pt-14">{children}</div>
+      <main id="main-content" className="flex flex-1 flex-col pt-14">{children}</main>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import nextTypescript from 'eslint-config-next/typescript';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
 const eslintConfig = [
-  { ignores: ['.next/**', 'node_modules/**'] },
+  { ignores: ['.next/**', 'node_modules/**', 'coverage/**'] },
   ...nextConfig,
   ...nextCoreWebVitals,
   ...nextTypescript,

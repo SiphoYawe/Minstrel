@@ -55,10 +55,10 @@ function LoginForm() {
 
         {/* Header */}
         <div className="mb-8">
-          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#7CB9E8]">
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-primary">
             Session Login
           </p>
-          <div className="mt-2 h-px w-12 bg-[#7CB9E8]" />
+          <div className="mt-2 h-px w-12 bg-primary" />
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -84,7 +84,7 @@ function LoginForm() {
               </Label>
               <Link
                 href="/auth/forgot-password"
-                className="text-caption text-muted-foreground transition-colors duration-150 hover:text-[#7CB9E8]"
+                className="text-caption text-muted-foreground transition-colors duration-150 hover:text-primary"
               >
                 Forgot password?
               </Link>
@@ -100,7 +100,7 @@ function LoginForm() {
           </div>
 
           {error && (
-            <p className="text-caption text-[#E8C77B]" role="alert">
+            <p className="text-caption text-accent-warm" role="alert">
               {error}
             </p>
           )}
@@ -121,7 +121,7 @@ function LoginForm() {
           No account yet?{' '}
           <Link
             href="/signup"
-            className="text-[#7CB9E8] transition-colors duration-150 hover:brightness-110"
+            className="text-primary transition-colors duration-150 hover:brightness-110"
           >
             Create one
           </Link>

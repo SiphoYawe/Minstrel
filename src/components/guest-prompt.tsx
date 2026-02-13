@@ -50,7 +50,7 @@ export function GuestPrompt() {
           </svg>
           <span>
             Create an account to save your progress
-            <span className="mx-1.5 text-[#2A2A2A]" aria-hidden="true">
+            <span className="mx-1.5 text-surface-border" aria-hidden="true">
               /
             </span>
             <Link

@@ -25,21 +25,24 @@ export function mergeSessionSummaries(
   supabaseSessions: ContinuitySessionSummary[],
   dexieSessions: ContinuitySessionSummary[]
 ): ContinuitySessionSummary[] {
-  const seen = new Set<number>();
+  // Use date strings for dedup — Supabase UUIDs don't map to Dexie auto-increment IDs
+  const seen = new Set<string>();
   const merged: ContinuitySessionSummary[] = [];
 
   // Supabase sessions take priority
   for (const session of supabaseSessions) {
-    if (!seen.has(session.id)) {
-      seen.add(session.id);
+    const key = session.date;
+    if (!seen.has(key)) {
+      seen.add(key);
       merged.push(session);
     }
   }
 
   // Add local sessions not in Supabase
   for (const session of dexieSessions) {
-    if (!seen.has(session.id)) {
-      seen.add(session.id);
+    const key = session.date;
+    if (!seen.has(key)) {
+      seen.add(key);
       merged.push(session);
     }
   }

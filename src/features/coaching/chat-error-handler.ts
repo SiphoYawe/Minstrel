@@ -5,7 +5,7 @@ const ERROR_MESSAGES: Record<string, ChatErrorInfo> = {
   INVALID_KEY: {
     code: 'INVALID_KEY',
     message: 'Your API key appears to be invalid. Check your key in Settings.',
-    actionUrl: '/settings',
+    actionUrl: '/settings#api-keys',
   },
   RATE_LIMITED: {
     code: 'RATE_LIMITED',

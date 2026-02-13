@@ -63,6 +63,23 @@ export function ProfileMenu({ email, displayName }: ProfileMenuProps) {
         <DropdownMenuContent align="end" className="w-48 border-surface-light bg-background">
           <DropdownMenuItem asChild>
             <Link
+              href="/history"
+              className="font-mono text-[11px] uppercase tracking-[0.1em] text-secondary focus:bg-card focus:text-foreground"
+            >
+              Session History
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link
+              href="/achievements"
+              className="font-mono text-[11px] uppercase tracking-[0.1em] text-secondary focus:bg-card focus:text-foreground"
+            >
+              Achievements
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="bg-surface-light" />
+          <DropdownMenuItem asChild>
+            <Link
               href="/settings"
               className="font-mono text-[11px] uppercase tracking-[0.1em] text-secondary focus:bg-card focus:text-foreground"
             >

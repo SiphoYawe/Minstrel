@@ -12,6 +12,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { capture } from '@/lib/analytics';
 import { useAppStore } from '@/stores/app-store';
+import { useOnlineStatus } from '@/hooks/use-online-status';
+import { OfflineMessage } from '@/components/offline-message';
 import type { ChatErrorInfo } from '@/features/coaching/coaching-types';
 import { segmentResponseText, type TextSegment } from '@/features/coaching/response-processor';
 import type { UIMessage } from 'ai';
@@ -67,6 +69,7 @@ export function AIChatPanel({
 }: AIChatPanelProps) {
   void _setInput;
   const hasApiKey = useAppStore((s) => s.hasApiKey);
+  const { isOnline } = useOnlineStatus();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -116,6 +119,14 @@ export function AIChatPanel({
         >
           Go to Settings
         </a>
+      </div>
+    );
+  }
+
+  if (!isOnline) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-6">
+        <OfflineMessage dismissable={false} />
       </div>
     );
   }

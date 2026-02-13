@@ -94,21 +94,21 @@ development_status:
   epic-5-retrospective: optional
 
   # Epic 6: Session Replay & Continuity
-  epic-6: in-progress
+  epic-6: done
   6-1-replay-studio-mode-layout: done
   6-2-timeline-scrubbing-and-playback-controls: done
   6-3-ai-questions-about-replay-moments: done
-  6-4-cross-session-continuity: ready-for-dev
+  6-4-cross-session-continuity: done
   epic-6-retrospective: optional
 
   # Epic 7: Engagement & Progress Tracking
-  epic-7: in-progress
+  epic-7: done
   7-1-practice-streak-tracking: done
-  7-2-xp-calculation-and-awards: ready-for-dev
-  7-3-achievement-badges-system: ready-for-dev
-  7-4-progress-trends-visualization: ready-for-dev
-  7-5-weekly-progress-summaries: ready-for-dev
-  7-6-personal-records-tracking: ready-for-dev
+  7-2-xp-calculation-and-awards: done
+  7-3-achievement-badges-system: done
+  7-4-progress-trends-visualization: done
+  7-5-weekly-progress-summaries: done
+  7-6-personal-records-tracking: done
   epic-7-retrospective: optional
 
   # Epic 8: Critical Bug Fixes & Core Flow Repair

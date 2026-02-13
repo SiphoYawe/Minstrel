@@ -63,10 +63,10 @@ export default function SignupPage() {
           </Link>
 
           <div className="mb-6">
-            <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#81C995]">
+            <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-accent-success">
               Account Created
             </p>
-            <div className="mt-2 h-px w-12 bg-[#81C995]" />
+            <div className="mt-2 h-px w-12 bg-accent-success" />
           </div>
           <p className="text-sm leading-relaxed text-muted-foreground">
             Check your email to confirm your account. Once verified, you can sign in and start
@@ -74,7 +74,7 @@ export default function SignupPage() {
           </p>
           <Link
             href="/login"
-            className="mt-6 inline-flex h-11 w-full items-center justify-center border border-[#2A2A2A] bg-background text-sm font-medium text-foreground transition-colors duration-150 hover:bg-[#171717]"
+            className="mt-6 inline-flex h-11 w-full items-center justify-center border border-surface-border bg-background text-sm font-medium text-foreground transition-colors duration-150 hover:bg-card"
           >
             Back to Sign In
           </Link>
@@ -102,10 +102,10 @@ export default function SignupPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#7CB9E8]">
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-primary">
             New Account
           </p>
-          <div className="mt-2 h-px w-12 bg-[#7CB9E8]" />
+          <div className="mt-2 h-px w-12 bg-primary" />
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -175,7 +175,7 @@ export default function SignupPage() {
           </div>
 
           {error && (
-            <p className="text-caption text-[#E8C77B]" role="alert">
+            <p className="text-caption text-accent-warm" role="alert">
               {error}
             </p>
           )}
@@ -196,7 +196,7 @@ export default function SignupPage() {
           Already have an account?{' '}
           <Link
             href="/login"
-            className="text-[#7CB9E8] transition-colors duration-150 hover:brightness-110"
+            className="text-primary transition-colors duration-150 hover:brightness-110"
           >
             Sign in
           </Link>

@@ -102,7 +102,7 @@ export function TroubleshootingPanel({
         </div>
 
         {/* Steps */}
-        <div className="divide-y divide-[#2A2A2A]" aria-live="polite">
+        <div className="divide-y divide-surface-border" aria-live="polite">
           {steps.map((step, i) => {
             const isChannel = step.id === 'channel-mismatch';
             const isAudioFallback = step.id === 'audio-fallback';

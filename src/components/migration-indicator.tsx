@@ -15,9 +15,9 @@ export function MigrationIndicator() {
     <div className="fixed inset-x-0 bottom-0 z-50 pointer-events-none animate-in fade-in slide-in-from-bottom duration-300">
       {/* Progress track — thin accent line */}
       {migrationStatus === 'migrating' && (
-        <div className="h-px w-full bg-[#2A2A2A]">
+        <div className="h-px w-full bg-surface-border">
           <div
-            className="h-full bg-[#7CB9E8]"
+            className="h-full bg-primary"
             style={{
               width: `${progressFraction * 100}%`,
               transition: 'width 400ms ease-out',
@@ -27,15 +27,15 @@ export function MigrationIndicator() {
       )}
 
       {/* Status bar */}
-      <div className="flex h-8 items-center justify-between border-t border-[#2A2A2A] bg-[#0F0F0F] px-4">
+      <div className="flex h-8 items-center justify-between border-t border-surface-border bg-background px-4">
         <div className="flex items-center gap-3">
           {/* Status LED */}
           <span
             className={
               migrationStatus === 'migrating'
-                ? 'inline-block h-1.5 w-1.5 bg-[#7CB9E8] animate-pulse'
+                ? 'inline-block h-1.5 w-1.5 bg-primary animate-pulse'
                 : migrationStatus === 'complete'
-                  ? 'inline-block h-1.5 w-1.5 bg-[#81C995]'
+                  ? 'inline-block h-1.5 w-1.5 bg-accent-success'
                   : 'inline-block h-1.5 w-1.5 bg-accent-warm'
             }
           />
@@ -46,9 +46,9 @@ export function MigrationIndicator() {
             style={{
               color:
                 migrationStatus === 'migrating'
-                  ? '#7CB9E8'
+                  ? 'hsl(var(--primary))'
                   : migrationStatus === 'complete'
-                    ? '#81C995'
+                    ? 'hsl(var(--accent-success))'
                     : 'hsl(var(--accent-warm))',
             }}
           >
@@ -62,7 +62,7 @@ export function MigrationIndicator() {
         <div className="flex items-center gap-3">
           {/* Counter — only during active migration */}
           {migrationStatus === 'migrating' && migrationProgress.total > 0 && (
-            <span className="font-mono text-[11px] tabular-nums tracking-wider text-[#666666]">
+            <span className="font-mono text-[11px] tabular-nums tracking-wider text-muted-foreground">
               {migrationProgress.synced}/{migrationProgress.total}
             </span>
           )}
@@ -71,7 +71,7 @@ export function MigrationIndicator() {
           {migrationStatus === 'partial-failure' && (
             <button
               type="button"
-              className="pointer-events-auto flex h-5 w-5 items-center justify-center text-[#666666] transition-colors duration-150 hover:text-accent-warm"
+              className="pointer-events-auto flex h-5 w-5 items-center justify-center text-muted-foreground transition-colors duration-150 hover:text-accent-warm"
               onClick={() => useAppStore.getState().setMigrationStatus('idle')}
               aria-label="Dismiss sync notification"
             >

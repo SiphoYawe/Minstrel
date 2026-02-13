@@ -154,9 +154,9 @@ export function ApiKeyPrompt({
       : `${providerName}: ...${keyMetadata.lastFour}`;
 
     const statusConfig = {
-      active: { label: 'Active', color: '#81C995', bg: 'rgba(129,201,149,0.15)' },
-      validating: { label: 'Validating', color: '#7CB9E8', bg: 'rgba(124,185,232,0.15)' },
-      invalid: { label: 'Invalid', color: '#E8C77B', bg: 'rgba(232,199,123,0.15)' },
+      active: { label: 'Active', color: 'hsl(var(--accent-success))', bg: 'hsl(var(--accent-success) / 0.15)' },
+      validating: { label: 'Validating', color: 'hsl(var(--primary))', bg: 'hsl(var(--primary) / 0.15)' },
+      invalid: { label: 'Invalid', color: 'hsl(var(--accent-warm))', bg: 'hsl(var(--accent-warm) / 0.15)' },
     }[keyMetadata.status];
 
     return (
@@ -164,7 +164,7 @@ export function ApiKeyPrompt({
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span
-              className="font-mono text-sm text-[#C8C8C8]"
+              className="font-mono text-sm text-foreground"
               style={{ fontFamily: 'var(--font-mono, "JetBrains Mono", monospace)' }}
             >
               {maskedKey}
@@ -189,7 +189,7 @@ export function ApiKeyPrompt({
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-[#E8C77B] hover:text-[#E8C77B]">
+              <Button variant="ghost" size="sm" className="text-accent-warm hover:text-accent-warm">
                 Remove Key
               </Button>
             </AlertDialogTrigger>
@@ -204,7 +204,7 @@ export function ApiKeyPrompt({
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleDelete}
-                  className="bg-[#E8C77B] text-[#0F0F0F] hover:brightness-110"
+                  className="bg-accent-warm text-primary-foreground hover:brightness-110"
                 >
                   Remove
                 </AlertDialogAction>
@@ -223,7 +223,7 @@ export function ApiKeyPrompt({
       {/* BYOK onboarding text — only when there is no key at all */}
       {!keyMetadata && (
         <div className="flex flex-col gap-2">
-          <p className="text-xs text-[#A0A0A0]" style={{ lineHeight: '1.6' }}>
+          <p className="text-xs text-muted-foreground" style={{ lineHeight: '1.6' }}>
             Minstrel uses a Bring-Your-Own-Key model. Provide your LLM API key to unlock AI coaching
             features. Your key is encrypted and never shared.
           </p>
@@ -235,7 +235,7 @@ export function ApiKeyPrompt({
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[#7CB9E8] hover:underline"
+                  className="inline-flex items-center gap-1 text-primary hover:underline"
                 >
                   {link.label}
                   <ExternalLink className="size-3" />
@@ -250,13 +250,13 @@ export function ApiKeyPrompt({
       <div className="flex flex-col gap-1.5">
         <label
           htmlFor="provider-select"
-          className="text-[11px] uppercase tracking-wider text-[#A0A0A0]"
+          className="text-[11px] uppercase tracking-wider text-muted-foreground"
           style={{ fontFamily: 'var(--font-sans, Inter, sans-serif)' }}
         >
           Provider
         </label>
         <Select value={provider} onValueChange={handleProviderChange}>
-          <SelectTrigger id="provider-select" className="w-full bg-[#1A1A1A]">
+          <SelectTrigger id="provider-select" className="w-full bg-card">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -271,7 +271,7 @@ export function ApiKeyPrompt({
       <div className="flex flex-col gap-1.5">
         <label
           htmlFor="api-key-input"
-          className="text-[11px] uppercase tracking-wider text-[#A0A0A0]"
+          className="text-[11px] uppercase tracking-wider text-muted-foreground"
           style={{ fontFamily: 'var(--font-sans, Inter, sans-serif)' }}
         >
           API Key
@@ -288,7 +288,7 @@ export function ApiKeyPrompt({
           aria-label={`${PROVIDER_DISPLAY_NAMES[provider]} API key`}
           aria-describedby={displayError ? errorId : undefined}
           aria-invalid={!!displayError}
-          className="bg-[#1A1A1A] font-mono"
+          className="bg-card font-mono"
           style={{ fontFamily: 'var(--font-mono, "JetBrains Mono", monospace)' }}
           disabled={isSubmitting}
           autoComplete="off"
@@ -296,7 +296,7 @@ export function ApiKeyPrompt({
 
         {/* Inline error */}
         {displayError && (
-          <p id={errorId} className="text-xs text-[#E8C77B]" role="alert">
+          <p id={errorId} className="text-xs text-accent-warm" role="alert">
             {displayError}
           </p>
         )}
@@ -307,7 +307,7 @@ export function ApiKeyPrompt({
         <Button
           onClick={handleSave}
           disabled={isSubmitting || apiKey.length === 0}
-          className="bg-[#7CB9E8] text-[#0F0F0F] hover:brightness-110"
+          className="bg-primary text-primary-foreground hover:brightness-110"
           size="sm"
         >
           {isSubmitting ? (

@@ -21,7 +21,7 @@ export function ApiKeyPrompt({
     >
       <div className="flex items-start gap-4">
         {/* Key icon — etched hardware aesthetic */}
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[#2A2A2A] bg-surface-light">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-surface-border bg-surface-light">
           <svg
             width="18"
             height="18"

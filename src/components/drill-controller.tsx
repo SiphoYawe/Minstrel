@@ -122,7 +122,7 @@ export function DrillController({
   }
 
   return (
-    <div className="w-full bg-[#1A1A1A] border border-border p-4">
+    <div className="w-full bg-card border border-border p-4">
       {/* Screen reader announcements */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">
         {announcement}
@@ -180,7 +180,7 @@ export function DrillController({
           </p>
           <button
             onClick={handleStartDrill}
-            className="h-9 px-4 text-ui-label font-medium bg-accent-blue text-[#0F0F0F] hover:brightness-110 active:brightness-90 transition-all duration-micro focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="h-9 px-4 text-ui-label font-medium bg-accent-blue text-primary-foreground hover:brightness-110 active:brightness-90 transition-all duration-micro focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Start Drill
           </button>
@@ -280,7 +280,7 @@ export function DrillController({
           </button>
           <button
             onClick={handleComplete}
-            className="h-9 px-4 text-ui-label font-medium bg-accent-blue text-[#0F0F0F] hover:brightness-110 active:brightness-90 transition-all duration-micro focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="h-9 px-4 text-ui-label font-medium bg-accent-blue text-primary-foreground hover:brightness-110 active:brightness-90 transition-all duration-micro focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Complete
           </button>

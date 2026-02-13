@@ -89,7 +89,7 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
   // --- Loading state ---
   if (replayStatus === 'loading') {
     return (
-      <div className="relative h-dvh w-screen bg-background">
+      <div id="main-content" className="relative h-dvh w-screen bg-background">
         <StatusBar />
         <div className="fixed right-4 top-12 z-30">
           <ModeSwitcher />
@@ -97,14 +97,14 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
         <div className="flex h-full pt-10 items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <div
-              className="h-1 w-48 bg-[#1A1A1A] overflow-hidden"
+              className="h-1 w-48 bg-card overflow-hidden"
               role="progressbar"
               aria-label="Loading session"
             >
-              <div className="h-full w-1/3 bg-[#7CB9E8] animate-[shimmer_1.2s_ease-in-out_infinite]" />
+              <div className="h-full w-1/3 bg-primary animate-[shimmer_1.2s_ease-in-out_infinite]" />
             </div>
             <p
-              className="font-mono text-xs tracking-widest uppercase text-[#7CB9E8]/60"
+              className="font-mono text-xs tracking-widest uppercase text-primary/60"
               aria-live="polite"
             >
               Loading session...
@@ -118,14 +118,14 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
   // --- Error state ---
   if (replayStatus === 'error') {
     return (
-      <div className="relative h-dvh w-screen bg-background">
+      <div id="main-content" className="relative h-dvh w-screen bg-background">
         <StatusBar />
         <div className="fixed right-4 top-12 z-30">
           <ModeSwitcher />
         </div>
         <div className="flex h-full pt-10 items-center justify-center">
           <div className="max-w-md px-6 text-center">
-            <div className="mb-4 font-mono text-lg text-[#D4A43C]" aria-live="polite">
+            <div className="mb-4 font-mono text-lg text-accent-warm" aria-live="polite">
               No sessions to replay
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -139,7 +139,7 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
 
   // --- Success state: three-panel layout ---
   return (
-    <div className="relative h-dvh w-screen bg-background">
+    <div id="main-content" className="relative h-dvh w-screen bg-background">
       <StatusBar />
 
       <div className="fixed right-4 top-12 z-30">
@@ -149,17 +149,17 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
       {/* Main grid: canvas + detail panel, then timeline below */}
       <div className="flex flex-col h-full pt-10">
         {/* Upper region: canvas + right panel */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[3fr_1fr] transition-all duration-300">
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[3fr_1fr] transition-all duration-300 overflow-y-auto lg:overflow-hidden">
           {/* Canvas area */}
-          <div className="min-w-0 h-full">
+          <div className="min-w-0 min-h-[400px] lg:min-h-0 h-full">
             <VisualizationCanvas />
           </div>
 
           {/* Right detail panel */}
-          <div className="flex flex-col h-full border-l border-[#1A1A1A] min-w-0 bg-[#0F0F0F]">
+          <div className="flex flex-col h-full border-l border-border min-w-0 bg-background">
             {/* Tab bar */}
             <div
-              className="flex shrink-0 border-b border-[#1A1A1A]"
+              className="flex shrink-0 border-b border-border"
               role="tablist"
               aria-label="Replay details"
             >
@@ -177,14 +177,14 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
                     relative flex-1 px-4 py-3
                     text-xs uppercase tracking-[0.12em] font-medium
                     transition-colors duration-200
-                    ${activeTab === tab.id ? 'text-[#7CB9E8]' : 'text-[#666] hover:text-[#999]'}
+                    ${activeTab === tab.id ? 'text-primary' : 'text-muted-foreground hover:text-foreground/60'}
                   `}
                 >
                   {tab.label}
                   {/* Active underline */}
                   {activeTab === tab.id && (
                     <span
-                      className="absolute bottom-0 left-0 right-0 h-px bg-[#7CB9E8]"
+                      className="absolute bottom-0 left-0 right-0 h-px bg-primary"
                       aria-hidden="true"
                     />
                   )}
@@ -297,15 +297,15 @@ function InsightsPanel({
     <div className="p-3" role="region" aria-label="Session insights">
       <div className="grid grid-cols-2 gap-2">
         {metrics.map((metric) => (
-          <div key={metric.label} className="bg-[#141414] border border-[#1A1A1A] p-3">
-            <span className="block text-[10px] uppercase tracking-[0.1em] text-[#555] mb-1">
+          <div key={metric.label} className="bg-surface-light border border-border p-3">
+            <span className="block text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-1">
               {metric.label}
             </span>
             <span
               className={`block text-sm text-foreground truncate ${metric.mono ? 'font-mono' : ''}`}
             >
               {metric.value}
-              {metric.unit && <span className="text-[10px] text-[#555] ml-1">{metric.unit}</span>}
+              {metric.unit && <span className="text-[10px] text-muted-foreground ml-1">{metric.unit}</span>}
             </span>
           </div>
         ))}
@@ -356,20 +356,20 @@ function ChatPanel() {
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center max-w-[220px]">
             <div
-              className="inline-block w-8 h-8 mb-3 border border-[#1A1A1A] bg-[#141414]
-                flex items-center justify-center text-[#555] text-sm"
+              className="inline-block w-8 h-8 mb-3 border border-border bg-surface-light
+                flex items-center justify-center text-muted-foreground text-sm"
               aria-hidden="true"
             >
               ⌘
             </div>
-            <p className="text-xs text-[#666] leading-relaxed mb-3">
+            <p className="text-xs text-muted-foreground leading-relaxed mb-3">
               Connect your API key in Settings to ask questions about your playing.
             </p>
             <Link
               href="/settings"
               className="inline-block text-[11px] font-mono uppercase tracking-[0.1em]
-                text-[#7CB9E8] hover:text-white
-                border border-[#7CB9E8]/20 hover:border-[#7CB9E8]/50
+                text-primary hover:text-white
+                border border-primary/20 hover:border-primary/50
                 px-3 py-1.5 transition-colors duration-150"
             >
               Settings
@@ -386,7 +386,7 @@ function ChatPanel() {
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-2">
         {messages.length === 0 && !isLoading && (
           <div className="flex items-center justify-center h-full">
-            <p className="text-[11px] text-[#444] font-mono text-center leading-relaxed max-w-[200px]">
+            <p className="text-[11px] text-muted-foreground font-mono text-center leading-relaxed max-w-[200px]">
               Ask about what happened at any moment in your session
             </p>
           </div>
@@ -409,8 +409,8 @@ function ChatPanel() {
                   max-w-[85%] px-3 py-2 text-xs leading-relaxed
                   ${
                     isUser
-                      ? 'bg-[#1A1A1A] text-[#ccc] border border-[#252525]'
-                      : 'bg-[#141414] text-[#999] border border-[#1A1A1A]'
+                      ? 'bg-card text-foreground border border-border'
+                      : 'bg-surface-light text-muted-foreground border border-border'
                   }
                 `}
               >
@@ -423,18 +423,18 @@ function ChatPanel() {
         {/* Typing indicator */}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-[#141414] border border-[#1A1A1A] px-3 py-2 flex items-center gap-1">
+            <div className="bg-surface-light border border-border px-3 py-2 flex items-center gap-1">
               <span
-                className="block w-1 h-1 bg-[#7CB9E8]/60 animate-[pulse-dot_1.4s_ease-in-out_infinite]"
+                className="block w-1 h-1 bg-primary/60 animate-[pulse-dot_1.4s_ease-in-out_infinite]"
                 aria-hidden="true"
               />
               <span
-                className="block w-1 h-1 bg-[#7CB9E8]/60 animate-[pulse-dot_1.4s_ease-in-out_0.2s_infinite]"
+                className="block w-1 h-1 bg-primary/60 animate-[pulse-dot_1.4s_ease-in-out_0.2s_infinite]"
                 style={{ animationDelay: '0.2s' }}
                 aria-hidden="true"
               />
               <span
-                className="block w-1 h-1 bg-[#7CB9E8]/60 animate-[pulse-dot_1.4s_ease-in-out_0.4s_infinite]"
+                className="block w-1 h-1 bg-primary/60 animate-[pulse-dot_1.4s_ease-in-out_0.4s_infinite]"
                 style={{ animationDelay: '0.4s' }}
                 aria-hidden="true"
               />
@@ -445,19 +445,19 @@ function ChatPanel() {
 
         {/* Error display */}
         {chatError && (
-          <div className="px-3 py-2 bg-[#141414] border border-[#D4A43C]/20 text-[11px] text-[#D4A43C]">
+          <div className="px-3 py-2 bg-surface-light border border-accent-warm/20 text-[11px] text-accent-warm">
             {chatError.message}
           </div>
         )}
       </div>
 
       {/* Input area */}
-      <div className="shrink-0 border-t border-[#1A1A1A] bg-[#0A0A0A]">
+      <div className="shrink-0 border-t border-border bg-background">
         {/* Timestamp context indicator */}
         <div className="px-3 pt-2 pb-1">
-          <span className="font-mono text-[10px] text-[#555] tracking-wide">
+          <span className="font-mono text-[10px] text-muted-foreground tracking-wide">
             Asking about moment at{' '}
-            <span className="text-[#7CB9E8]/70">{formatPositionMmSs(currentTimestamp)}</span>
+            <span className="text-primary/70">{formatPositionMmSs(currentTimestamp)}</span>
           </span>
         </div>
 
@@ -470,10 +470,10 @@ function ChatPanel() {
             placeholder="What happened here?"
             rows={1}
             aria-label="Ask about this moment"
-            className="flex-1 resize-none bg-[#141414] border border-[#1A1A1A]
-              text-xs text-[#ccc] placeholder:text-[#444]
+            className="flex-1 resize-none bg-surface-light border border-border
+              text-xs text-foreground placeholder:text-muted-foreground
               px-3 py-2 font-mono
-              focus:outline-none focus:border-[#7CB9E8]/30
+              focus:outline-none focus:border-primary/30
               transition-colors duration-150"
           />
           <button
@@ -481,9 +481,9 @@ function ChatPanel() {
             disabled={!input.trim() || isLoading}
             aria-label="Send message"
             className="shrink-0 w-8 h-8 flex items-center justify-center
-              border border-[#1A1A1A] bg-[#141414]
-              text-[#7CB9E8] text-xs
-              hover:border-[#7CB9E8]/30 hover:bg-[#7CB9E8]/5
+              border border-border bg-surface-light
+              text-primary text-xs
+              hover:border-primary/30 hover:bg-primary/5
               disabled:opacity-30 disabled:cursor-not-allowed
               transition-all duration-150"
           >

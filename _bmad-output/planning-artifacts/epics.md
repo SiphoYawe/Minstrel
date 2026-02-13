@@ -272,6 +272,26 @@ Users can replay recorded sessions with timeline scrubbing, ask the AI about any
 Users can track practice streaks, earn XP and achievement badges, view progress trends over time, and celebrate personal records.
 **FRs covered:** FR39, FR40, FR41, FR42, FR43, FR44
 
+### Epic 8: Critical Bug Fixes & Core Flow Repair
+
+Critical bugs and broken flows identified by adversarial UX review — data integrity issues, broken user journeys, and missing guards.
+**Source:** BUG-1 through BUG-7, MISS-7, ARCH-1
+
+### Epic 9: Design System Remediation
+
+Fixes to align the implemented UI with the UX Design Specification — color violations, hardcoded values, accessibility gaps, and responsive breakpoints.
+**Source:** DS-1 through DS-6, A11Y-1 through A11Y-8, MISS-9, MISS-10
+
+### Epic 10: Missing Screens & User Journeys
+
+New screens and flows completing the end-to-end user experience across all 4 user journeys.
+**Source:** MISS-1 through MISS-14, NEW-1 through NEW-9
+
+### Epic 11: AI Coaching & Data Integrity Fixes
+
+Wire up existing but unused AI coaching infrastructure and resolve data integrity issues in engagement features.
+**Source:** AI-1 through AI-6, DATA-1 through DATA-6, MISS-8, MISS-11
+
 ---
 
 ## Epic 1: First Note Experience
@@ -1053,11 +1073,435 @@ So that I can celebrate concrete achievements and push myself.
 
 ---
 
+## Epic 8: Critical Bug Fixes & Core Flow Repair
+
+Critical bugs and broken flows identified by adversarial UX review. These fix data integrity issues, broken user journeys, and missing guards that could cause confusing errors or incorrect coaching advice.
+**Source:** UX Critique BUG-1 through BUG-7, MISS-7, ARCH-1
+
+### Story 8.1: Fix Replay Timing Accuracy Bug
+
+As a musician,
+I want my timing accuracy to reflect my actual performance,
+So that coaching advice about timing is meaningful and not always "100%."
+
+**Acceptance Criteria:**
+
+**Given** the timing accuracy calculation in `context-builder.ts` line 223 runs
+**When** noteOnCount > 0
+**Then** accuracy is calculated from actual timing deviation data from sessionStore snapshots, not by dividing noteOnCount by itself
+**And** the timingAccuracy field reflects real performance (e.g., 0.73 not always 1.0)
+**And** AI coaching references correct timing data in its advice
+
+### Story 8.2: Fix SnapshotCTA Drill Generation Flow
+
+As a musician,
+I want the "Generate Drill" button on the session snapshot to actually generate a drill targeting my identified weakness,
+So that I can immediately practice what needs improvement.
+
+**Acceptance Criteria:**
+
+**Given** a session snapshot is displayed with a key insight
+**When** the user clicks "Generate Drill"
+**Then** a drill is generated via `/api/ai/drill` targeting the weakness identified in the snapshot
+**And** the UI transitions to the DrillController component with the generated drill loaded
+**And** if no API key is configured, the user sees the graceful degradation prompt
+
+### Story 8.3: Add API Key Guard to Coaching Chat
+
+As a musician using the coaching chat,
+I want the system to prevent me from sending messages without an API key,
+So that I don't encounter confusing server errors.
+
+**Acceptance Criteria:**
+
+**Given** a user has no API key configured
+**When** they attempt to submit a coaching chat message
+**Then** the message is not sent and the input shows a prompt to configure an API key
+**And** `useCoachingChat` matches the guard pattern in `useReplayChat`: `!trimmed || isLoading || !hasApiKey`
+**And** `providerId` reads from the user's saved key metadata instead of hardcoded `'openai'`
+
+### Story 8.4: Fix Auth Flow Bugs
+
+As a user,
+I want authentication flows to redirect me to sensible destinations,
+So that I don't get lost after confirming my email, signing out, or signing up.
+
+**Acceptance Criteria:**
+
+**Given** a user confirms their email via the confirmation link
+**When** the auth/confirm route processes the OTP
+**Then** the default redirect is `/session` (not `/`)
+**And** sign-out redirects to `/` consistently across all implementations (profile-menu.tsx and use-auth.ts)
+**And** the dead `/auth/sign-up-success` route is removed or redirects to `/login`
+
+### Story 8.5: Replace Delete Account with Honest UX
+
+As a user,
+I want the settings page to honestly communicate that account deletion is not yet available,
+So that I'm not confused by a non-functional red button.
+
+**Acceptance Criteria:**
+
+**Given** a user views the Danger Zone section in Settings
+**When** the section renders
+**Then** the Delete Account button uses amber styling instead of red/destructive
+**And** copy is clear: "Account deletion — coming in a future update"
+**And** the section matches the "amber not red" design principle
+
+### Story 8.6: Wire AI Provider Selection from Saved Key
+
+As a user who configured a non-OpenAI API key,
+I want the AI coaching to use my configured provider,
+So that requests don't fail with an OpenAI-only hardcode.
+
+**Acceptance Criteria:**
+
+**Given** a user has saved an API key for provider X
+**When** the coaching chat sends a request
+**Then** `providerId` in the request body matches the user's configured provider
+**And** both `coaching-client.ts` and `use-replay-chat.ts` read provider dynamically
+
+### Story 8.7: Add Next.js Middleware for Auth Route Protection
+
+As a developer,
+I want Next.js middleware to redirect unauthenticated users from protected routes,
+So that users never see broken auth-required pages.
+
+**Acceptance Criteria:**
+
+**Given** an unauthenticated user navigates to `/session`, `/replay`, or `/settings`
+**When** the middleware runs
+**Then** they are redirected to `/login?redirectTo={originalPath}`
+**And** authenticated users on `/login` or `/signup` are redirected to `/session`
+**And** guest routes (`/play`, `/`) remain unprotected
+
+---
+
+## Epic 9: Design System Remediation
+
+Fixes to align the implemented UI with the UX Design Specification. Addresses color violations, hardcoded values, missing accessibility features, and responsive breakpoint gaps.
+**Source:** UX Critique DS-1 through DS-6, A11Y-1 through A11Y-8, MISS-9, MISS-10
+
+### Story 9.1: Change Destructive/Error Colors to Amber
+
+As a user,
+I want error and warning states to use amber tones instead of red,
+So that the interface maintains the growth mindset principle of "trajectory, not failure."
+
+**Acceptance Criteria:**
+
+**Given** the globals.css design tokens
+**When** `--destructive` and `--accent-error` are defined
+**Then** they use warm amber HSL values (not red hue 0)
+**And** all components using `variant="destructive"` or `text-red-*` render in amber tones
+**And** the login form error messages use `text-accent-error` (amber), not `text-red-500`
+
+### Story 9.2: Replace Hardcoded Colors with Design Tokens
+
+As a developer,
+I want all colors to reference design tokens instead of hardcoded hex values,
+So that theming is consistent and maintainable.
+
+**Acceptance Criteria:**
+
+**Given** any component file
+**When** it uses a color
+**Then** it references a Tailwind utility backed by a CSS custom property, not a hardcoded hex
+**And** #0F0F0F → `bg-background`, #7CB9E8 → `text-primary`, #1A1A1A → `border-border`, #999 → `text-muted-foreground`
+
+### Story 9.3: Refactor Raw Buttons and Inline Styles
+
+As a developer,
+I want all interactive elements to use the shadcn/ui design system,
+So that the design system is consistent throughout the application.
+
+**Acceptance Criteria:**
+
+**Given** any component has raw `<button>` elements
+**When** they are refactored
+**Then** they use shadcn/ui `<Button>` with appropriate variant
+**And** inline `<style>` tags (e.g., `@keyframes fadeUp` in snapshot-cta) are moved to globals.css or Tailwind config
+
+### Story 9.4: Add Responsive Breakpoints to Dashboard and Replay
+
+As a user on a smaller screen,
+I want layouts to adapt gracefully,
+So that the interface remains usable at various viewport widths.
+
+**Acceptance Criteria:**
+
+**Given** the dashboard 60/40 split layout
+**When** the viewport is below 1024px
+**Then** the layout stacks vertically (canvas on top, panel below)
+**And** a "Best experienced on a larger screen" message appears below 768px
+
+### Story 9.5: Fix Accessibility Gaps
+
+As a user who relies on assistive technology,
+I want the application to be accessible with screen readers and keyboard navigation,
+So that I can use all features effectively.
+
+**Acceptance Criteria:**
+
+**Given** the VisualizationCanvas renders
+**Then** it has `role="img"` and a descriptive `aria-label`
+**And** the ModeSwitcher has `role="tablist"` with `aria-current` on the active mode
+**And** session snapshots use `aria-live="polite"` for announcements
+**And** drill phases use `aria-live` for phase transitions
+**And** a skip-to-content link is the first focusable element on every page
+**And** the chat panel has `role="log"` with `aria-live="polite"`
+**And** Canvas respects `prefers-reduced-motion: reduce`
+
+### Story 9.6: Add Mobile Redirect and Browser Incompatibility Pages
+
+As a user visiting on mobile or an unsupported browser,
+I want a clear message explaining requirements,
+So that I understand why the app isn't working.
+
+**Acceptance Criteria:**
+
+**Given** a user visits on mobile
+**When** the session/play page loads
+**Then** a message explains "Minstrel requires a desktop browser with MIDI support"
+**And** Firefox/Safari users see browser requirements with a Chrome download link
+**And** the marketing page (/) is NOT blocked — only MIDI-dependent pages
+
+---
+
+## Epic 10: Missing Screens & User Journeys
+
+New screens and flows identified as gaps in the 4 user journeys (First Note, Returning Player, Deep Practice, Casual Check-in). These complete the end-to-end user experience.
+**Source:** UX Critique MISS-1 through MISS-14, NEW-1 through NEW-9
+
+### Story 10.1: First-Run Onboarding Empty State
+
+As a first-time user,
+I want to see guided first-run experience when I have no session data,
+So that I understand how to start using Minstrel.
+
+**Acceptance Criteria:**
+
+**Given** a new user with zero sessions
+**When** they navigate to the session page
+**Then** an empty state displays: "Connect your MIDI device" → "Play anything — Minstrel listens"
+**And** on first MIDI input, the empty state transitions to real-time visualization
+**And** after the first session completes, the onboarding never appears again
+
+### Story 10.2: Session Summary Screen
+
+As a musician,
+I want to see a summary when I finish practicing,
+So that I can review what I accomplished.
+
+**Acceptance Criteria:**
+
+**Given** a user ends a session
+**When** the session ends
+**Then** a summary displays: practice time, notes played, chords, key(s), tempo, timing accuracy, XP earned, and key insight
+**And** navigation options: start new session, go to replay, go to dashboard
+
+### Story 10.3: Return Session Welcome Experience
+
+As a returning musician,
+I want a personalized welcome when I start a new session,
+So that I feel the continuity of my practice journey.
+
+**Acceptance Criteria:**
+
+**Given** a returning user with previous sessions
+**When** they start a new session
+**Then** a welcome card shows: last session date, what they worked on, and a suggestion for today
+**And** the card auto-dismisses on MIDI input or manual dismiss
+
+### Story 10.4: Session History Browser
+
+As a musician,
+I want to browse my past practice sessions,
+So that I can find and replay specific sessions.
+
+**Acceptance Criteria:**
+
+**Given** a user navigates to `/replay` without a session ID
+**When** the page loads
+**Then** a session list shows all past sessions: date, duration, key, timing accuracy
+**And** clicking a session navigates to `/replay/[id]`
+
+### Story 10.5: Achievement Gallery
+
+As a musician,
+I want to view all my achievements in a gallery,
+So that I can see my progress milestones.
+
+**Acceptance Criteria:**
+
+**Given** a user navigates to the achievement gallery
+**When** the page loads
+**Then** earned badges display in full color, unearned badges greyed out with progress
+**And** achievements are grouped by category (Genre, Technique, Consistency, Records)
+
+### Story 10.6: Keyboard Shortcuts Help Panel
+
+As a user,
+I want to see a keyboard shortcuts reference,
+So that I can learn and use shortcuts efficiently.
+
+**Acceptance Criteria:**
+
+**Given** the user presses Shift+?
+**When** the shortcut triggers
+**Then** a modal shows all shortcuts grouped by context (Navigation, Session, Replay, General)
+**And** the modal is dismissable with Escape
+
+### Story 10.7: Warm-Up Generation Flow
+
+As a musician,
+I want to request a guided warm-up before my session,
+So that I can prepare properly.
+
+**Acceptance Criteria:**
+
+**Given** a user starts a session
+**When** the session page loads
+**Then** a "Warm up first?" option is available
+**And** warm-ups run through the Demonstrate → Listen → Attempt → Analyze drill loop
+**And** users can skip directly to their main session
+
+### Story 10.8: Offline Mode Indicator
+
+As a user with intermittent internet,
+I want to see when I'm offline and what still works,
+So that I can continue practicing without confusion.
+
+**Acceptance Criteria:**
+
+**Given** the user loses internet connection
+**When** offline is detected
+**Then** a subtle StatusBar indicator shows "Offline — MIDI features active, AI features paused"
+**And** the indicator uses amber tone (not red)
+**And** on reconnect, the indicator disappears and queued data syncs
+
+---
+
+## Epic 11: AI Coaching & Data Integrity Fixes
+
+Fixes to wire up existing but unused AI coaching infrastructure (growth mindset validation, token tracking, response formatting) and resolve data integrity issues in engagement features.
+**Source:** UX Critique AI-1 through AI-6, DATA-1 through DATA-6, MISS-8, MISS-11
+
+### Story 11.1: Wire Growth Mindset Validation on Streaming
+
+As a musician,
+I want all AI coaching responses validated for growth mindset language,
+So that I never receive discouraging feedback.
+
+**Acceptance Criteria:**
+
+**Given** the AI streams a coaching response
+**When** text chunks arrive
+**Then** `validateGrowthMindset()` scans for prohibited words and replaces them with growth-mindset alternatives
+**And** word boundary detection prevents false positives
+**And** the full response has zero prohibited words
+
+### Story 11.2: Add Genre Terminology for All 13 Genres
+
+As a musician playing in any genre,
+I want the AI to use genre-appropriate terminology,
+So that coaching advice feels relevant to my style.
+
+**Acceptance Criteria:**
+
+**Given** the genre detector identifies one of 13 genres
+**When** AI coaching builds context
+**Then** genre-specific terminology is available for ALL 13 genres (adding Latin, Country, Electronic, Funk, Gospel, Metal, Folk, Reggae)
+**And** a generic fallback exists for undetected genres
+
+### Story 11.3: Wire Token Tracking and Response Processor
+
+As a musician,
+I want token usage tracked and coaching responses richly formatted,
+So that I can manage costs and easily parse advice.
+
+**Acceptance Criteria:**
+
+**Given** the AI chat completes a response
+**When** onFinish fires
+**Then** `recordTokenUsage()` is called with actual token count from Vercel AI SDK metadata
+**And** `segmentResponseText()` highlights metrics, timing, chords, and keys in chat display
+**And** token data flows to the Settings → Usage Summary display
+
+### Story 11.4: Context Length Management and Rate Limit Retry
+
+As a musician having a long coaching conversation,
+I want context managed and rate limits handled gracefully,
+So that chat keeps working without errors.
+
+**Acceptance Criteria:**
+
+**Given** a conversation exceeds provider context limits
+**When** the context builder prepares the prompt
+**Then** older messages are truncated with a summary prepended
+**And** 429 rate limit errors trigger exponential backoff retry (1s, 2s, 4s, max 3 retries)
+**And** per-provider context limits are configurable
+
+### Story 11.5: Fix XP Race Condition and Streak Timezone
+
+As a musician,
+I want XP tracked accurately and streaks to respect my timezone,
+So that my progress data is reliable.
+
+**Acceptance Criteria:**
+
+**Given** concurrent XP awards happen
+**When** `awardXp()` runs
+**Then** updates use atomic operations (not read-modify-write)
+**And** streak calculations use the user's local timezone offset for day boundaries
+**And** users in non-UTC timezones don't get false streak breaks
+
+### Story 11.6: Session Expiry Notification and API Key Validity
+
+As a user,
+I want clear notifications when my session or API key expires,
+So that I can take action without confusion.
+
+**Acceptance Criteria:**
+
+**Given** the auth session expires during use
+**When** the next API call fails with 401
+**Then** a modal says "Your session has expired. Please log in again." with redirect to login
+**And** invalid API key errors show "Your API key is no longer valid" with link to settings
+
+### Story 11.7: Data Export for GDPR Compliance
+
+As a user,
+I want to export all my personal data,
+So that I can exercise my right to data portability under GDPR.
+
+**Acceptance Criteria:**
+
+**Given** a user clicks "Export My Data" in Settings
+**When** the export generates
+**Then** it includes all personal data: profile, sessions, MIDI events, snapshots, drills, progress, achievements, conversations
+**And** the download is a structured JSON file named `minstrel-data-export-{date}.json`
+**And** API keys are included as metadata only (provider + last 4 chars, not the actual key)
+
+---
+
 ## Validation Summary
 
 ### FR Coverage: Complete
 
 All 50 Functional Requirements are covered across 7 epics with 43 stories. Every FR maps to at least one story with specific acceptance criteria.
+
+### UX Critique Coverage: Complete
+
+All adversarial UX critique items are covered across Epics 8-11 with 28 stories:
+- **BUG-1 through BUG-7**: Epic 8 (Stories 8.1-8.5)
+- **DS-1 through DS-6**: Epic 9 (Stories 9.1-9.4)
+- **A11Y-1 through A11Y-8**: Epic 9 (Story 9.5)
+- **MISS-1 through MISS-14**: Epics 8, 9, 10, 11 (distributed by domain)
+- **AI-1 through AI-6**: Epic 11 (Stories 11.1-11.4)
+- **DATA-1 through DATA-6**: Epic 11 (Stories 11.5-11.6)
+- **ARCH-1**: Epic 8 (Story 8.7)
+- **NEW-1 through NEW-12**: Epics 10, 11 (distributed by domain)
 
 ### Epic Independence: Verified
 
@@ -1068,6 +1512,10 @@ All 50 Functional Requirements are covered across 7 epics with 43 stories. Every
 - **Epic 5** — Depends on Epic 2 + Epic 4
 - **Epic 6** — Depends on Epic 2, optionally Epic 4
 - **Epic 7** — Depends on Epic 2
+- **Epic 8** — Depends on Epics 1-5 (fixes existing implementation)
+- **Epic 9** — Depends on Epics 1-2 (design system touches all layers)
+- **Epic 10** — Depends on Epics 1-7 (new screens build on all existing features)
+- **Epic 11** — Depends on Epics 2-5 (AI and data fixes)
 
 ### Story Dependencies: Forward-Only
 

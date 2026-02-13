@@ -13,6 +13,7 @@ import type { ApiKeyMetadata, ApiKeyProvider } from '@/features/auth/auth-types'
 import { TokenUsageDisplay } from '@/features/coaching/token-usage-display';
 import { getTotalTokenUsage, getRecentSessionUsage } from '@/features/coaching/token-usage';
 import type { TokenUsageSummary } from '@/features/coaching/token-usage';
+import { exportUserData, downloadExportAsJson } from '@/features/auth/data-export';
 
 export default function SettingsPage() {
   const { user, isAuthenticated, isLoading, signOut } = useAuth();
@@ -27,6 +28,7 @@ export default function SettingsPage() {
   const [recentUsage, setRecentUsage] = useState<TokenUsageSummary | null>(null);
   const [usageLoaded, setUsageLoaded] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
   const hasApiKey = useAppStore((s) => s.hasApiKey);
 
   useEffect(() => {
@@ -100,16 +102,16 @@ export default function SettingsPage() {
 
   const handleExport = useCallback(async () => {
     setIsExporting(true);
+    setExportError(null);
     try {
-      const res = await fetch('/api/user/export');
-      if (!res.ok) return;
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `minstrel-export-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const data = await exportUserData();
+      downloadExportAsJson(data);
+    } catch (err) {
+      if (mountedRef.current) {
+        setExportError(
+          err instanceof Error ? err.message : 'Could not export your data. Please try again.'
+        );
+      }
     } finally {
       if (mountedRef.current) setIsExporting(false);
     }
@@ -164,7 +166,7 @@ export default function SettingsPage() {
         <div className="flex items-center justify-between">
           <Link
             href="/session"
-            className="text-caption text-muted-foreground transition-colors duration-150 hover:text-[#7CB9E8]"
+            className="text-caption text-muted-foreground transition-colors duration-150 hover:text-primary"
           >
             &larr; Back to practice
           </Link>
@@ -181,10 +183,10 @@ export default function SettingsPage() {
 
         {/* Page header */}
         <div className="mt-6 mb-10">
-          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#7CB9E8]">
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-primary">
             Settings
           </p>
-          <div className="mt-2 h-px w-12 bg-[#7CB9E8]" />
+          <div className="mt-2 h-px w-12 bg-primary" />
         </div>
 
         {/* Profile section */}
@@ -268,6 +270,30 @@ export default function SettingsPage() {
           </p>
         </section>
 
+        {/* Your Data section — GDPR export */}
+        <section className="mt-4 border border-border p-6">
+          <h2 className="font-mono text-caption uppercase tracking-wider text-muted-foreground">
+            Your Data
+          </h2>
+          <p className="mt-3 text-caption leading-relaxed text-muted-foreground">
+            Export all your Minstrel data including practice sessions, progress metrics, AI
+            conversations, achievements, and locally stored MIDI events. Your API keys are
+            included as metadata only (provider and last four characters) &mdash; encrypted
+            keys are never exported.
+          </p>
+          <Button
+            variant="outline"
+            className="mt-4 w-full"
+            onClick={handleExport}
+            disabled={isExporting}
+          >
+            {isExporting ? 'Preparing export...' : 'Export My Data'}
+          </Button>
+          {exportError && (
+            <p className="mt-2 text-xs text-accent-warm">{exportError}</p>
+          )}
+        </section>
+
         {/* Actions */}
         <section className="mt-8 flex flex-col gap-4">
           <Button variant="outline" className="w-full" onClick={signOut}>
@@ -278,25 +304,7 @@ export default function SettingsPage() {
             <h2 className="font-mono text-caption uppercase tracking-wider text-accent-warm">
               Danger Zone
             </h2>
-
-            <div className="mt-4">
-              <h3 className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                Export Data
-              </h3>
-              <p className="mt-1 text-caption text-muted-foreground">
-                Download all your practice sessions, progress metrics, and AI conversations as JSON.
-              </p>
-              <Button
-                variant="outline"
-                className="mt-3 w-full"
-                onClick={handleExport}
-                disabled={isExporting}
-              >
-                {isExporting ? 'Preparing export...' : 'Download My Data'}
-              </Button>
-            </div>
-
-            <p className="mt-6 text-caption text-muted-foreground">
+            <p className="mt-4 text-caption text-muted-foreground">
               Account deletion — coming in a future update. Contact{' '}
               <a
                 href="mailto:support@minstrel.app"

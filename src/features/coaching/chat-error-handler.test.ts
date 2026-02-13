@@ -6,7 +6,7 @@ describe('parseChatError', () => {
     const result = parseChatError(new Error('INVALID_KEY: bad key'));
     expect(result.code).toBe('INVALID_KEY');
     expect(result.message).toContain('invalid');
-    expect(result.actionUrl).toBe('/settings');
+    expect(result.actionUrl).toBe('/settings#api-keys');
   });
 
   it('maps RATE_LIMITED error code', () => {
