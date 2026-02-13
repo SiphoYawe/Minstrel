@@ -291,7 +291,7 @@ export function SessionHistoryList() {
                 </div>
               </div>
 
-              {/* Input source + status badges */}
+              {/* Input source + status badges + delete */}
               <div className="mt-3 flex items-center gap-2">
                 <span className="border border-border px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
                   {session.inputSource === 'midi' ? 'MIDI' : 'Audio'}
@@ -304,13 +304,13 @@ export function SessionHistoryList() {
               </div>
             </Link>
 
-            {/* Delete button — floats above the link */}
+            {/* Delete — bottom-right, inline with badges row */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setConfirmDeleteId(session.id!);
               }}
-              className="absolute top-3 right-3 z-10 p-1.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100 hover:!opacity-100 focus-visible:opacity-100"
+              className="absolute bottom-4 right-4 z-10 p-1 opacity-0 transition-all duration-150 group-hover:opacity-40 hover:!opacity-100 focus-visible:opacity-100"
               aria-label={`Delete session from ${formatDate(session.startedAt)}`}
             >
               <Trash2
