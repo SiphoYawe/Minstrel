@@ -51,3 +51,11 @@ export const SCRUB_STEP_LARGE_MS = 10_000;
 export const MIN_MEANINGFUL_PRACTICE_MS = 180_000; // 3 minutes
 export const STREAK_RESET_WINDOW_MS = 172_800_000; // 48 hours
 export const STREAK_MILESTONES = [7, 30, 100, 365] as const;
+
+// XP constants (Story 7.2)
+export const XP_BASE_RATE_PER_MINUTE = 1;
+export const XP_MIN_QUALIFYING_MINUTES = 3;
+export const XP_TIMING_IMPROVEMENT_MULTIPLIER = 2;
+export const XP_DRILL_COMPLETION_BONUS = 15;
+export const XP_DRILL_ATTEMPT_BONUS = 5;
+export const XP_NEW_RECORD_BONUS = 25;
