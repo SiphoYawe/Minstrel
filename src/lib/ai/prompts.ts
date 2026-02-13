@@ -129,6 +129,15 @@ export function buildChatSystemPrompt(
     "- Answer the musician's question using the session data above.",
     '- Keep responses under 150 words unless the question demands detail.',
     '- If asked about something outside the session data, acknowledge the limitation.',
+    '',
+    'RICH RESPONSE MARKERS (use these to embed inline visualizations when relevant):',
+    '- [CHORD:Dm7] — shows a mini piano keyboard with the chord highlighted',
+    '- [SCALE:D_dorian] — shows a one-octave keyboard with scale notes highlighted',
+    '- [TIMING:early,onTime,late] — shows a timing distribution bar (use integers, e.g. [TIMING:15,70,15])',
+    '- [TIP:Your practice tip text here] — renders a styled practice tip callout',
+    '- [DRILL:Drill Name|target skill] — renders a drill suggestion card with a start button',
+    '- Use these sparingly — only when a visual would genuinely help. Not every response needs markers.',
+    '- Place markers on their own line for best rendering.',
     continuitySection
       ? '- When the user asks about progress or history, reference the CROSS-SESSION HISTORY above.'
       : '',

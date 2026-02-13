@@ -16,7 +16,12 @@ import { useAppStore } from '@/stores/app-store';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { OfflineMessage } from '@/components/offline-message';
 import type { ChatErrorInfo } from '@/features/coaching/coaching-types';
-import { segmentResponseText, type TextSegment } from '@/features/coaching/response-processor';
+import { parseRichSegments, type RichSegment } from '@/features/coaching/response-processor';
+import { ChordDiagram } from '@/components/chat/chord-diagram';
+import { ScaleDisplay } from '@/components/chat/scale-display';
+import { TimingGraph } from '@/components/chat/timing-graph';
+import { PracticeTip } from '@/components/chat/practice-tip';
+import { DrillSuggestion } from '@/components/chat/drill-suggestion';
 import type { UIMessage } from 'ai';
 
 interface AIChatPanelProps {
@@ -36,25 +41,57 @@ const HIGHLIGHT_CLASSES: Record<string, string> = {
   key: 'text-achieved',
 };
 
+function RichSegmentRenderer({ segment, index }: { segment: RichSegment; index: number }) {
+  switch (segment.type) {
+    case 'text':
+      return segment.highlight ? (
+        <span key={index} className={HIGHLIGHT_CLASSES[segment.highlight] ?? ''}>
+          {segment.text}
+        </span>
+      ) : (
+        <span key={index}>{segment.text}</span>
+      );
+    case 'chord':
+      return <ChordDiagram key={index} chord={segment.chord} />;
+    case 'scale':
+      return <ScaleDisplay key={index} scaleName={segment.scaleName} />;
+    case 'timing':
+      return (
+        <TimingGraph
+          key={index}
+          early={segment.early}
+          onTime={segment.onTime}
+          late={segment.late}
+        />
+      );
+    case 'tip':
+      return <PracticeTip key={index} content={segment.content} />;
+    case 'drill':
+      return (
+        <DrillSuggestion
+          key={index}
+          drillName={segment.drillName}
+          targetSkill={segment.targetSkill}
+        />
+      );
+    default:
+      return null;
+  }
+}
+
 function HighlightedMessage({ parts }: { parts: UIMessage['parts'] }) {
   const textContent = parts
     .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
     .map((part) => part.text)
     .join('');
 
-  const segments = useMemo(() => segmentResponseText(textContent), [textContent]);
+  const segments = useMemo(() => parseRichSegments(textContent), [textContent]);
 
   return (
     <>
-      {segments.map((seg: TextSegment, i: number) =>
-        seg.highlight ? (
-          <span key={i} className={HIGHLIGHT_CLASSES[seg.highlight] ?? ''}>
-            {seg.text}
-          </span>
-        ) : (
-          <span key={i}>{seg.text}</span>
-        )
-      )}
+      {segments.map((seg: RichSegment, i: number) => (
+        <RichSegmentRenderer key={i} segment={seg} index={i} />
+      ))}
     </>
   );
 }

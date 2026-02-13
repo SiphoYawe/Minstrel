@@ -71,6 +71,82 @@ export interface TextSegment {
   highlight: DataReference['type'] | null;
 }
 
+/**
+ * Rich content segment types for inline visualizations in chat responses.
+ */
+export type RichSegment =
+  | { type: 'text'; text: string; highlight: DataReference['type'] | null }
+  | { type: 'chord'; chord: string }
+  | { type: 'scale'; scaleName: string }
+  | { type: 'timing'; early: number; onTime: number; late: number }
+  | { type: 'tip'; content: string }
+  | { type: 'drill'; drillName: string; targetSkill: string };
+
+// Structured markers that the AI may embed in responses
+const RICH_MARKER_PATTERN =
+  /\[CHORD:([^\]]+)\]|\[SCALE:([^\]]+)\]|\[TIMING:(\d+),(\d+),(\d+)\]|\[TIP:([^\]]+)\]|\[DRILL:([^|]+)\|([^\]]+)\]/g;
+
+/**
+ * Parse response text into rich segments, extracting structured markers
+ * and falling back to text highlighting for non-marker content.
+ */
+export function parseRichSegments(response: string): RichSegment[] {
+  const segments: RichSegment[] = [];
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+
+  const regex = new RegExp(RICH_MARKER_PATTERN.source, RICH_MARKER_PATTERN.flags);
+
+  while ((match = regex.exec(response)) !== null) {
+    // Add text before this marker
+    if (match.index > cursor) {
+      const textBefore = response.slice(cursor, match.index);
+      for (const seg of segmentResponseText(textBefore)) {
+        segments.push({ type: 'text', text: seg.text, highlight: seg.highlight });
+      }
+    }
+
+    // Parse marker type
+    if (match[1] != null) {
+      segments.push({ type: 'chord', chord: match[1] });
+    } else if (match[2] != null) {
+      segments.push({ type: 'scale', scaleName: match[2] });
+    } else if (match[3] != null && match[4] != null && match[5] != null) {
+      segments.push({
+        type: 'timing',
+        early: parseInt(match[3], 10),
+        onTime: parseInt(match[4], 10),
+        late: parseInt(match[5], 10),
+      });
+    } else if (match[6] != null) {
+      segments.push({ type: 'tip', content: match[6] });
+    } else if (match[7] != null && match[8] != null) {
+      segments.push({ type: 'drill', drillName: match[7], targetSkill: match[8] });
+    }
+
+    cursor = match.index + match[0].length;
+  }
+
+  // Add remaining text
+  if (cursor < response.length) {
+    const remaining = response.slice(cursor);
+    for (const seg of segmentResponseText(remaining)) {
+      segments.push({ type: 'text', text: seg.text, highlight: seg.highlight });
+    }
+  }
+
+  // If no rich markers found, just return text segments
+  if (segments.length === 0) {
+    return segmentResponseText(response).map((seg) => ({
+      type: 'text' as const,
+      text: seg.text,
+      highlight: seg.highlight,
+    }));
+  }
+
+  return segments;
+}
+
 export function segmentResponseText(response: string): TextSegment[] {
   const refs = extractDataReferences(response);
   if (refs.length === 0) return [{ text: response, highlight: null }];
