@@ -35,24 +35,36 @@ describe('MinstrelDatabase', () => {
         endedAt: null,
         duration: null,
         inputSource: 'midi',
+        sessionType: null,
+        status: 'recording',
+        key: null,
+        tempo: null,
       };
       const id = await db.sessions.add(session);
       expect(id).toBeGreaterThan(0);
     });
 
-    it('reads a session back', async () => {
+    it('reads a session back with all fields', async () => {
       const startedAt = Date.now();
       const id = await db.sessions.add({
         startedAt,
         endedAt: null,
         duration: null,
         inputSource: 'audio',
+        sessionType: 'freeform',
+        status: 'recording',
+        key: null,
+        tempo: null,
       });
       const session = await db.sessions.get(id);
       expect(session).toBeDefined();
       expect(session!.startedAt).toBe(startedAt);
       expect(session!.inputSource).toBe('audio');
       expect(session!.endedAt).toBeNull();
+      expect(session!.sessionType).toBe('freeform');
+      expect(session!.status).toBe('recording');
+      expect(session!.key).toBeNull();
+      expect(session!.tempo).toBeNull();
     });
 
     it('updates a session with end time', async () => {
@@ -62,12 +74,71 @@ describe('MinstrelDatabase', () => {
         endedAt: null,
         duration: null,
         inputSource: 'midi',
+        sessionType: null,
+        status: 'recording',
+        key: null,
+        tempo: null,
       });
       const endedAt = startedAt + 60000;
-      await db.sessions.update(id, { endedAt, duration: endedAt - startedAt });
+      await db.sessions.update(id, { endedAt, duration: endedAt - startedAt, status: 'completed' });
       const session = await db.sessions.get(id);
       expect(session!.endedAt).toBe(endedAt);
       expect(session!.duration).toBe(60000);
+      expect(session!.status).toBe('completed');
+    });
+
+    it('updates session metadata (key and tempo)', async () => {
+      const id = await db.sessions.add({
+        startedAt: Date.now(),
+        endedAt: null,
+        duration: null,
+        inputSource: 'midi',
+        sessionType: 'freeform',
+        status: 'recording',
+        key: null,
+        tempo: null,
+      });
+      await db.sessions.update(id, { key: 'C major', tempo: 120 });
+      const session = await db.sessions.get(id);
+      expect(session!.key).toBe('C major');
+      expect(session!.tempo).toBe(120);
+    });
+
+    it('queries sessions by sessionType index', async () => {
+      await db.sessions.bulkAdd([
+        {
+          startedAt: 1000,
+          endedAt: null,
+          duration: null,
+          inputSource: 'midi',
+          sessionType: 'freeform',
+          status: 'recording',
+          key: null,
+          tempo: null,
+        },
+        {
+          startedAt: 2000,
+          endedAt: null,
+          duration: null,
+          inputSource: 'midi',
+          sessionType: 'drill',
+          status: 'recording',
+          key: null,
+          tempo: null,
+        },
+        {
+          startedAt: 3000,
+          endedAt: null,
+          duration: null,
+          inputSource: 'midi',
+          sessionType: 'freeform',
+          status: 'completed',
+          key: null,
+          tempo: null,
+        },
+      ]);
+      const freeform = await db.sessions.where('sessionType').equals('freeform').toArray();
+      expect(freeform).toHaveLength(2);
     });
   });
 
@@ -78,6 +149,10 @@ describe('MinstrelDatabase', () => {
         endedAt: null,
         duration: null,
         inputSource: 'midi',
+        sessionType: null,
+        status: 'recording',
+        key: null,
+        tempo: null,
       })) as number;
 
       const event: Omit<StoredMidiEvent, 'id'> = {
@@ -203,6 +278,23 @@ describe('MinstrelDatabase', () => {
       const stored = await db.analysisSnapshots.get(id);
       expect(stored).toBeDefined();
       expect(stored!.data).toEqual({ keyCentre: 'C', tempo: 120 });
+    });
+
+    it('queries snapshots by compound index [sessionId+createdAt]', async () => {
+      await db.analysisSnapshots.bulkAdd([
+        { sessionId: 1, createdAt: 100, data: { key: 'C' } },
+        { sessionId: 1, createdAt: 200, data: { key: 'G' } },
+        { sessionId: 1, createdAt: 300, data: { key: 'D' } },
+        { sessionId: 2, createdAt: 150, data: { key: 'F' } },
+      ]);
+
+      const results = await db.analysisSnapshots
+        .where('[sessionId+createdAt]')
+        .between([1, 100], [1, 250])
+        .toArray();
+      expect(results).toHaveLength(2);
+      expect(results[0].data).toEqual({ key: 'C' });
+      expect(results[1].data).toEqual({ key: 'G' });
     });
   });
 });

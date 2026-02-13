@@ -17,6 +17,13 @@ import { detectGenrePatterns } from './genre-detector';
 import { trackTendencies, detectAvoidance } from './tendency-tracker';
 import { generateSnapshot } from './snapshot-generator';
 import { startFreeformSession, resetSessionManager } from '@/features/session/session-manager';
+import {
+  startRecording,
+  recordEvent,
+  recordSnapshot,
+  stopRecording,
+  startMetadataSync,
+} from '@/features/session/session-recorder';
 import type { DetectedNote, AnalysisAccumulator } from './analysis-types';
 import {
   SIMULTANEITY_WINDOW_MS,
@@ -182,6 +189,10 @@ export function useAnalysisPipeline() {
           });
           store.setCurrentSnapshot(snapshot);
           store.addSnapshot(snapshot);
+          // Persist snapshot to IndexedDB
+          recordSnapshot(snapshot).catch((err) => {
+            console.warn('Failed to record snapshot:', err);
+          });
         }
 
         // Reset phrase-level analysis state (session identity preserved)
@@ -230,7 +241,23 @@ export function useAnalysisPipeline() {
           if (noteStore.sessionStartTimestamp === null) {
             noteStore.setSessionStartTimestamp(Date.now());
             startFreeformSession();
+            // Start recording to IndexedDB
+            startRecording('freeform', event.source)
+              .then((sessionId) => {
+                useSessionStore.getState().setActiveSessionId(sessionId);
+                startMetadataSync(() => {
+                  const s = useSessionStore.getState();
+                  const keyStr = s.currentKey ? `${s.currentKey.root} ${s.currentKey.mode}` : null;
+                  return { key: keyStr, tempo: s.currentTempo };
+                });
+              })
+              .catch((err) => {
+                console.warn('Failed to start recording:', err);
+              });
           }
+
+          // Record MIDI event to buffer
+          recordEvent(event);
 
           // Clear snapshot on play resume (transition back to real-time mode)
           if (noteStore.currentSnapshot !== null) {
@@ -298,6 +325,9 @@ export function useAnalysisPipeline() {
         }
 
         if (event.type === 'note-off' || (event.type === 'note-on' && event.velocity === 0)) {
+          // Record note-off event
+          recordEvent(event);
+
           // Remove from held notes display only (not from analysis cluster)
           heldNotesRef.current.delete(event.note);
           useSessionStore.getState().setCurrentNotes(Array.from(heldNotesRef.current.values()));
@@ -322,9 +352,16 @@ export function useAnalysisPipeline() {
       analysisClusterRef.current = [];
       heldNotes.clear();
       timingAnalysis.reset();
+      // Stop recording (final flush + session update).
+      // stopRecording clears all recorder state internally — do NOT call resetRecorder
+      // afterward as it would wipe the buffer before the async flush completes.
+      stopRecording().catch((err) => {
+        console.warn('Failed to stop recording:', err);
+      });
       // Order matters: resetSessionManager clears sessionType/interruptionsAllowed,
       // then resetAnalysis preserves the now-cleared values (both become initial state)
       resetSessionManager();
+      useSessionStore.getState().setActiveSessionId(null);
       useSessionStore.getState().resetAnalysis();
     };
   }, []);

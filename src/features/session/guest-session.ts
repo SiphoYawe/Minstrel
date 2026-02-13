@@ -1,3 +1,11 @@
+/**
+ * Guest session management (Story 1.7).
+ * NOTE: This module manages its own activeSessionId independently from session-recorder.ts.
+ * guest-session handles the inactivity timeout lifecycle for guest users;
+ * session-recorder handles the MIDI event buffering and IndexedDB writes.
+ * The analysis pipeline (use-analysis-pipeline.ts) coordinates both — do not
+ * use guest-session and session-recorder for the same session simultaneously.
+ */
 import { db } from '@/lib/dexie/db';
 import type { MidiEvent } from '@/features/midi/midi-types';
 
@@ -32,6 +40,10 @@ export async function startGuestSession(inputSource: MidiEvent['source']): Promi
     endedAt: null,
     duration: null,
     inputSource,
+    sessionType: null,
+    status: 'recording',
+    key: null,
+    tempo: null,
   });
   activeSessionId = id as number;
   resetInactivityTimer();
@@ -46,6 +58,7 @@ export async function endGuestSession(sessionId: number): Promise<void> {
     await db.sessions.update(sessionId, {
       endedAt,
       duration: endedAt - session.startedAt,
+      status: 'completed',
     });
   }
   if (activeSessionId === sessionId) {

@@ -23,6 +23,7 @@ interface SessionState {
   sessionStartTimestamp: number | null;
   sessionType: SessionType | null;
   interruptionsAllowed: boolean;
+  activeSessionId: number | null;
   currentNotes: DetectedNote[];
   detectedChords: DetectedChord[];
   chordProgression: ChordProgression | null;
@@ -47,6 +48,7 @@ interface SessionActions {
   setSessionStartTimestamp: (ts: number | null) => void;
   setSessionType: (type: SessionType | null) => void;
   setInterruptionsAllowed: (allowed: boolean) => void;
+  setActiveSessionId: (id: number | null) => void;
   setCurrentNotes: (notes: DetectedNote[]) => void;
   addDetectedChord: (chord: DetectedChord, label: string) => void;
   setChordProgression: (progression: ChordProgression | null) => void;
@@ -75,6 +77,7 @@ const initialState: SessionState = {
   sessionStartTimestamp: null,
   sessionType: null,
   interruptionsAllowed: false,
+  activeSessionId: null,
   currentNotes: [],
   detectedChords: [],
   chordProgression: null,
@@ -104,6 +107,7 @@ export const useSessionStore = create<SessionStore>()(
 
     setSessionType: (type) => set({ sessionType: type }),
     setInterruptionsAllowed: (allowed) => set({ interruptionsAllowed: allowed }),
+    setActiveSessionId: (id) => set({ activeSessionId: id }),
 
     setCurrentNotes: (notes) => set({ currentNotes: notes }),
 
@@ -169,6 +173,7 @@ export const useSessionStore = create<SessionStore>()(
         sessionStartTimestamp: state.sessionStartTimestamp,
         sessionType: state.sessionType,
         interruptionsAllowed: state.interruptionsAllowed,
+        activeSessionId: state.activeSessionId,
       })),
   }))
 );

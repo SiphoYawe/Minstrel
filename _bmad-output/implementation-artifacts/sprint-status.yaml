@@ -60,7 +60,7 @@ development_status:
   2-5-silence-triggered-session-snapshot: done
   2-6-silent-coach-mode-layout: done
   2-7-freeform-play-mode: done
-  2-8-session-recording-to-indexeddb: ready-for-dev
+  2-8-session-recording-to-indexeddb: done
   epic-2-retrospective: optional
 
   # Epic 3: Accounts & API Key Management

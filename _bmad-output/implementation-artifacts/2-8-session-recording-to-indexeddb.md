@@ -1,6 +1,6 @@
 # Story 2.8: Session Recording to IndexedDB
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -127,6 +127,9 @@ so that I never lose a practice session.
 ## Dev Agent Record
 
 ### Agent Model Used
+
 ### Debug Log References
+
 ### Completion Notes List
+
 ### File List

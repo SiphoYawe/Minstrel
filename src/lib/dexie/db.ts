@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import type { InputSource, MidiEventType } from '@/features/midi/midi-types';
+import type { SessionType, RecordingStatus } from '@/features/session/session-types';
 
 export interface GuestSession {
   id?: number;
@@ -7,6 +8,10 @@ export interface GuestSession {
   endedAt: number | null;
   duration: number | null;
   inputSource: InputSource;
+  sessionType: SessionType | null;
+  status: RecordingStatus;
+  key: string | null;
+  tempo: number | null;
 }
 
 export interface StoredMidiEvent {
@@ -40,6 +45,24 @@ class MinstrelDatabase extends Dexie {
       midiEvents: '++id, sessionId, [sessionId+timestamp]',
       analysisSnapshots: '++id, sessionId, createdAt',
     });
+
+    this.version(2)
+      .stores({
+        sessions: '++id, startedAt, sessionType, status',
+        midiEvents: '++id, sessionId, [sessionId+timestamp]',
+        analysisSnapshots: '++id, sessionId, createdAt, [sessionId+createdAt]',
+      })
+      .upgrade((tx) => {
+        return tx
+          .table('sessions')
+          .toCollection()
+          .modify((session) => {
+            session.sessionType = null;
+            session.status = 'completed';
+            session.key = null;
+            session.tempo = null;
+          });
+      });
   }
 }
 

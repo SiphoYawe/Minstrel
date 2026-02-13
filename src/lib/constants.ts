@@ -32,3 +32,8 @@ export const ACCUMULATOR_MAX_CHORDS = 500;
 // Snapshot overlay constants (Story 2.5)
 export const SNAPSHOT_FADE_IN_MS = 300;
 export const SNAPSHOT_FADE_OUT_MS = 200;
+
+// Session recording constants (Story 2.8)
+export const MAX_BUFFER_SIZE = 10_000;
+export const AUTOSAVE_INTERVAL_MS = 30_000;
+export const METADATA_UPDATE_INTERVAL_MS = 10_000;

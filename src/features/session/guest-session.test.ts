@@ -77,9 +77,14 @@ describe('guest-session', () => {
   });
 
   it('ends a session and clears active ID', async () => {
+    const { db } = await import('@/lib/dexie/db');
     const id = await startGuestSession('midi');
     await endGuestSession(id);
     expect(getActiveSessionId()).toBeNull();
+    expect(db.sessions.update).toHaveBeenCalledWith(
+      id,
+      expect.objectContaining({ status: 'completed' })
+    );
   });
 
   it('records a guest event', async () => {

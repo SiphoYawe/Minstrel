@@ -69,6 +69,27 @@ describe('useSessionStore', () => {
     expect(useSessionStore.getState().interruptionsAllowed).toBe(false);
   });
 
+  it('returns initial activeSessionId as null', () => {
+    expect(useSessionStore.getState().activeSessionId).toBeNull();
+  });
+
+  it('setActiveSessionId updates and clears session ID', () => {
+    useSessionStore.getState().setActiveSessionId(42);
+    expect(useSessionStore.getState().activeSessionId).toBe(42);
+    useSessionStore.getState().setActiveSessionId(null);
+    expect(useSessionStore.getState().activeSessionId).toBeNull();
+  });
+
+  it('resetAnalysis preserves activeSessionId', () => {
+    useSessionStore.getState().setActiveSessionId(99);
+    useSessionStore
+      .getState()
+      .setCurrentNotes([{ name: 'C', octave: 4, midiNumber: 60, velocity: 100, timestamp: 1000 }]);
+    useSessionStore.getState().resetAnalysis();
+    expect(useSessionStore.getState().activeSessionId).toBe(99);
+    expect(useSessionStore.getState().currentNotes).toEqual([]);
+  });
+
   it('setCurrentNotes updates the current notes', () => {
     const notes: DetectedNote[] = [
       { name: 'C', octave: 4, midiNumber: 60, velocity: 100, timestamp: 1000 },
