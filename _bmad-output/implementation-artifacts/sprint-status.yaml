@@ -218,7 +218,7 @@ development_status:
   # Source: code-review-findings-epics-8-11.md — 17 CRITICAL findings
   epic-18: in-progress
   18-1-add-csrf-protection-to-all-api-routes: done
-  18-2-harden-encryption-key-validation: ready-for-dev
+  18-2-harden-encryption-key-validation: done
   18-3-fix-session-buffer-data-loss-and-flush-reentrancy: ready-for-dev
   18-4-fix-concurrent-xp-and-streak-race-conditions: ready-for-dev
   18-5-fix-pattern-analysis-memory-leak: ready-for-dev

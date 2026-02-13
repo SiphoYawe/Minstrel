@@ -1,6 +1,6 @@
 # Story 18.2: Harden Encryption Key Validation
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -43,8 +43,23 @@ So that API keys and sensitive data are protected against brute force attacks an
 
 ### Agent Model Used
 
+Claude Opus 4.6
+
 ### Debug Log References
+
+- All 27 crypto tests pass (5 new entropy, 2 new versioning, 20 existing updated)
+- TypeScript compiles clean
 
 ### Completion Notes List
 
+- Added calculateShannonEntropy() with -Σ(p(x)\*log2(p(x))) formula
+- Entropy validation (min 3.0 bits/char) on encrypt and decrypt
+- Versioned encrypted data wrapper { version, data } on encrypt output
+- Backwards-compatible decrypt supports both versioned JSON and legacy colon format
+- ENCRYPTION_KEY_VERSION env var added to .env.example
+
 ### File List
+
+- src/lib/crypto.ts (modified)
+- src/lib/crypto.test.ts (modified)
+- .env.example (modified)
