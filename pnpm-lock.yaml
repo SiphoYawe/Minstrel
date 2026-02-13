@@ -30,7 +30,7 @@ dependencies:
     specifier: ^1.2.2
     version: 1.2.4(@types/react@19.2.14)(react@19.2.4)
   '@sentry/nextjs':
-    specifier: ^10
+    specifier: ^10.38.0
     version: 10.38.0(@opentelemetry/context-async-hooks@2.5.1)(@opentelemetry/core@2.5.1)(@opentelemetry/sdk-trace-base@2.5.1)(next@16.1.6)(react@19.2.4)(webpack@5.105.2)
   '@supabase/ssr':
     specifier: ^0.8
@@ -62,6 +62,9 @@ dependencies:
   posthog-js:
     specifier: ^1.347.0
     version: 1.347.0
+  posthog-node:
+    specifier: ^5.24.15
+    version: 5.24.15
   radix-ui:
     specifier: ^1.4.3
     version: 1.4.3(@types/react-dom@19.2.3)(@types/react@19.2.14)(react-dom@19.2.4)(react@19.2.4)
@@ -7224,6 +7227,13 @@ packages:
       preact: 10.28.3
       query-selector-shadow-dom: 1.0.1
       web-vitals: 5.1.0
+    dev: false
+
+  /posthog-node@5.24.15:
+    resolution: {integrity: sha512-0QnWVOZAPwEAlp+r3r0jIGfk2IaNYM/2YnEJJhBMJZXs4LpHcTu7mX42l+e95o9xX87YpVuZU0kOkmtQUxgnOA==}
+    engines: {node: ^20.20.0 || >=22.22.0}
+    dependencies:
+      '@posthog/core': 1.22.0
     dev: false
 
   /preact@10.28.3:
