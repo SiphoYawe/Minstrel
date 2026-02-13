@@ -5,7 +5,7 @@ export const APP_DESCRIPTION = 'AI-powered real-time MIDI practice companion';
 export const SIMULTANEITY_WINDOW_MS = 50;
 export const SILENCE_THRESHOLD_MS = 10_000;
 
-// Timing analysis constants (Story 2.2)
+// Timing analysis constants (Story 2.2 + Story 14.4 fixes)
 export const ON_BEAT_TOLERANCE_MS = 30;
 export const TEMPO_SHIFT_THRESHOLD = 0.1;
 export const MIN_NOTES_FOR_TEMPO = 4;
@@ -13,6 +13,10 @@ export const MIN_BEATS_FOR_SHIFT = 8;
 export const TIMING_ROLLING_WINDOW = 32;
 export const TIMING_UPDATE_INTERVAL_MS = 500;
 export const TIMING_UPDATE_NOTE_COUNT = 4;
+export const MIN_IOI_MS = 200; // floor: 300 BPM → 200ms per beat
+export const MAX_IOI_MS = 2000; // ceiling: 30 BPM → 2000ms per beat
+export const MIN_CONSISTENT_INTERVALS = 8; // confidence threshold
+export const MAX_BPM_DELTA = 3; // max BPM change per update for stability
 
 // Harmonic analysis constants (Story 2.3)
 export const PITCH_CLASS_ROLLING_WINDOW = 64;
