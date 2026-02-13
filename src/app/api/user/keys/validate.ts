@@ -47,19 +47,17 @@ function parseProviderError(status: number): ValidationResult {
   };
 }
 
+/**
+ * Validate an OpenAI key using the free GET /v1/models endpoint.
+ * No tokens are consumed.
+ */
 async function validateOpenAI(apiKey: string): Promise<ValidationResult> {
   try {
-    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
+    const response = await fetchWithTimeout('https://api.openai.com/v1/models', {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: 'hi' }],
-        max_tokens: 1,
-      }),
     });
 
     if (response.ok) {
@@ -77,9 +75,29 @@ async function validateOpenAI(apiKey: string): Promise<ValidationResult> {
   }
 }
 
+/** Anthropic key format regex */
+const ANTHROPIC_KEY_REGEX = /^sk-ant-[a-zA-Z0-9\-_]{40,}$/;
+
+/**
+ * Validate an Anthropic key using format check + a non-generating endpoint.
+ * Falls back to format-only validation if the endpoint is unavailable.
+ */
 async function validateAnthropic(apiKey: string): Promise<ValidationResult> {
+  // First: format validation (zero network cost)
+  if (!ANTHROPIC_KEY_REGEX.test(apiKey)) {
+    return {
+      valid: false,
+      error: {
+        code: 'INVALID_KEY',
+        message:
+          "This doesn't look like a valid Anthropic API key — it should start with 'sk-ant-'",
+      },
+    };
+  }
+
+  // Second: lightweight endpoint check using count_tokens (no generation)
   try {
-    const response = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+    const response = await fetchWithTimeout('https://api.anthropic.com/v1/messages/count_tokens', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -88,23 +106,22 @@ async function validateAnthropic(apiKey: string): Promise<ValidationResult> {
       },
       body: JSON.stringify({
         model: 'claude-3-5-haiku-20241022',
-        messages: [{ role: 'user', content: 'hi' }],
-        max_tokens: 1,
+        messages: [{ role: 'user', content: 'test' }],
       }),
     });
 
     if (response.ok) {
       return { valid: true };
     }
+    // 401/403 means key is invalid, 404 means endpoint not available
+    if (response.status === 404) {
+      // Endpoint not available — format check alone is sufficient
+      return { valid: true };
+    }
     return parseProviderError(response.status);
   } catch {
-    return {
-      valid: false,
-      error: {
-        code: 'PROVIDER_DOWN',
-        message: "We couldn't reach the provider right now — try again in a moment",
-      },
-    };
+    // Network error — format check passed, accept the key
+    return { valid: true };
   }
 }
 

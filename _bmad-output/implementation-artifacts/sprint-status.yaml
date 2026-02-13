@@ -231,7 +231,7 @@ development_status:
   # Source: code-review-findings-epics-8-11.md — 27 HIGH findings
   epic-19: in-progress
   19-1-migrate-rate-limiting-to-distributed-store: done
-  19-2-fix-api-key-validation-non-charging-endpoints: ready-for-dev
+  19-2-fix-api-key-validation-non-charging-endpoints: done
   19-3-fix-stale-closures-and-reentrancy-guards: ready-for-dev
   19-4-add-atomic-indexeddb-transactions: ready-for-dev
   19-5-fix-ai-token-budget-context-error-classification: ready-for-dev

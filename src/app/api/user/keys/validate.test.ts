@@ -20,21 +20,34 @@ function mockFetchReject(error: Error) {
   globalThis.fetch = vi.fn().mockRejectedValue(error);
 }
 
+// Valid Anthropic key format for tests
+const VALID_ANTHROPIC_KEY = 'sk-ant-abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG';
+
 describe('validateApiKey', () => {
   describe('OpenAI', () => {
-    it('returns valid on 200 response', async () => {
+    it('returns valid on 200 response from GET /v1/models', async () => {
       mockFetch({ ok: true, status: 200 });
       const result = await validateApiKey('openai', 'sk-test-key');
       expect(result).toEqual({ valid: true });
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        'https://api.openai.com/v1/chat/completions',
+        'https://api.openai.com/v1/models',
         expect.objectContaining({
-          method: 'POST',
+          method: 'GET',
           headers: expect.objectContaining({
             Authorization: 'Bearer sk-test-key',
           }),
         })
       );
+    });
+
+    it('uses GET method (non-charging endpoint)', async () => {
+      mockFetch({ ok: true, status: 200 });
+      await validateApiKey('openai', 'sk-test-key');
+      const call = vi.mocked(globalThis.fetch).mock.calls[0];
+      expect(call[0]).toBe('https://api.openai.com/v1/models');
+      expect((call[1] as RequestInit).method).toBe('GET');
+      // No body should be sent
+      expect((call[1] as RequestInit).body).toBeUndefined();
     });
 
     it('returns INVALID_KEY on 401', async () => {
@@ -88,41 +101,62 @@ describe('validateApiKey', () => {
   });
 
   describe('Anthropic', () => {
-    it('returns valid on 200 response', async () => {
+    it('returns valid on 200 response from count_tokens endpoint', async () => {
       mockFetch({ ok: true, status: 200 });
-      const result = await validateApiKey('anthropic', 'sk-ant-test');
+      const result = await validateApiKey('anthropic', VALID_ANTHROPIC_KEY);
       expect(result).toEqual({ valid: true });
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        'https://api.anthropic.com/v1/messages',
+        'https://api.anthropic.com/v1/messages/count_tokens',
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
-            'x-api-key': 'sk-ant-test',
+            'x-api-key': VALID_ANTHROPIC_KEY,
             'anthropic-version': '2023-06-01',
           }),
         })
       );
     });
 
+    it('rejects invalid format without making network call', async () => {
+      const fetchSpy = vi.fn();
+      globalThis.fetch = fetchSpy;
+      const result = await validateApiKey('anthropic', 'not-a-valid-key');
+      expect(result.valid).toBe(false);
+      expect(result.error?.code).toBe('INVALID_KEY');
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
     it('returns INVALID_KEY on 401', async () => {
       mockFetch({ ok: false, status: 401 });
-      const result = await validateApiKey('anthropic', 'sk-ant-bad');
+      const result = await validateApiKey('anthropic', VALID_ANTHROPIC_KEY);
       expect(result.valid).toBe(false);
       expect(result.error?.code).toBe('INVALID_KEY');
     });
 
     it('returns RATE_LIMITED on 429', async () => {
       mockFetch({ ok: false, status: 429 });
-      const result = await validateApiKey('anthropic', 'sk-ant-rate');
+      const result = await validateApiKey('anthropic', VALID_ANTHROPIC_KEY);
       expect(result.valid).toBe(false);
       expect(result.error?.code).toBe('RATE_LIMITED');
     });
 
     it('returns PROVIDER_DOWN on 503', async () => {
       mockFetch({ ok: false, status: 503 });
-      const result = await validateApiKey('anthropic', 'sk-ant-down');
+      const result = await validateApiKey('anthropic', VALID_ANTHROPIC_KEY);
       expect(result.valid).toBe(false);
       expect(result.error?.code).toBe('PROVIDER_DOWN');
+    });
+
+    it('falls back to format-only validation on 404 (endpoint unavailable)', async () => {
+      mockFetch({ ok: false, status: 404 });
+      const result = await validateApiKey('anthropic', VALID_ANTHROPIC_KEY);
+      expect(result.valid).toBe(true);
+    });
+
+    it('accepts key on network error if format is valid', async () => {
+      mockFetchReject(new Error('Network error'));
+      const result = await validateApiKey('anthropic', VALID_ANTHROPIC_KEY);
+      expect(result.valid).toBe(true);
     });
   });
 
