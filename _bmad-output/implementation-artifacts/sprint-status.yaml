@@ -74,17 +74,17 @@ development_status:
   epic-3-retrospective: optional
 
   # Epic 4: AI Coaching & Dashboard Mode
-  epic-4: in-progress
+  epic-4: done
   4-1-vercel-ai-sdk-integration-and-provider-setup: done
-  4-2-dashboard-chat-mode-layout: ready-for-dev
-  4-3-ai-coaching-chat-with-streaming-responses: ready-for-dev
-  4-4-session-grounded-ai-responses: ready-for-dev
-  4-5-genre-aware-advice-and-growth-mindset-framing: ready-for-dev
+  4-2-dashboard-chat-mode-layout: done
+  4-3-ai-coaching-chat-with-streaming-responses: done
+  4-4-session-grounded-ai-responses: done
+  4-5-genre-aware-advice-and-growth-mindset-framing: done
   epic-4-retrospective: optional
 
   # Epic 5: Difficulty Engine & AI Drills
   epic-5: in-progress
-  5-1-multi-dimensional-skill-assessment: ready-for-dev
+  5-1-multi-dimensional-skill-assessment: done
   5-2-dynamic-difficulty-adjustment-and-growth-zone-detection: ready-for-dev
   5-3-progressive-overload-and-cross-session-recalibration: ready-for-dev
   5-4-ai-drill-generation: ready-for-dev

@@ -1,0 +1,58 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { useAppStore } from '@/stores/app-store';
+import type { StreakData } from './engagement-types';
+import {
+  calculateStreakUpdate,
+  getStreakStatus,
+  isSessionMeaningful,
+  createEmptyStreak,
+} from './streak-tracker';
+import { fetchStreak, updateStreak } from './streak-service';
+
+export function useStreak() {
+  const user = useAppStore((s) => s.user);
+  const [streak, setStreak] = useState<StreakData>(() => createEmptyStreak());
+  const [fetched, setFetched] = useState(false);
+  const streakRef = useRef(streak);
+
+  useEffect(() => {
+    streakRef.current = streak;
+  }, [streak]);
+
+  useEffect(() => {
+    const userId = user?.id;
+    if (!userId) return;
+
+    let cancelled = false;
+    (async () => {
+      const data = await fetchStreak(userId);
+      if (!cancelled) {
+        data.streakStatus = getStreakStatus(data, new Date());
+        setStreak(data);
+        setFetched(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  const loading = !!user?.id && !fetched;
+
+  async function recordSession(activePlayDurationMs: number) {
+    const userId = user?.id;
+    if (!userId) return;
+    if (!isSessionMeaningful(activePlayDurationMs)) return;
+
+    const updated = calculateStreakUpdate(streakRef.current, new Date());
+    setStreak(updated);
+    await updateStreak(userId, updated);
+  }
+
+  return { streak, loading, recordSession };
+}
+
+export type { StreakData };

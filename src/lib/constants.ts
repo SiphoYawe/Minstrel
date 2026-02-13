@@ -41,3 +41,8 @@ export const METADATA_UPDATE_INTERVAL_MS = 10_000;
 // AI rate limiting constants (Story 4.1)
 export const RATE_LIMIT_MAX = 100;
 export const RATE_LIMIT_WINDOW_MS = 60_000;
+
+// Engagement / streak constants (Story 7.1)
+export const MIN_MEANINGFUL_PRACTICE_MS = 180_000; // 3 minutes
+export const STREAK_RESET_WINDOW_MS = 172_800_000; // 48 hours
+export const STREAK_MILESTONES = [7, 30, 100, 365] as const;
