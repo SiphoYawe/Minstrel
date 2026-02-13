@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
-import type { GuestSession, StoredMidiEvent, AnalysisSnapshot } from './db';
+import type { GuestSession, StoredMidiEvent, AnalysisSnapshot, StoredDrillRecord } from './db';
 import { db } from './db';
 
 export const BATCH_SIZE = 500;
@@ -81,6 +81,25 @@ export function mapSnapshotToSupabase(
     snapshot_type: 'silence_triggered',
     tendency_data: snapshot.data,
     snapshot_at: new Date(snapshot.createdAt).toISOString(),
+  };
+}
+
+export function mapDrillRecordToSupabase(
+  record: StoredDrillRecord,
+  userId: string
+): Record<string, unknown> {
+  return {
+    id: record.drillId,
+    user_id: userId,
+    session_id: record.sessionId,
+    target_skill: record.targetSkill,
+    weakness_description: record.weaknessDescription,
+    drill_data: record.drillData,
+    difficulty_parameters: record.difficultyParameters,
+    status: record.status,
+    results: record.results,
+    created_at: record.createdAt,
+    completed_at: record.completedAt,
   };
 }
 
@@ -220,4 +239,69 @@ export async function getLocalSessionSummaries(count: number = 5): Promise<Guest
   const sessions = await db.sessions.where('status').equals('completed').toArray();
   sessions.sort((a, b) => b.startedAt - a.startedAt);
   return sessions.slice(0, count);
+}
+
+/**
+ * Sync pending drill records to Supabase.
+ * Upserts each drill record (idempotent on drillId).
+ */
+export async function syncPendingDrillRecords(userId: string): Promise<PendingSyncResult> {
+  if (!db) return { synced: 0, failed: 0, errors: ['IndexedDB not available'] };
+
+  const result: PendingSyncResult = { synced: 0, failed: 0, errors: [] };
+
+  try {
+    const pending = await db.drillRecords.where('syncStatus').equals('pending').toArray();
+
+    const supabase = createClient();
+
+    for (let i = 0; i < pending.length; i += BATCH_SIZE) {
+      const batch = pending.slice(i, i + BATCH_SIZE);
+      const mapped = batch.map((r) => mapDrillRecordToSupabase(r, userId));
+
+      try {
+        await withRetry(async () => {
+          const { error } = await supabase
+            .from('drill_records')
+            .upsert(mapped, { onConflict: 'id' });
+          if (error) throw new Error(`Drill sync failed: ${error.message}`);
+        });
+
+        const ids = batch.map((r) => r.id).filter((id): id is number => id !== undefined);
+        if (ids.length > 0) {
+          await db.drillRecords.where('id').anyOf(ids).modify({ syncStatus: 'synced' });
+        }
+        result.synced += batch.length;
+      } catch (err) {
+        result.failed += batch.length;
+        result.errors.push(err instanceof Error ? err.message : 'Unknown error');
+        const ids = batch.map((r) => r.id).filter((id): id is number => id !== undefined);
+        if (ids.length > 0) {
+          await db.drillRecords
+            .where('id')
+            .anyOf(ids)
+            .modify({ syncStatus: 'failed' })
+            .catch(() => {});
+        }
+      }
+    }
+  } catch (err) {
+    result.errors.push(`Query failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+  }
+
+  return result;
+}
+
+/**
+ * Query drill records from Dexie (local) for a specific user.
+ */
+export async function getLocalDrillRecords(
+  userId: string,
+  limit: number = 20
+): Promise<StoredDrillRecord[]> {
+  if (!db) return [];
+
+  const records = await db.drillRecords.where('userId').equals(userId).toArray();
+  records.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  return records.slice(0, limit);
 }

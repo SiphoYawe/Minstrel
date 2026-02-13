@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { GuestSession, StoredMidiEvent, AnalysisSnapshot } from './db';
+import type { GuestSession, StoredMidiEvent, AnalysisSnapshot, StoredDrillRecord } from './db';
 import {
   mapSessionToSupabase,
   mapMidiEventToSupabase,
   mapSnapshotToSupabase,
+  mapDrillRecordToSupabase,
   syncSessionToSupabase,
   withRetry,
   BATCH_SIZE,
@@ -273,6 +274,63 @@ describe('withRetry', () => {
     // Allow generous tolerance for CI
     expect(callTimes[1]! - callTimes[0]!).toBeGreaterThanOrEqual(40);
     expect(callTimes[2]! - callTimes[1]!).toBeGreaterThanOrEqual(80);
+  });
+});
+
+describe('mapDrillRecordToSupabase', () => {
+  it('maps StoredDrillRecord to Supabase format', () => {
+    const record: StoredDrillRecord = {
+      id: 1,
+      drillId: 'drill-abc',
+      userId: 'user-123',
+      sessionId: 'session-456',
+      targetSkill: 'Chord transitions',
+      weaknessDescription: 'Slow C to Am',
+      drillData: { sequence: [], targetTempo: 120 },
+      difficultyParameters: { harmonicComplexity: 0.5 },
+      status: 'completed',
+      createdAt: '2026-02-13T12:00:00Z',
+      completedAt: '2026-02-13T12:10:00Z',
+      results: { repsCompleted: 3, accuracyAchieved: 0.85 },
+      syncStatus: 'pending',
+    };
+
+    const mapped = mapDrillRecordToSupabase(record, 'user-123');
+
+    expect(mapped.id).toBe('drill-abc');
+    expect(mapped.user_id).toBe('user-123');
+    expect(mapped.session_id).toBe('session-456');
+    expect(mapped.target_skill).toBe('Chord transitions');
+    expect(mapped.weakness_description).toBe('Slow C to Am');
+    expect(mapped.drill_data).toEqual({ sequence: [], targetTempo: 120 });
+    expect(mapped.status).toBe('completed');
+    expect(mapped.results).toEqual({ repsCompleted: 3, accuracyAchieved: 0.85 });
+    expect(mapped.created_at).toBe('2026-02-13T12:00:00Z');
+    expect(mapped.completed_at).toBe('2026-02-13T12:10:00Z');
+  });
+
+  it('handles null results and sessionId', () => {
+    const record: StoredDrillRecord = {
+      id: 2,
+      drillId: 'drill-xyz',
+      userId: 'guest',
+      sessionId: null,
+      targetSkill: 'Timing',
+      weaknessDescription: 'Inconsistent',
+      drillData: {},
+      difficultyParameters: {},
+      status: 'generated',
+      createdAt: '2026-02-13T12:00:00Z',
+      completedAt: null,
+      results: null,
+      syncStatus: 'pending',
+    };
+
+    const mapped = mapDrillRecordToSupabase(record, 'guest');
+
+    expect(mapped.session_id).toBeNull();
+    expect(mapped.results).toBeNull();
+    expect(mapped.completed_at).toBeNull();
   });
 });
 

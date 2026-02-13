@@ -7,6 +7,7 @@ import { buildSessionContext } from '@/features/coaching/context-builder';
 import { buildDrillRequest, requestDrill } from '@/features/drills/drill-generator';
 import { DEFAULT_DIFFICULTY } from '@/features/difficulty/difficulty-engine';
 import type { GeneratedDrill } from '@/features/drills/drill-types';
+import { createDrillRecord } from '@/features/drills/drill-tracker';
 import type { SupportedProvider } from '@/lib/ai/provider';
 
 export interface DrillGenerationState {
@@ -60,6 +61,20 @@ export function useDrillGeneration(): DrillGenerationState {
 
       setDrill(generatedDrill);
       useSessionStore.getState().setCurrentDrill(generatedDrill);
+
+      // Persist drill to IndexedDB
+      const userId = useAppStore.getState().user?.id ?? 'guest';
+      const sessionId = useSessionStore.getState().activeSessionId;
+      createDrillRecord(
+        {
+          ...generatedDrill,
+          sequence: generatedDrill.sequence as unknown as Record<string, unknown>,
+          successCriteria: generatedDrill.successCriteria as unknown as Record<string, unknown>,
+          difficultyLevel: generatedDrill.difficultyLevel as unknown as Record<string, number>,
+        },
+        userId,
+        sessionId ? String(sessionId) : null
+      ).catch(() => {});
     } catch (err) {
       const message =
         err instanceof Error

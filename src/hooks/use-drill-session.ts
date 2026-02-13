@@ -6,8 +6,13 @@ import { createDrillCycle } from '@/features/drills/drill-player';
 import type { DrillOutput, DrillCycleController } from '@/features/drills/drill-player';
 import { DrillPhase } from '@/features/drills/drill-types';
 import type { GeneratedDrill } from '@/features/drills/drill-types';
-import { comparePerformance, getDrillMessage } from '@/features/drills/drill-tracker';
+import {
+  comparePerformance,
+  getDrillMessage,
+  saveDrillResults,
+} from '@/features/drills/drill-tracker';
 import type { DrillRepResult } from '@/features/drills/drill-tracker';
+import { useAppStore } from '@/stores/app-store';
 import type { MidiEvent } from '@/features/midi/midi-types';
 
 /** Duration (ms) to capture MIDI input during attempt before auto-analyzing. */
@@ -159,7 +164,13 @@ export function useDrillSession(drill: GeneratedDrill | null): DrillSessionState
   const complete = useCallback(() => {
     cleanup();
     setPhase(DrillPhase.Complete);
-  }, [cleanup]);
+
+    // Persist results to IndexedDB
+    if (drill && repHistory.length > 0) {
+      const userId = useAppStore.getState().user?.id ?? 'guest';
+      saveDrillResults(drill.id, userId, repHistory, 'completed').catch(() => {});
+    }
+  }, [cleanup, drill, repHistory]);
 
   // Cleanup on unmount
   useEffect(() => cleanup, [cleanup]);
