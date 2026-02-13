@@ -57,41 +57,45 @@ export function AppSidebar() {
       aria-label="Main navigation"
     >
       {/* Logo + Collapse toggle */}
-      <div className="shrink-0 h-10 flex items-center justify-between border-b border-border px-2">
-        <a
-          href="/session"
-          onClick={(e) => {
-            e.preventDefault();
-            router.push('/session');
-          }}
-          className="flex items-center gap-2 min-w-0"
-          aria-label="Minstrel home"
+      <div className="shrink-0 flex flex-col border-b border-border">
+        <div
+          className={`flex items-center justify-between ${collapsed ? 'px-2 py-3' : 'px-3.5 py-4'}`}
         >
-          <Image
-            src="/minstrel-logo-white.svg"
-            alt=""
-            width={collapsed ? 20 : 90}
-            height={20}
-            className="shrink-0"
-            aria-hidden="true"
-          />
-        </a>
-        <button
-          type="button"
-          onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="
-            w-6 h-6 flex items-center justify-center shrink-0
-            text-muted-foreground hover:text-foreground
-            transition-colors duration-150
-          "
-        >
-          {collapsed ? (
-            <ChevronRight className="w-3.5 h-3.5" strokeWidth={1.5} aria-hidden="true" />
-          ) : (
-            <ChevronLeft className="w-3.5 h-3.5" strokeWidth={1.5} aria-hidden="true" />
-          )}
-        </button>
+          <a
+            href="/session"
+            onClick={(e) => {
+              e.preventDefault();
+              router.push('/session');
+            }}
+            className="flex items-center gap-2 min-w-0"
+            aria-label="Minstrel home"
+          >
+            <Image
+              src="/minstrel-logo-white.svg"
+              alt=""
+              width={collapsed ? 24 : 120}
+              height={collapsed ? 24 : 28}
+              className="shrink-0"
+              aria-hidden="true"
+            />
+          </a>
+          <button
+            type="button"
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="
+              w-6 h-6 flex items-center justify-center shrink-0
+              text-muted-foreground hover:text-foreground
+              transition-colors duration-150
+            "
+          >
+            {collapsed ? (
+              <ChevronRight className="w-3.5 h-3.5" strokeWidth={1.5} aria-hidden="true" />
+            ) : (
+              <ChevronLeft className="w-3.5 h-3.5" strokeWidth={1.5} aria-hidden="true" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Navigation links */}
