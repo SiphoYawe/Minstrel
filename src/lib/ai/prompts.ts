@@ -123,6 +123,7 @@ export function buildChatSystemPrompt(
     continuitySection ? '' : '',
     "CRITICAL: Only reference data points present in the SESSION DATA above. If the user asks about something not covered by the data, say explicitly that you don't have enough information for that assessment yet.",
     'When referencing data, be precise: cite specific numbers, chord names, timestamps, and improvement deltas.',
+    'Use structured formatting: ## for section headers, - for bullet points. Key advice should use [TIP:...] markers.',
     'If data sufficiency is limited, acknowledge it: "I only have [N] notes to work with so far. Here\'s what I can see..."',
     '',
     'CHAT INSTRUCTIONS:',

@@ -22,6 +22,7 @@ import { ScaleDisplay } from '@/components/chat/scale-display';
 import { TimingGraph } from '@/components/chat/timing-graph';
 import { PracticeTip } from '@/components/chat/practice-tip';
 import { DrillSuggestion } from '@/components/chat/drill-suggestion';
+import { StudioEngineerIcon } from '@/components/icons/studio-engineer-icon';
 import type { UIMessage } from 'ai';
 
 interface AIChatPanelProps {
@@ -184,28 +185,38 @@ export function AIChatPanel({
           aria-busy={isLoading}
         >
           {messages.length === 0 && !error && (
-            <p className="text-xs text-muted-foreground text-center py-8">
-              Ask about your playing — the Studio Engineer is listening.
-            </p>
-          )}
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`max-w-[85%] px-3 py-2 text-sm ${
-                msg.role === 'user'
-                  ? 'self-end bg-surface-light text-foreground font-sans'
-                  : 'self-start bg-card text-foreground font-mono text-sm'
-              }`}
-            >
-              {msg.role === 'assistant' ? (
-                <HighlightedMessage parts={msg.parts} />
-              ) : (
-                msg.parts
-                  .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
-                  .map((part, i) => <span key={i}>{part.text}</span>)
-              )}
+            <div className="flex gap-2 self-start max-w-[85%]">
+              <div className="flex-shrink-0 mt-1">
+                <StudioEngineerIcon size={28} />
+              </div>
+              <div className="border-l-2 border-primary pl-3 py-2 bg-card text-sm text-foreground font-mono">
+                Studio Engineer online. What are you working on?
+              </div>
             </div>
-          ))}
+          )}
+          {messages.map((msg) =>
+            msg.role === 'assistant' ? (
+              <div key={msg.id} className="flex gap-2 self-start max-w-[85%]">
+                <div className="flex-shrink-0 mt-1">
+                  <StudioEngineerIcon size={28} />
+                </div>
+                <div className="border-l-2 border-primary pl-3 py-2 bg-card text-foreground font-mono text-sm">
+                  <HighlightedMessage parts={msg.parts} />
+                </div>
+              </div>
+            ) : (
+              <div
+                key={msg.id}
+                className="max-w-[85%] px-3 py-2 text-sm self-end bg-surface-light text-foreground font-sans"
+              >
+                {msg.parts
+                  .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+                  .map((part, i) => (
+                    <span key={i}>{part.text}</span>
+                  ))}
+              </div>
+            )
+          )}
           {error && (
             <div className="self-center px-3 py-2 text-accent-warm text-xs" role="alert">
               {error.message}
