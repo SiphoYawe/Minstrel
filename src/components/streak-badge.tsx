@@ -52,7 +52,7 @@ export function StreakBadge({ streak }: StreakBadgeProps) {
         <TooltipTrigger asChild>
           <div
             className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-sans ${
-              isMilestone ? 'shadow-[0_0_8px_hsl(var(--accent-warm)/0.3)]' : ''
+              isMilestone ? 'shadow-[0_0_8px_hsl(var(--accent-success)/0.3)]' : ''
             }`}
             aria-label={`Practice streak: ${streak.currentStreak} days`}
           >

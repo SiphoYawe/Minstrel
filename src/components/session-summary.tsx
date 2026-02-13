@@ -161,7 +161,7 @@ export function SessionSummary({
             </span>
             {timingImprovement !== null && timingImprovement !== 0 && (
               <span
-                className={`ml-2 text-xs font-mono ${timingImprovement > 0 ? 'text-primary' : 'text-amber-400'}`}
+                className={`ml-2 text-xs font-mono ${timingImprovement > 0 ? 'text-accent-success' : 'text-accent-warm'}`}
               >
                 {timingImprovement > 0 ? '+' : ''}
                 {timingImprovement}% vs last

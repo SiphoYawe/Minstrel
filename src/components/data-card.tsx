@@ -44,7 +44,8 @@ function formatAccuracy(accuracy: number): string {
 }
 
 function getAccuracyColor(accuracy: number): string {
-  if (accuracy >= 80) return 'text-primary';
+  if (accuracy >= 85) return 'text-accent-success';
+  if (accuracy >= 70) return 'text-primary';
   return 'text-accent-warm';
 }
 

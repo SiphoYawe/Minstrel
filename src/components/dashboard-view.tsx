@@ -425,7 +425,12 @@ export function DashboardView() {
             className="border border-surface-light bg-card px-4 py-3 hover:border-primary/30 transition-colors"
           >
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-accent-warm" aria-hidden="true">
+              <span
+                className={
+                  streak.currentStreak > 0 ? 'text-accent-success' : 'text-muted-foreground'
+                }
+                aria-hidden="true"
+              >
                 {ICON_MAP.calendar}
               </span>
               <span className="font-mono text-lg text-white">
@@ -465,7 +470,10 @@ export function DashboardView() {
             className="border border-surface-light bg-card px-4 py-3 hover:border-primary/30 transition-colors"
           >
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-primary" aria-hidden="true">
+              <span
+                className={unlockedCount > 0 ? 'text-accent-success' : 'text-muted-foreground'}
+                aria-hidden="true"
+              >
                 {ICON_MAP.drill}
               </span>
               <span className="font-mono text-lg text-white">{unlockedCount}</span>
