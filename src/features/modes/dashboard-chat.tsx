@@ -56,7 +56,7 @@ export function DashboardChat() {
     <div className="relative h-dvh w-full bg-background">
       <StatusBar />
 
-      <div className="h-full pt-10 grid grid-cols-1 lg:grid-cols-[3fr_2fr] transition-all duration-300 overflow-y-auto lg:overflow-hidden">
+      <main className="h-full pt-10 grid grid-cols-1 lg:grid-cols-[3fr_2fr] transition-all duration-300 overflow-y-auto lg:overflow-hidden">
         <div className="min-w-0 min-h-[400px] lg:min-h-0 h-full relative">
           <VisualizationCanvas />
           <SnapshotCTA
@@ -172,7 +172,7 @@ export function DashboardChat() {
             />
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

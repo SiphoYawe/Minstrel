@@ -70,6 +70,7 @@ export function TimelineScrubber({
   const isDragging = useRef(false);
   const rafPending = useRef(false);
   const pendingPosition = useRef(0);
+  const capturedPointerIdRef = useRef<number | null>(null);
   const [hoveredMarker, setHoveredMarker] = useState<TimelineMarker | null>(null);
   const [speedAnnouncement, setSpeedAnnouncement] = useState('');
 
@@ -109,6 +110,7 @@ export function TimelineScrubber({
       const track = trackRef.current;
       if (!track) return;
       track.setPointerCapture(e.pointerId);
+      capturedPointerIdRef.current = e.pointerId;
       isDragging.current = true;
       document.body.style.userSelect = 'none';
       onPositionChange(pixelToTimestamp(e.clientX));
@@ -126,6 +128,7 @@ export function TimelineScrubber({
 
   const handlePointerUp = useCallback(() => {
     isDragging.current = false;
+    capturedPointerIdRef.current = null;
     document.body.style.userSelect = '';
   }, []);
 
@@ -169,6 +172,25 @@ export function TimelineScrubber({
     },
     [onSpeedChange]
   );
+
+  // --- Cleanup pointer capture on unmount ---
+  useEffect(() => {
+    return () => {
+      if (isDragging.current) {
+        isDragging.current = false;
+        document.body.style.userSelect = '';
+        const track = trackRef.current;
+        if (track && capturedPointerIdRef.current !== null) {
+          try {
+            track.releasePointerCapture(capturedPointerIdRef.current);
+          } catch {
+            // Already released
+          }
+        }
+        capturedPointerIdRef.current = null;
+      }
+    };
+  }, []);
 
   // --- Global spacebar for play/pause ---
   useEffect(() => {

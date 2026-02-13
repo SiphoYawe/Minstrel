@@ -1,12 +1,19 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@/test-utils/render';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@/test-utils/render';
 import { TimelineScrubber } from './timeline-scrubber';
 import type { TimelineScrubberProps, TimelineMarker } from './timeline-scrubber';
 
+// Mock lucide-react icons as simple spans
+vi.mock('lucide-react', () => ({
+  Play: (props: Record<string, unknown>) => <span data-testid="icon-play" {...props} />,
+  Pause: (props: Record<string, unknown>) => <span data-testid="icon-pause" {...props} />,
+  RotateCcw: (props: Record<string, unknown>) => <span data-testid="icon-restart" {...props} />,
+}));
+
 function makeProps(overrides?: Partial<TimelineScrubberProps>): TimelineScrubberProps {
   return {
-    position: 30_000, // 30 seconds
-    totalDuration: 300_000, // 5 minutes
+    position: 30_000,
+    totalDuration: 300_000,
     playbackState: 'paused',
     speed: 1,
     markers: [],
@@ -16,6 +23,12 @@ function makeProps(overrides?: Partial<TimelineScrubberProps>): TimelineScrubber
     ...overrides,
   };
 }
+
+afterEach(() => {
+  cleanup();
+  // Reset userSelect in case a test leaves it dirty
+  document.body.style.userSelect = '';
+});
 
 describe('TimelineScrubber', () => {
   describe('rendering', () => {
@@ -215,6 +228,64 @@ describe('TimelineScrubber', () => {
       fireEvent.click(screen.getByRole('button', { name: /set speed to 2x/i }));
       const liveRegion = document.querySelector('[aria-live="polite"]');
       expect(liveRegion?.textContent).toContain('Playback speed: 2x');
+    });
+  });
+
+  describe('pointer capture cleanup on unmount (UI-C3)', () => {
+    // jsdom does not implement setPointerCapture / releasePointerCapture,
+    // so we stub them on the slider element after render.
+    function stubPointerCapture(el: Element) {
+      if (!el.setPointerCapture) {
+        el.setPointerCapture = vi.fn();
+      }
+      if (!el.releasePointerCapture) {
+        el.releasePointerCapture = vi.fn();
+      }
+    }
+
+    it('restores document.body.style.userSelect when unmounted mid-drag', () => {
+      // Confirm baseline
+      expect(document.body.style.userSelect).toBe('');
+
+      const { unmount } = render(<TimelineScrubber {...makeProps()} />);
+      const slider = screen.getByRole('slider');
+      stubPointerCapture(slider);
+
+      // Simulate pointerdown to start drag — sets userSelect to 'none'
+      fireEvent.pointerDown(slider, { pointerId: 1, clientX: 50 });
+      expect(document.body.style.userSelect).toBe('none');
+
+      // Unmount mid-drag — cleanup effect should restore userSelect
+      unmount();
+      expect(document.body.style.userSelect).toBe('');
+    });
+
+    it('does not affect userSelect when unmounted without dragging', () => {
+      expect(document.body.style.userSelect).toBe('');
+
+      const { unmount } = render(<TimelineScrubber {...makeProps()} />);
+
+      // Unmount without any pointer interaction
+      unmount();
+      expect(document.body.style.userSelect).toBe('');
+    });
+
+    it('restores userSelect after pointerUp ends drag before unmount', () => {
+      const { unmount } = render(<TimelineScrubber {...makeProps()} />);
+      const slider = screen.getByRole('slider');
+      stubPointerCapture(slider);
+
+      // Start drag
+      fireEvent.pointerDown(slider, { pointerId: 1, clientX: 50 });
+      expect(document.body.style.userSelect).toBe('none');
+
+      // End drag normally
+      fireEvent.pointerUp(slider);
+      expect(document.body.style.userSelect).toBe('');
+
+      // Unmount after drag already ended — should still be clean
+      unmount();
+      expect(document.body.style.userSelect).toBe('');
     });
   });
 });

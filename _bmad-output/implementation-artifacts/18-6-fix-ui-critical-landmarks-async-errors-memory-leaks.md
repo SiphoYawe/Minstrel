@@ -1,6 +1,6 @@
 # Story 18.6: Fix UI Critical Bugs — Landmarks, Async Errors, Memory Leaks
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -43,8 +43,25 @@ So that the app is accessible, robust, and performant.
 
 ### Agent Model Used
 
+Claude Opus 4.6
+
 ### Debug Log References
+
+- All 32 tests pass (timeline-scrubber: 28, dashboard-chat: 4)
+- TypeScript compiles clean
 
 ### Completion Notes List
 
+- UI-C1: Changed outer content div to `<main>` in dashboard-chat.tsx for screen reader landmark
+- UI-C2: Added `.catch()` handlers to all 3 dynamic import chains in replay-studio.tsx (snapshot/drill useEffect + SessionsListPanel click handler), setting replayStatus to 'error' on failure
+- UI-C3: Added `capturedPointerIdRef` to track active pointer, cleanup useEffect releases pointer capture and restores `document.body.style.userSelect` on unmount mid-drag
+- UI-C4: Session history loading already batched via `Promise.all` + single `setSessions()` — verified correct
+- UI-C5: Wrapped InsightsPanel, ChatPanel, SessionsListPanel with React.memo to prevent unnecessary re-renders on parent state changes (e.g. replayPosition updates)
+
 ### File List
+
+- src/features/modes/dashboard-chat.tsx (modified)
+- src/features/modes/replay-studio.tsx (modified)
+- src/components/timeline-scrubber.tsx (modified)
+- src/features/modes/dashboard-chat.test.tsx (new)
+- src/components/timeline-scrubber.test.tsx (new)

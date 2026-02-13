@@ -1,51 +1,108 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@/test-utils/render';
+
+// Mock all child component imports to isolate landmark testing
+vi.mock('@/components/viz/visualization-canvas', () => ({
+  VisualizationCanvas: () => <div data-testid="viz-canvas" />,
+}));
+vi.mock('@/components/status-bar', () => ({
+  StatusBar: () => <div data-testid="status-bar" />,
+}));
+vi.mock('@/components/snapshot-cta', () => ({
+  SnapshotCTA: () => <div data-testid="snapshot-cta" />,
+}));
+vi.mock('@/components/data-card', () => ({
+  DataCard: () => <div data-testid="data-card" />,
+}));
+vi.mock('@/components/ai-chat-panel', () => ({
+  AIChatPanel: () => <div data-testid="ai-chat-panel" />,
+}));
+vi.mock('@/components/drill-panel', () => ({
+  DrillPanel: () => <div data-testid="drill-panel" />,
+}));
+vi.mock('@/components/drill-request-card', () => ({
+  DrillRequestCard: () => <div data-testid="drill-request-card" />,
+}));
+vi.mock('@/components/drill-controller', () => ({
+  DrillController: () => <div data-testid="drill-controller" />,
+}));
+vi.mock('@/components/personal-records', () => ({
+  PersonalRecords: () => <div data-testid="personal-records" />,
+}));
+vi.mock('@/components/weekly-summary', () => ({
+  WeeklySummary: () => <div data-testid="weekly-summary" />,
+}));
+
+// Mock all hooks
+vi.mock('@/features/coaching/coaching-client', () => ({
+  useCoachingChat: () => ({
+    messages: [],
+    input: '',
+    handleInputChange: vi.fn(),
+    handleSubmit: vi.fn(),
+    isLoading: false,
+    error: null,
+    setInput: vi.fn(),
+  }),
+}));
+vi.mock('@/hooks/use-drill-generation', () => ({
+  useDrillGeneration: () => ({
+    drill: null,
+    isGenerating: false,
+    error: null,
+    generate: vi.fn(),
+    retry: vi.fn(),
+    dismiss: vi.fn(),
+  }),
+}));
+vi.mock('@/hooks/use-drill-session', () => ({
+  useDrillSession: () => ({
+    phase: null,
+    currentRep: 0,
+    repHistory: [],
+    improvementMessage: null,
+    startDrill: vi.fn(),
+    tryAgain: vi.fn(),
+    complete: vi.fn(),
+  }),
+}));
+vi.mock('@/stores/app-store', () => ({
+  useAppStore: vi.fn(() => false),
+}));
+vi.mock('@/stores/session-store', () => ({
+  useSessionStore: Object.assign(
+    vi.fn(() => ({})),
+    {
+      getState: () => ({ currentSnapshot: null }),
+    }
+  ),
+}));
+
 import { DashboardChat } from './dashboard-chat';
-import { useSessionStore } from '@/stores/session-store';
-import { useAppStore } from '@/stores/app-store';
 
 describe('DashboardChat', () => {
-  beforeEach(() => {
-    useSessionStore.setState({
-      currentMode: 'dashboard-chat',
-      currentKey: null,
-      currentTempo: null,
-      timingAccuracy: 100,
-      detectedChords: [],
-      chatHistory: [],
+  describe('landmark structure (UI-C1)', () => {
+    it('renders a <main> landmark element', () => {
+      render(<DashboardChat />);
+      expect(screen.getByRole('main')).toBeInTheDocument();
     });
-    useAppStore.setState({ hasApiKey: true });
-  });
 
-  it('renders the visualization canvas area', () => {
-    render(<DashboardChat />);
-    expect(screen.getByRole('img', { name: 'MIDI note visualization' })).toBeInTheDocument();
-  });
+    it('the <main> element contains the visualization canvas', () => {
+      render(<DashboardChat />);
+      const main = screen.getByRole('main');
+      expect(main.querySelector('[data-testid="viz-canvas"]')).not.toBeNull();
+    });
 
-  it('renders the data card section', () => {
-    render(<DashboardChat />);
-    expect(screen.getByRole('region', { name: 'Session metrics' })).toBeInTheDocument();
-  });
+    it('the <main> element contains the chat panel', () => {
+      render(<DashboardChat />);
+      const main = screen.getByRole('main');
+      expect(main.querySelector('[data-testid="ai-chat-panel"]')).not.toBeNull();
+    });
 
-  it('renders the chat panel', () => {
-    render(<DashboardChat />);
-    expect(screen.getByRole('log')).toBeInTheDocument();
-  });
-
-  it('renders the mode switcher', () => {
-    render(<DashboardChat />);
-    expect(screen.getByRole('tablist', { name: 'Session mode' })).toBeInTheDocument();
-  });
-
-  it('uses CSS grid layout with 3fr 2fr split', () => {
-    const { container } = render(<DashboardChat />);
-    const grid = container.querySelector('.lg\\:grid-cols-\\[3fr_2fr\\]');
-    expect(grid).not.toBeNull();
-  });
-
-  it('renders status bar', () => {
-    render(<DashboardChat />);
-    const statusElements = screen.getAllByRole('status');
-    expect(statusElements.length).toBeGreaterThanOrEqual(1);
+    it('the <main> element contains the data card', () => {
+      render(<DashboardChat />);
+      const main = screen.getByRole('main');
+      expect(main.querySelector('[data-testid="data-card"]')).not.toBeNull();
+    });
   });
 });

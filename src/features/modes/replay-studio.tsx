@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect, memo } from 'react';
 import Link from 'next/link';
 import { ChevronUp, Settings } from 'lucide-react';
 import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
@@ -90,25 +90,30 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
 
     const sessionId = replaySession.id;
 
-    import('@/lib/dexie/db').then(({ db }) => {
-      if (!db) return;
+    import('@/lib/dexie/db')
+      .then(({ db }) => {
+        if (!db) return;
 
-      // Load analysis snapshots for this session
-      db.analysisSnapshots
-        .where('sessionId')
-        .equals(sessionId)
-        .sortBy('createdAt')
-        .then((snaps) => setSnapshots(snaps))
-        .catch(() => setSnapshots([]));
+        // Load analysis snapshots for this session
+        db.analysisSnapshots
+          .where('sessionId')
+          .equals(sessionId)
+          .sortBy('createdAt')
+          .then((snaps) => setSnapshots(snaps))
+          .catch(() => setSnapshots([]));
 
-      // Load drill records for this session (sessionId stored as string)
-      db.drillRecords
-        .where('sessionId')
-        .equals(String(sessionId))
-        .toArray()
-        .then((drills) => setDrillRecords(drills))
-        .catch(() => setDrillRecords([]));
-    });
+        // Load drill records for this session (sessionId stored as string)
+        db.drillRecords
+          .where('sessionId')
+          .equals(String(sessionId))
+          .toArray()
+          .then((drills) => setDrillRecords(drills))
+          .catch(() => setDrillRecords([]));
+      })
+      .catch(() => {
+        setSnapshots([]);
+        setDrillRecords([]);
+      });
   }, [replaySession?.id]);
 
   // --- Build timeline markers from loaded data ---
@@ -321,7 +326,7 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
 
 // --- Insights Panel ---
 
-function InsightsPanel({
+const InsightsPanel = memo(function InsightsPanel({
   session,
   eventCount,
 }: {
@@ -385,11 +390,11 @@ function InsightsPanel({
       </div>
     </div>
   );
-}
+});
 
 // --- Chat Panel ---
 
-function ChatPanel() {
+const ChatPanel = memo(function ChatPanel() {
   const {
     messages,
     input,
@@ -566,11 +571,11 @@ function ChatPanel() {
       </div>
     </div>
   );
-}
+});
 
 // --- Sessions List Panel ---
 
-function SessionsListPanel() {
+const SessionsListPanel = memo(function SessionsListPanel() {
   const [sessions, setSessions] = useState<
     Array<{
       id: number;
@@ -629,21 +634,35 @@ function SessionsListPanel() {
             useSessionStore.getState().resetReplay();
             useSessionStore.getState().setReplayStatus('loading');
             // Trigger reload by updating the replay session
-            import('@/lib/dexie/db').then(({ db }) => {
-              db.sessions.get(session.id).then((s) => {
-                if (s) {
-                  useSessionStore.getState().setReplaySession(s);
-                  db.midiEvents
-                    .where('sessionId')
-                    .equals(session.id)
-                    .sortBy('timestamp')
-                    .then((events) => {
-                      useSessionStore.getState().setReplayEvents(events);
-                      useSessionStore.getState().setReplayStatus('success');
-                    });
-                }
+            import('@/lib/dexie/db')
+              .then(({ db }) => {
+                db.sessions
+                  .get(session.id)
+                  .then((s) => {
+                    if (!s) {
+                      useSessionStore.getState().setReplayStatus('error');
+                      return;
+                    }
+                    useSessionStore.getState().setReplaySession(s);
+                    db.midiEvents
+                      .where('sessionId')
+                      .equals(session.id)
+                      .sortBy('timestamp')
+                      .then((events) => {
+                        useSessionStore.getState().setReplayEvents(events);
+                        useSessionStore.getState().setReplayStatus('success');
+                      })
+                      .catch(() => {
+                        useSessionStore.getState().setReplayStatus('error');
+                      });
+                  })
+                  .catch(() => {
+                    useSessionStore.getState().setReplayStatus('error');
+                  });
+              })
+              .catch(() => {
+                useSessionStore.getState().setReplayStatus('error');
               });
-            });
           }}
           className="text-left bg-card border border-surface-light p-3 hover:bg-surface-light transition-colors"
         >
@@ -670,4 +689,4 @@ function SessionsListPanel() {
       ))}
     </div>
   );
-}
+});
