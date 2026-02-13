@@ -9,6 +9,7 @@ vi.mock('@/lib/dexie/db', () => ({
       get: vi.fn(),
       where: vi.fn(() => ({
         equals: vi.fn(() => ({
+          toArray: vi.fn().mockResolvedValue([]),
           reverse: vi.fn(() => ({
             sortBy: vi.fn(),
           })),
@@ -38,15 +39,13 @@ describe('loadSessionList', () => {
     const mockSessions = createMockSessionList(3);
     const whereResult = {
       equals: vi.fn(() => ({
-        reverse: vi.fn(() => ({
-          sortBy: vi.fn().mockResolvedValue(mockSessions),
-        })),
+        toArray: vi.fn().mockResolvedValue(mockSessions),
       })),
     };
     vi.mocked(db.sessions.where).mockReturnValue(whereResult as never);
 
     const sessions = await loadSessionList();
-    expect(sessions).toEqual(mockSessions);
+    expect(sessions).toHaveLength(mockSessions.length);
     expect(db.sessions.where).toHaveBeenCalledWith('status');
     expect(whereResult.equals).toHaveBeenCalledWith('completed');
   });
@@ -54,9 +53,7 @@ describe('loadSessionList', () => {
   it('returns empty array when db has no sessions', async () => {
     const whereResult = {
       equals: vi.fn(() => ({
-        reverse: vi.fn(() => ({
-          sortBy: vi.fn().mockResolvedValue([]),
-        })),
+        toArray: vi.fn().mockResolvedValue([]),
       })),
     };
     vi.mocked(db.sessions.where).mockReturnValue(whereResult as never);

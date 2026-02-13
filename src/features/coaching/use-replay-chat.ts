@@ -7,6 +7,7 @@ import { useSessionStore } from '@/stores/session-store';
 import { useAppStore } from '@/stores/app-store';
 import { buildReplayContext } from './context-builder';
 import { parseChatError } from './chat-error-handler';
+import { uiMessagesToSimple } from './message-adapter';
 import type { ChatErrorInfo } from './coaching-types';
 import type { AnalysisSnapshot } from '@/lib/dexie/db';
 
@@ -38,6 +39,13 @@ export function useReplayChat(snapshots: AnalysisSnapshot[] = []) {
       new DefaultChatTransport({
         api: '/api/ai/chat',
         body: () => getReplayBody(snapshots),
+        prepareSendMessagesRequest: async ({ messages: uiMessages, body, ...rest }) => ({
+          ...rest,
+          body: {
+            ...body,
+            messages: uiMessagesToSimple(uiMessages),
+          },
+        }),
       }),
     [snapshots]
   );

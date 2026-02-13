@@ -49,7 +49,7 @@ const TABS: Array<{ id: TabId; label: string }> = [
 // --- Main Component ---
 
 interface ReplayStudioProps {
-  sessionId: number;
+  sessionId: number | null;
 }
 
 export function ReplayStudio({ sessionId }: ReplayStudioProps) {
@@ -132,10 +132,10 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
         <div className="flex h-full pt-10 items-center justify-center">
           <div className="max-w-md px-6 text-center">
             <div className="mb-4 font-mono text-lg text-[#D4A43C]" aria-live="polite">
-              Session not found
+              No sessions to replay
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              It may have been deleted or not yet synced.
+              Play a session first, then come back here to review your playing.
             </p>
           </div>
         </div>

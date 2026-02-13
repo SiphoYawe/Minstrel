@@ -19,6 +19,10 @@ const BLUES_PROFILE = [1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0];
 const CHROMATIC_PROFILE = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 // Major scale profile
 const MAJOR_SCALE_PROFILE = [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1];
+// Natural minor scale: C D Eb F G Ab Bb
+const MINOR_SCALE_PROFILE = [1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0];
+// Mixolydian profile (major with flat 7): C D E F G A Bb
+const MIXOLYDIAN_PROFILE = [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0];
 
 const GENRE_TEMPLATES: GenreTemplate[] = [
   {
@@ -71,6 +75,91 @@ const GENRE_TEMPLATES: GenreTemplate[] = [
     ],
     scaleProfile: MAJOR_SCALE_PROFILE,
     preferredQualities: ['Major', 'Minor', 'Diminished'],
+    swingExpected: false,
+  },
+  {
+    genre: 'Funk',
+    progressions: [
+      ['I', 'IV'],
+      ['I', 'bVII', 'IV'],
+    ],
+    scaleProfile: MIXOLYDIAN_PROFILE,
+    preferredQualities: ['Dominant7', 'Minor7'],
+    swingExpected: true,
+  },
+  {
+    genre: 'Soul/R&B',
+    progressions: [
+      ['I', 'vi', 'IV', 'V'],
+      ['I', 'iii', 'IV', 'V'],
+      ['ii', 'V', 'I', 'vi'],
+    ],
+    scaleProfile: MAJOR_SCALE_PROFILE,
+    preferredQualities: ['Major7', 'Minor7', 'Dominant7'],
+    swingExpected: true,
+  },
+  {
+    genre: 'Latin/Bossa Nova',
+    progressions: [
+      ['I', 'vi', 'ii', 'V'],
+      ['I', 'bII', 'ii', 'V'],
+    ],
+    scaleProfile: CHROMATIC_PROFILE,
+    preferredQualities: ['Major7', 'Minor7'],
+    swingExpected: false,
+  },
+  {
+    genre: 'Country',
+    progressions: [
+      ['I', 'IV', 'V', 'I'],
+      ['I', 'V', 'vi', 'IV'],
+    ],
+    scaleProfile: MAJOR_SCALE_PROFILE,
+    preferredQualities: ['Major', 'Dominant7'],
+    swingExpected: false,
+  },
+  {
+    genre: 'Folk',
+    progressions: [
+      ['I', 'IV', 'V'],
+      ['I', 'V', 'vi', 'IV'],
+      ['I', 'IV', 'I', 'V'],
+    ],
+    scaleProfile: MAJOR_SCALE_PROFILE,
+    preferredQualities: ['Major', 'Minor', 'Sus4'],
+    swingExpected: false,
+  },
+  {
+    genre: 'Reggae',
+    progressions: [
+      ['I', 'IV'],
+      ['vi', 'I'],
+      ['I', 'V', 'vi', 'IV'],
+    ],
+    scaleProfile: MAJOR_SCALE_PROFILE,
+    preferredQualities: ['Major', 'Minor'],
+    swingExpected: false,
+  },
+  {
+    genre: 'Metal',
+    progressions: [
+      ['I', 'bII'],
+      ['I', 'bVII', 'bVI'],
+      ['I', 'bIII', 'bVII'],
+    ],
+    scaleProfile: MINOR_SCALE_PROFILE,
+    preferredQualities: ['Major', 'Diminished', 'Sus2'],
+    swingExpected: false,
+  },
+  {
+    genre: 'Electronic',
+    progressions: [
+      ['I', 'vi'],
+      ['I', 'IV'],
+      ['vi', 'IV', 'I', 'V'],
+    ],
+    scaleProfile: MAJOR_SCALE_PROFILE,
+    preferredQualities: ['Major', 'Minor'],
     swingExpected: false,
   },
 ];

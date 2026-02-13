@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
+import { HeroCTA } from '@/components/hero-cta';
 
 const features = [
   {
@@ -47,13 +47,6 @@ export default function MarketingPage() {
       <div className="mx-auto w-full max-w-content">
         {/* Hero */}
         <section className="flex flex-col items-center px-8 py-32 text-center lg:py-44">
-          {/* Icon mark — the three bars from the logo */}
-          <div className="mb-8 flex items-end gap-[6px]" aria-hidden="true">
-            <div className="h-10 w-[5px] bg-[#7CB9E8]/40" />
-            <div className="h-14 w-[5px] bg-[#7CB9E8]/60" />
-            <div className="h-10 w-[5px] bg-[#7CB9E8]/40" />
-          </div>
-
           <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#7CB9E8]">
             Practice Companion
           </p>
@@ -69,24 +62,7 @@ export default function MarketingPage() {
             growth.
           </p>
 
-          <div className="mt-10 flex gap-4">
-            <Link
-              href="/play"
-              className="inline-flex h-12 items-center bg-[#7CB9E8] px-8 text-sm font-medium text-[#0F0F0F] transition-all duration-150 hover:brightness-110 active:brightness-90"
-            >
-              Start Playing
-            </Link>
-            <Link
-              href="/signup"
-              className="inline-flex h-12 items-center border border-[#2A2A2A] bg-transparent px-8 text-sm font-medium text-foreground transition-colors duration-150 hover:border-[#444] hover:bg-[#171717]"
-            >
-              Create Account
-            </Link>
-          </div>
-
-          <p className="mt-6 font-mono text-[11px] tracking-wider text-[#555]">
-            No payment required. Bring your own API key.
-          </p>
+          <HeroCTA />
         </section>
 
         <Separator className="bg-[#1A1A1A]" />
@@ -151,9 +127,9 @@ export default function MarketingPage() {
           <Image
             src="/minstrel-logo-white.svg"
             alt="Minstrel"
-            width={100}
-            height={25}
-            className="mx-auto mb-4 h-5 w-auto opacity-20"
+            width={160}
+            height={40}
+            className="mx-auto mb-4 h-8 w-auto opacity-20"
           />
           <p className="font-mono text-[11px] tracking-wider text-[#333]">
             Your instrument. Your ears. Your pace.

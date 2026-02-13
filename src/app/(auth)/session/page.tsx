@@ -14,6 +14,7 @@ export default function SessionPage() {
   useAnalysisPipeline();
 
   const currentMode = useSessionStore((s) => s.currentMode);
+  const activeSessionId = useSessionStore((s) => s.activeSessionId);
 
   const {
     connectionStatus,
@@ -31,7 +32,7 @@ export default function SessionPage() {
       {/* Mode-specific layout */}
       {currentMode === 'silent-coach' && <SilentCoach />}
       {currentMode === 'dashboard-chat' && <DashboardChat />}
-      {currentMode === 'replay-studio' && <ReplayStudio sessionId={0} />}
+      {currentMode === 'replay-studio' && <ReplayStudio sessionId={activeSessionId} />}
 
       {/* Troubleshooting overlay */}
       {showTroubleshooting && (

@@ -73,13 +73,13 @@ describe('ReplayStudio', () => {
     it('shows error message when session not found', () => {
       useSessionStore.setState({ replayStatus: 'error' });
       render(<ReplayStudio sessionId={999} />);
-      expect(screen.getByText(/session not found/i)).toBeInTheDocument();
+      expect(screen.getByText(/no sessions to replay/i)).toBeInTheDocument();
     });
 
     it('shows helpful context about why session is missing', () => {
       useSessionStore.setState({ replayStatus: 'error' });
       render(<ReplayStudio sessionId={999} />);
-      expect(screen.getByText(/deleted or not yet synced/i)).toBeInTheDocument();
+      expect(screen.getByText(/play a session first/i)).toBeInTheDocument();
     });
   });
 

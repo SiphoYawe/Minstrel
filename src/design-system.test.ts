@@ -201,9 +201,10 @@ describe('design system configuration (Story 1.2)', () => {
     });
 
     it('page contains CTA to /play', () => {
-      const page = readFileSync(resolve(ROOT, 'src/app/(marketing)/page.tsx'), 'utf-8');
-      expect(page).toContain('/play');
-      expect(page).toContain('Start Playing');
+      // CTA links are in the auth-aware HeroCTA client component
+      const heroCta = readFileSync(resolve(ROOT, 'src/components/hero-cta.tsx'), 'utf-8');
+      expect(heroCta).toContain('/play');
+      expect(heroCta).toContain('Start Playing');
     });
   });
 

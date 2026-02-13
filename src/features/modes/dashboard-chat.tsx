@@ -1,15 +1,22 @@
 'use client';
 
+import { useState } from 'react';
 import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
 import { StatusBar } from '@/components/status-bar';
 import { ModeSwitcher } from '@/features/modes/mode-switcher';
+import { SnapshotCTA } from '@/components/snapshot-cta';
 import { DataCard } from '@/components/data-card';
 import { AIChatPanel } from '@/components/ai-chat-panel';
+import { PersonalRecords } from '@/components/personal-records';
+import { WeeklySummary } from '@/components/weekly-summary';
 import { useCoachingChat } from '@/features/coaching/coaching-client';
+import { useAppStore } from '@/stores/app-store';
 
 export function DashboardChat() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, error, setInput } =
     useCoachingChat();
+  const isAuthenticated = useAppStore((s) => s.isAuthenticated);
+  const [showEngagement, setShowEngagement] = useState(false);
 
   return (
     <div className="relative h-dvh w-screen bg-background">
@@ -23,8 +30,9 @@ export function DashboardChat() {
         className="h-full pt-10 grid transition-all duration-300"
         style={{ gridTemplateColumns: '3fr 2fr' }}
       >
-        <div className="min-w-0 h-full">
+        <div className="min-w-0 h-full relative">
           <VisualizationCanvas />
+          <SnapshotCTA />
         </div>
 
         <div className="flex flex-col h-full border-l border-[#1A1A1A] min-w-0">
@@ -32,6 +40,31 @@ export function DashboardChat() {
             <DataCard />
           </div>
           <div className="h-px bg-[#1A1A1A] shrink-0" />
+
+          {/* Engagement toggle (authenticated users only) */}
+          {isAuthenticated && (
+            <>
+              <button
+                onClick={() => setShowEngagement((v) => !v)}
+                className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-[#1A1A1A] hover:bg-[#141414] transition-colors duration-150"
+              >
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#666]">
+                  Progress
+                </span>
+                <span className="font-mono text-[10px] text-[#444]">
+                  {showEngagement ? '−' : '+'}
+                </span>
+              </button>
+              {showEngagement && (
+                <div className="shrink-0 max-h-[280px] overflow-y-auto border-b border-[#1A1A1A]">
+                  <WeeklySummary />
+                  <div className="h-px bg-[#1A1A1A]" />
+                  <PersonalRecords />
+                </div>
+              )}
+            </>
+          )}
+
           <div className="flex-1 min-h-0">
             <AIChatPanel
               messages={messages}

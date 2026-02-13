@@ -3,7 +3,7 @@ export const APP_DESCRIPTION = 'AI-powered real-time MIDI practice companion';
 
 // Analysis constants (Story 2.1)
 export const SIMULTANEITY_WINDOW_MS = 50;
-export const SILENCE_THRESHOLD_MS = 3000;
+export const SILENCE_THRESHOLD_MS = 10_000;
 
 // Timing analysis constants (Story 2.2)
 export const ON_BEAT_TOLERANCE_MS = 30;

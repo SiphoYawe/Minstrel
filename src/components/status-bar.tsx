@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useMidiStore } from '@/stores/midi-store';
 import { useSessionStore } from '@/stores/session-store';
+import { useAppStore } from '@/stores/app-store';
+import { useStreak } from '@/features/engagement/use-streak';
+import { StreakBadge } from '@/components/streak-badge';
 import type { MidiConnectionStatus } from '@/features/midi/midi-types';
 
 const statusConfig: Record<
@@ -59,6 +62,8 @@ export function StatusBar() {
   const currentKey = useSessionStore((s) => s.currentKey);
   const currentTempo = useSessionStore((s) => s.currentTempo);
   const sessionStartTimestamp = useSessionStore((s) => s.sessionStartTimestamp);
+  const isAuthenticated = useAppStore((s) => s.isAuthenticated);
+  const { streak } = useStreak();
 
   const config = statusConfig[connectionStatus];
 
@@ -148,8 +153,14 @@ export function StatusBar() {
           )}
         </div>
 
-        {/* Right: Session timer */}
+        {/* Right: Streak + Session timer */}
         <div className="flex items-center gap-3">
+          {isAuthenticated && streak.currentStreak > 0 && (
+            <>
+              <StreakBadge streak={streak} />
+              <span className="h-3 w-px bg-surface-border" aria-hidden="true" />
+            </>
+          )}
           <span
             className="font-mono text-caption tracking-wider text-muted-foreground tabular-nums"
             aria-label={`Session time: ${formatElapsed(elapsed)}`}

@@ -17,10 +17,10 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
             <Image
               src="/minstrel-logo-white.svg"
               alt="Minstrel"
-              width={120}
-              height={30}
+              width={160}
+              height={40}
               priority
-              className="h-6 w-auto"
+              className="h-8 w-auto"
             />
           </Link>
 

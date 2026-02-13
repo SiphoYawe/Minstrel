@@ -2,10 +2,11 @@
 
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { useState, useCallback, useEffect, useMemo, type FormEvent, type ChangeEvent } from 'react';
+import { useState, useCallback, useMemo, type FormEvent, type ChangeEvent } from 'react';
 import { useSessionStore } from '@/stores/session-store';
 import { getSessionContextForAI } from './session-context-provider';
 import { parseChatError } from './chat-error-handler';
+import { uiMessagesToSimple } from './message-adapter';
 import type { ChatErrorInfo } from './coaching-types';
 
 /**
@@ -22,6 +23,13 @@ export function useCoachingChat() {
         body: () => ({
           sessionContext: getSessionContextForAI(),
           providerId: 'openai',
+        }),
+        prepareSendMessagesRequest: async ({ messages: uiMessages, body, ...rest }) => ({
+          ...rest,
+          body: {
+            ...body,
+            messages: uiMessagesToSimple(uiMessages),
+          },
         }),
       }),
     []

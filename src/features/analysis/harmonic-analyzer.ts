@@ -17,9 +17,9 @@ const MAJOR_PROFILE = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.6
 
 const MINOR_PROFILE = [6.33, 2.68, 3.52, 5.38, 2.6, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
 
-const MIN_NOTES_FOR_KEY = 8;
+const MIN_NOTES_FOR_KEY = 5;
 const MIN_CHORDS_FOR_KEY = 3;
-const KEY_CONFIDENCE_THRESHOLD = 0.5;
+const KEY_CONFIDENCE_THRESHOLD = 0.45;
 const MODULATION_CHORD_COUNT = 3;
 
 // --- Key Detection ---
@@ -65,6 +65,7 @@ export function detectKey(pitchClasses: number[]): KeyCenter | null {
 
 /**
  * Detects key from chord progression by extracting pitch classes from chord roots and notes.
+ * Uses chord root context to disambiguate relative major/minor pairs.
  */
 export function detectKeyFromChords(chords: DetectedChord[]): KeyCenter | null {
   if (chords.length < MIN_CHORDS_FOR_KEY) return null;
@@ -77,7 +78,56 @@ export function detectKeyFromChords(chords: DetectedChord[]): KeyCenter | null {
     }
   }
 
-  return detectKey(pitchClasses);
+  const rawKey = detectKey(pitchClasses);
+  if (!rawKey) return null;
+
+  return disambiguateWithChords(rawKey, chords);
+}
+
+/**
+ * Disambiguate relative major/minor using chord quality context.
+ * E.g., if K-S says C major but chords are Am, Dm, Em → actually A minor.
+ */
+function disambiguateWithChords(key: KeyCenter, chords: DetectedChord[]): KeyCenter {
+  if (chords.length < MIN_CHORDS_FOR_KEY) return key;
+
+  const keyIndex = NOTE_NAMES.indexOf(key.root as (typeof NOTE_NAMES)[number]);
+  if (keyIndex === -1) return key;
+
+  // Find the relative key (major ↔ minor)
+  const relativeOffset = key.mode === 'major' ? 9 : 3; // relative minor is -3 (=+9), relative major is +3
+  const relativeRoot = NOTE_NAMES[(keyIndex + relativeOffset) % 12];
+  const relativeMode: KeyMode = key.mode === 'major' ? 'minor' : 'major';
+
+  // Count chord roots that fall on the tonic of each key
+  const rootPcs = chords.map((c) => NOTE_NAMES.indexOf(c.root as (typeof NOTE_NAMES)[number]));
+  const tonicCount = rootPcs.filter((pc) => pc === keyIndex).length;
+  const relativeTonicCount = rootPcs.filter((pc) => pc === (keyIndex + relativeOffset) % 12).length;
+
+  // Count minor vs major chord qualities to determine mode
+  const minorChordCount = chords.filter(
+    (c) => c.quality === 'Minor' || c.quality === 'Minor7'
+  ).length;
+  const majorChordCount = chords.filter(
+    (c) => c.quality === 'Major' || c.quality === 'Major7'
+  ).length;
+
+  // If relative tonic appears more often AND mode matches chord qualities, switch
+  if (relativeTonicCount > tonicCount) {
+    const modeMatchesRelative =
+      (relativeMode === 'minor' && minorChordCount > majorChordCount) ||
+      (relativeMode === 'major' && majorChordCount > minorChordCount);
+
+    if (modeMatchesRelative) {
+      return {
+        root: relativeRoot,
+        mode: relativeMode,
+        confidence: key.confidence * 0.95, // Slightly reduce confidence for disambiguation
+      };
+    }
+  }
+
+  return key;
 }
 
 /**

@@ -23,12 +23,17 @@ async function loadEventsFromDexie(sessionId: number): Promise<StoredMidiEvent[]
 
 export async function loadSessionList(): Promise<GuestSession[]> {
   if (!db) return [];
-  const sessions = await db.sessions
-    .where('status')
-    .equals('completed')
-    .reverse()
-    .sortBy('startedAt');
+  const sessions = await db.sessions.where('status').equals('completed').toArray();
+  sessions.sort((a, b) => b.startedAt - a.startedAt);
   return sessions;
+}
+
+export async function loadLatestSession(): Promise<GuestSession | undefined> {
+  if (!db) return undefined;
+  const sessions = await db.sessions.where('status').equals('completed').toArray();
+  if (sessions.length === 0) return undefined;
+  sessions.sort((a, b) => b.startedAt - a.startedAt);
+  return sessions[0];
 }
 
 export function useReplaySession(sessionId: number | null) {
@@ -44,7 +49,6 @@ export function useReplaySession(sessionId: number | null) {
       setReplayPosition(0);
 
       try {
-        // Load metadata first for fast render
         const session = await loadSessionFromDexie(id);
         if (!session) {
           setReplayStatus('error');
@@ -52,7 +56,6 @@ export function useReplaySession(sessionId: number | null) {
         }
         setReplaySession(session);
 
-        // Load MIDI events
         const events = await loadEventsFromDexie(id);
         setReplayEvents(events);
         setReplayStatus('success');
@@ -63,14 +66,37 @@ export function useReplaySession(sessionId: number | null) {
     [setReplaySession, setReplayEvents, setReplayStatus, setReplayPosition]
   );
 
+  const loadLatest = useCallback(async () => {
+    setReplayStatus('loading');
+    setReplayPosition(0);
+
+    try {
+      const latest = await loadLatestSession();
+      if (!latest || !latest.id) {
+        setReplayStatus('error');
+        return;
+      }
+      setReplaySession(latest);
+
+      const events = await loadEventsFromDexie(latest.id);
+      setReplayEvents(events);
+      setReplayStatus('success');
+    } catch {
+      setReplayStatus('error');
+    }
+  }, [setReplaySession, setReplayEvents, setReplayStatus, setReplayPosition]);
+
   useEffect(() => {
-    if (sessionId === null) {
-      resetReplay();
-      return;
+    if (sessionId === null || sessionId === 0) {
+      // Auto-load most recent completed session
+      loadLatest();
+      return () => {
+        resetReplay();
+      };
     }
     loadSession(sessionId);
     return () => {
       resetReplay();
     };
-  }, [sessionId, loadSession, resetReplay]);
+  }, [sessionId, loadSession, loadLatest, resetReplay]);
 }

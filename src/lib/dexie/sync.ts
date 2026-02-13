@@ -217,10 +217,7 @@ export async function syncPendingSessions(userId: string): Promise<PendingSyncRe
 export async function getLocalSessionSummaries(count: number = 5): Promise<GuestSession[]> {
   if (!db) return [];
 
-  return db.sessions
-    .where('status')
-    .equals('completed')
-    .reverse()
-    .sortBy('startedAt')
-    .then((sessions) => sessions.slice(0, count));
+  const sessions = await db.sessions.where('status').equals('completed').toArray();
+  sessions.sort((a, b) => b.startedAt - a.startedAt);
+  return sessions.slice(0, count);
 }

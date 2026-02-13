@@ -92,7 +92,20 @@ export interface KeySegment {
 
 // --- Genre & Tendency Analysis Types (Story 2.4) ---
 
-export type GenreName = 'Blues' | 'Jazz' | 'Pop' | 'Rock' | 'Classical';
+export type GenreName =
+  | 'Blues'
+  | 'Jazz'
+  | 'Pop'
+  | 'Rock'
+  | 'Classical'
+  | 'Funk'
+  | 'Soul/R&B'
+  | 'Latin/Bossa Nova'
+  | 'Country'
+  | 'Folk'
+  | 'Reggae'
+  | 'Metal'
+  | 'Electronic';
 
 export interface GenrePattern {
   genre: GenreName;

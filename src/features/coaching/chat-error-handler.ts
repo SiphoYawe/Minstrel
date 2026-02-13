@@ -19,6 +19,10 @@ const ERROR_MESSAGES: Record<string, ChatErrorInfo> = {
     code: 'GENERATION_FAILED',
     message: 'Could not generate a response right now. Try again in a moment.',
   },
+  VALIDATION_ERROR: {
+    code: 'VALIDATION_ERROR',
+    message: 'Request could not be processed. Try sending your message again.',
+  },
 };
 
 /**
