@@ -31,7 +31,7 @@ export const useAppStore = create<AppState>()((set) => ({
   migrationStatus: 'idle',
   migrationProgress: { synced: 0, total: 0 },
   setUser: (user) => set({ user, isAuthenticated: true }),
-  clearUser: () => set({ user: null, isAuthenticated: false }),
+  clearUser: () => set({ user: null, isAuthenticated: false, hasApiKey: false }),
   setLoading: (isLoading) => set({ isLoading }),
   setHasApiKey: (hasApiKey) => set({ hasApiKey }),
   setMigrationStatus: (migrationStatus) => set({ migrationStatus }),

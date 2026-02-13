@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -15,10 +16,78 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/features/auth';
+import { useAppStore } from '@/stores/app-store';
+import { ApiKeyPrompt } from '@/features/auth/api-key-prompt';
+import { getApiKeyMetadata, submitApiKey, deleteApiKey } from '@/features/auth/api-key-manager';
+import type { ApiKeyMetadata, ApiKeyProvider } from '@/features/auth/auth-types';
 
 export default function SettingsPage() {
   const { user, isAuthenticated, isLoading, signOut } = useAuth();
   const router = useRouter();
+  const mountedRef = useRef(true);
+
+  const [keyMetadata, setKeyMetadata] = useState<ApiKeyMetadata | null>(null);
+  const [isKeyLoading, setIsKeyLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // Fetch existing key metadata on mount
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    getApiKeyMetadata().then((result) => {
+      if (cancelled) return;
+      if (result.error) {
+        setFetchError(result.error.message);
+        // Don't touch hasApiKey on fetch error — keep stale state
+      } else if (result.data) {
+        setKeyMetadata(result.data);
+        useAppStore.getState().setHasApiKey(true);
+      } else {
+        setKeyMetadata(null);
+        useAppStore.getState().setHasApiKey(false);
+      }
+      setIsKeyLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
+
+  const handleSaveKey = useCallback(async (provider: ApiKeyProvider, apiKey: string) => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+    const result = await submitApiKey(provider, apiKey);
+    if (!mountedRef.current) return;
+    setIsSubmitting(false);
+    if (result.error) {
+      setSubmitError(result.error.message);
+      return;
+    }
+    setKeyMetadata(result.data);
+    useAppStore.getState().setHasApiKey(true);
+  }, []);
+
+  const handleDeleteKey = useCallback(async (provider: ApiKeyProvider) => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+    const result = await deleteApiKey(provider);
+    if (!mountedRef.current) return;
+    setIsSubmitting(false);
+    if (result.error) {
+      setSubmitError(result.error.message);
+      return;
+    }
+    setKeyMetadata(null);
+    useAppStore.getState().setHasApiKey(false);
+  }, []);
 
   if (isLoading) {
     return (
@@ -95,9 +164,21 @@ export default function SettingsPage() {
           <h2 className="font-mono text-caption uppercase tracking-wider text-muted-foreground">
             API Keys
           </h2>
-          <p className="mt-3 text-caption text-muted-foreground">
-            Configure your LLM API keys &mdash; coming soon
-          </p>
+          <div className="mt-4">
+            {isKeyLoading ? (
+              <span className="font-mono text-caption text-muted-foreground">Loading...</span>
+            ) : fetchError ? (
+              <p className="text-xs text-[#E8C77B]">Could not load API key info. {fetchError}</p>
+            ) : (
+              <ApiKeyPrompt
+                keyMetadata={keyMetadata}
+                onSave={handleSaveKey}
+                onDelete={handleDeleteKey}
+                isSubmitting={isSubmitting}
+                submitError={submitError}
+              />
+            )}
+          </div>
         </section>
 
         {/* Preferences section */}

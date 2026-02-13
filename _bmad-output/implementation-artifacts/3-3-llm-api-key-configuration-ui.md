@@ -1,6 +1,6 @@
 # Story 3.3: LLM API Key Configuration UI
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -78,6 +78,7 @@ So that I can unlock AI coaching and drill generation features.
 ### Project Structure Notes
 
 Files created/modified in this story:
+
 ```
 src/features/auth/api-key-manager.ts       (create)
 src/features/auth/api-key-prompt.tsx        (create)

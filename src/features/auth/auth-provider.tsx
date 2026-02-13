@@ -10,6 +10,16 @@ function handleAuthenticated(userId: string): void {
   import('@/lib/dexie/migration').then(({ triggerMigrationIfNeeded }) => {
     triggerMigrationIfNeeded(userId);
   });
+
+  // Check if user has an API key configured
+  // Defer slightly so the session cookie is written before the fetch
+  setTimeout(() => {
+    import('./api-key-manager').then(({ getApiKeyMetadata }) => {
+      getApiKeyMetadata().then((result) => {
+        useAppStore.getState().setHasApiKey(!!result.data);
+      });
+    });
+  }, 100);
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {

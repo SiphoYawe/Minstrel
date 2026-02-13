@@ -43,16 +43,18 @@ describe('useAppStore', () => {
     expect(state.isAuthenticated).toBe(true);
   });
 
-  it('clearUser resets user and isAuthenticated', () => {
+  it('clearUser resets user, isAuthenticated, and hasApiKey', () => {
     useAppStore.getState().setUser({
       id: 'user-123',
       email: 'test@example.com',
       displayName: null,
     });
+    useAppStore.getState().setHasApiKey(true);
     useAppStore.getState().clearUser();
     const state = useAppStore.getState();
     expect(state.user).toBeNull();
     expect(state.isAuthenticated).toBe(false);
+    expect(state.hasApiKey).toBe(false);
   });
 
   it('setLoading updates loading state', () => {
