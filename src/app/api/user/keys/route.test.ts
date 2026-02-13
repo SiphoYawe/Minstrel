@@ -16,7 +16,9 @@ vi.mock('./validate', () => ({
 }));
 
 vi.mock('./rate-limit', () => ({
-  checkRateLimit: vi.fn().mockReturnValue({ allowed: true }),
+  checkRateLimit: vi
+    .fn()
+    .mockResolvedValue({ allowed: true, limit: 10, remaining: 9, resetAt: 1700000000 }),
   recordRequest: vi.fn(),
 }));
 
@@ -73,7 +75,12 @@ async function parseResponse(response: Response) {
 beforeEach(() => {
   vi.clearAllMocks();
   // Re-establish default mock return values after clearAllMocks
-  vi.mocked(checkRateLimit).mockReturnValue({ allowed: true });
+  vi.mocked(checkRateLimit).mockResolvedValue({
+    allowed: true,
+    limit: 10,
+    remaining: 9,
+    resetAt: 1700000000,
+  });
   vi.mocked(validateApiKey).mockResolvedValue({ valid: true });
   vi.mocked(encrypt).mockReturnValue('mock-iv:mock-tag:mock-cipher');
   process.env.ENCRYPTION_KEY = 'test-encryption-key-at-least-32-chars!';
@@ -176,7 +183,13 @@ describe('POST /api/user/keys', () => {
   it('returns 429 when rate limited', async () => {
     const mockSb = createMockSupabase();
     vi.mocked(createClient).mockResolvedValue(mockSb as never);
-    vi.mocked(checkRateLimit).mockReturnValue({ allowed: false, retryAfterMs: 3600000 });
+    vi.mocked(checkRateLimit).mockResolvedValue({
+      allowed: false,
+      retryAfterMs: 3600000,
+      limit: 10,
+      remaining: 0,
+      resetAt: 1700003600,
+    });
 
     const req = makeRequest('POST', { provider: 'openai', apiKey: 'sk-test-key-1234567890' });
     const res = await POST(req);
@@ -185,6 +198,11 @@ describe('POST /api/user/keys', () => {
     expect(res.status).toBe(429);
     expect(json.error.code).toBe('RATE_LIMITED');
     expect(validateApiKey).not.toHaveBeenCalled();
+    // Verify rate limit headers are present
+    expect(res.headers.get('X-RateLimit-Limit')).toBe('10');
+    expect(res.headers.get('X-RateLimit-Remaining')).toBe('0');
+    expect(res.headers.get('X-RateLimit-Reset')).toBeTruthy();
+    expect(res.headers.get('Retry-After')).toBeTruthy();
   });
 
   it('records rate limit hit before validation', async () => {

@@ -48,9 +48,23 @@ export async function POST(request: NextRequest) {
       return errorResponse('UNAUTHORIZED', 'Authentication required.', 401);
     }
 
-    const rateCheck = checkRateLimit(user.id);
+    const rateCheck = await checkRateLimit(user.id);
     if (!rateCheck.allowed) {
-      return errorResponse('RATE_LIMITED', 'Too many key submissions — try again later.', 429);
+      const headers: Record<string, string> = {
+        'X-RateLimit-Limit': String(rateCheck.limit),
+        'X-RateLimit-Remaining': String(rateCheck.remaining),
+        'X-RateLimit-Reset': String(rateCheck.resetAt),
+      };
+      if (rateCheck.retryAfterMs !== undefined) {
+        headers['Retry-After'] = String(Math.ceil(rateCheck.retryAfterMs / 1000));
+      }
+      return new NextResponse(
+        JSON.stringify({
+          data: null,
+          error: { code: 'RATE_LIMITED', message: 'Too many key submissions — try again later.' },
+        }),
+        { status: 429, headers: { 'Content-Type': 'application/json', ...headers } }
+      );
     }
 
     let body: unknown;

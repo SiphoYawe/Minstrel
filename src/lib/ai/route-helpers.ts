@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { decrypt } from '@/lib/crypto';
-import { checkRateLimit } from './rate-limiter';
+import { checkRateLimit, rateLimitHeaders } from './rate-limiter';
 import { AiError, aiErrorToResponse, classifyAiError } from './errors';
 import type { SupportedProvider } from './provider';
 import * as Sentry from '@sentry/nextjs';
@@ -42,10 +42,17 @@ export async function authenticateAiRequest(
   // 2. Rate limit (separate buckets for chat vs drill)
   const bucket = rateLimitConfig?.bucket ?? 'ai';
   const rateLimitKey = `${bucket}:${user.id}`;
-  const rateResult = checkRateLimit(rateLimitKey, rateLimitConfig?.maxRequests);
+  const rateResult = await checkRateLimit(rateLimitKey, rateLimitConfig?.maxRequests);
   if (!rateResult.allowed) {
     const aiError = new AiError('RATE_LIMITED');
-    return aiErrorToResponse(aiError);
+    const body = { data: null, error: { code: aiError.code, message: aiError.message } };
+    return new Response(JSON.stringify(body), {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        ...rateLimitHeaders(rateResult),
+      },
+    });
   }
 
   // 3. Fetch and decrypt API key

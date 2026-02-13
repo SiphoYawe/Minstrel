@@ -230,7 +230,7 @@ development_status:
   # Epic 19: High Priority Fixes (P1 — Recommended before launch)
   # Source: code-review-findings-epics-8-11.md — 27 HIGH findings
   epic-19: in-progress
-  19-1-migrate-rate-limiting-to-distributed-store: ready-for-dev
+  19-1-migrate-rate-limiting-to-distributed-store: done
   19-2-fix-api-key-validation-non-charging-endpoints: ready-for-dev
   19-3-fix-stale-closures-and-reentrancy-guards: ready-for-dev
   19-4-add-atomic-indexeddb-transactions: ready-for-dev
