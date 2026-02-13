@@ -28,6 +28,8 @@ import type {
 import { GrowthZoneStatus } from '@/features/difficulty/difficulty-types';
 import type { GeneratedDrill } from '@/features/drills/drill-types';
 import { DrillPhase } from '@/features/drills/drill-types';
+import type { DrillRepResult, ImprovementDelta } from '@/features/drills/drill-tracker';
+import { calculateImprovementDelta, toRepPerformance } from '@/features/drills/drill-tracker';
 import {
   initializeDifficulty,
   computeAdjustment,
@@ -66,6 +68,8 @@ interface SessionState {
   recalibrationResult: RecalibrationResult | null;
   currentDrillPhase: DrillPhase | null;
   currentDrill: GeneratedDrill | null;
+  drillRepHistory: DrillRepResult[];
+  drillImprovement: ImprovementDelta | null;
 }
 
 interface SessionActions {
@@ -103,6 +107,8 @@ interface SessionActions {
   setRecalibrationResult: (result: RecalibrationResult | null) => void;
   setDrillPhase: (phase: DrillPhase | null) => void;
   setCurrentDrill: (drill: GeneratedDrill | null) => void;
+  addDrillRepResult: (result: DrillRepResult) => void;
+  clearDrillRepHistory: () => void;
   resetAnalysis: () => void;
 }
 
@@ -139,6 +145,8 @@ const initialState: SessionState = {
   recalibrationResult: null,
   currentDrillPhase: null,
   currentDrill: null,
+  drillRepHistory: [],
+  drillImprovement: null,
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -279,6 +287,39 @@ export const useSessionStore = create<SessionStore>()(
     setDrillPhase: (phase) => set({ currentDrillPhase: phase }),
 
     setCurrentDrill: (drill) => set({ currentDrill: drill }),
+
+    addDrillRepResult: (result) =>
+      set((state) => {
+        const repHistory = [...state.drillRepHistory, result];
+        const improvement = calculateImprovementDelta(repHistory);
+        // Feed back to difficulty engine
+        const repPerf = toRepPerformance(result);
+        if (state.difficultyState) {
+          const newRepHistory = [...state.difficultyState.repHistory, repPerf];
+          const zoneStatus = detectZone(newRepHistory);
+          const recentReps = newRepHistory.slice(-3);
+          const avgAccuracy = recentReps.reduce((s, r) => s + r.accuracy, 0) / recentReps.length;
+          const pendingAdjustment = computeAdjustment(
+            zoneStatus,
+            state.difficultyState.currentParameters,
+            state.skillProfile,
+            avgAccuracy
+          );
+          return {
+            drillRepHistory: repHistory,
+            drillImprovement: improvement,
+            difficultyState: {
+              ...state.difficultyState,
+              repHistory: newRepHistory,
+              zoneStatus,
+              pendingAdjustment,
+            },
+          };
+        }
+        return { drillRepHistory: repHistory, drillImprovement: improvement };
+      }),
+
+    clearDrillRepHistory: () => set({ drillRepHistory: [], drillImprovement: null }),
 
     resetAnalysis: () =>
       set((state) => ({
