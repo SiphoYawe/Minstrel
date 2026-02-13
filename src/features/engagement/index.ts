@@ -31,3 +31,7 @@ export {
   saveUnlockedAchievements,
   fetchAchievementDisplay,
 } from './achievement-service';
+export { TrendDimension, TrendDirection, TrendPeriod } from './engagement-types';
+export type { TrendDataPoint, TrendLine, ProgressSummary, SessionMetric } from './engagement-types';
+export { generateProgressSummary, computeTrendDirection, formatDelta } from './progress-aggregator';
+export { fetchSessionMetrics, fetchSessionCount } from './progress-service';

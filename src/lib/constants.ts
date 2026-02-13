@@ -59,3 +59,8 @@ export const XP_TIMING_IMPROVEMENT_MULTIPLIER = 2;
 export const XP_DRILL_COMPLETION_BONUS = 15;
 export const XP_DRILL_ATTEMPT_BONUS = 5;
 export const XP_NEW_RECORD_BONUS = 25;
+
+// Progress trends constants (Story 7.4)
+export const MIN_SESSIONS_FOR_TRENDS = 3;
+export const TREND_PERIODS = { '7d': 7, '30d': 30, '90d': 90 } as const;
+export const TREND_FLAT_THRESHOLD = 0.02;

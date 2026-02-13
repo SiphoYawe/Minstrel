@@ -128,3 +128,56 @@ export interface AchievementDisplayItem {
   unlocked: boolean;
   unlockedAt: string | null;
 }
+
+// --- Progress Trends Types (Story 7.4) ---
+
+export enum TrendDimension {
+  TimingAccuracy = 'TimingAccuracy',
+  HarmonicComplexity = 'HarmonicComplexity',
+  Speed = 'Speed',
+  Consistency = 'Consistency',
+}
+
+export enum TrendDirection {
+  Up = 'Up',
+  Flat = 'Flat',
+  Down = 'Down',
+}
+
+export enum TrendPeriod {
+  SevenDays = '7d',
+  ThirtyDays = '30d',
+  NinetyDays = '90d',
+}
+
+export interface TrendDataPoint {
+  date: string; // ISO date string (YYYY-MM-DD)
+  value: number;
+}
+
+export interface TrendLine {
+  dimension: TrendDimension;
+  dataPoints: TrendDataPoint[];
+  deltaFromStart: number;
+  currentValue: number;
+  bestInPeriod: number;
+  trendDirection: TrendDirection;
+  insightText: string;
+}
+
+export interface ProgressSummary {
+  trends: TrendLine[];
+  period: TrendPeriod;
+  generatedAt: string; // ISO timestamp
+}
+
+/** Raw session metric data fetched from Supabase for aggregation. */
+export interface SessionMetric {
+  sessionId: string;
+  date: string; // ISO date string
+  timingAccuracy: number | null;
+  uniqueChords: number;
+  averageTempo: number | null;
+  maxCleanTempo: number | null;
+  durationMs: number;
+}
