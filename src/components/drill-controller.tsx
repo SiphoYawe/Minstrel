@@ -20,6 +20,8 @@ interface DrillControllerProps {
   onOneMore: () => void;
   onComplete: () => void;
   onStartDrill: () => void;
+  onNewDrill?: () => void;
+  onDone?: () => void;
 }
 
 // --- Phase display config ---
@@ -77,6 +79,8 @@ export function DrillController({
   onOneMore,
   onComplete,
   onStartDrill,
+  onNewDrill,
+  onDone,
 }: DrillControllerProps) {
   const timingDisplay = useMemo(() => {
     if (repHistory.length === 0) return null;
@@ -267,8 +271,8 @@ export function DrillController({
         <p className="text-caption text-accent-warm mb-4 tracking-[0.02em]">{improvementMessage}</p>
       )}
 
-      {/* Action buttons (Analyze or Complete phase) */}
-      {(currentPhase === 'Analyze' || currentPhase === 'Complete') && (
+      {/* Action buttons (Analyze phase) */}
+      {currentPhase === 'Analyze' && (
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={onOneMore}>
             One more
@@ -276,6 +280,25 @@ export function DrillController({
           <Button size="sm" onClick={handleComplete} className="bg-accent-blue">
             Complete
           </Button>
+        </div>
+      )}
+
+      {/* Action buttons (Complete phase) */}
+      {currentPhase === 'Complete' && (
+        <div className="flex items-center gap-3 mt-4">
+          <Button variant="outline" size="sm" onClick={onOneMore}>
+            Try Again
+          </Button>
+          {onNewDrill && (
+            <Button variant="outline" size="sm" onClick={onNewDrill}>
+              New Drill
+            </Button>
+          )}
+          {onDone && (
+            <Button size="sm" onClick={onDone} className="bg-accent-blue">
+              Done
+            </Button>
+          )}
         </div>
       )}
 

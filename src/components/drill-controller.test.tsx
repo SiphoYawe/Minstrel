@@ -255,6 +255,57 @@ describe('DrillController', () => {
     });
   });
 
+  describe('Complete phase actions', () => {
+    const completeProps = () => ({
+      ...defaultProps(),
+      currentPhase: 'Complete' as const,
+      currentRep: 3,
+      repHistory: [
+        { timingDeviationMs: 50, accuracy: 0.6 },
+        { timingDeviationMs: 40, accuracy: 0.75 },
+        { timingDeviationMs: 30, accuracy: 0.88 },
+      ],
+      onNewDrill: vi.fn(),
+      onDone: vi.fn(),
+    });
+
+    it('shows Try Again, New Drill, and Done buttons in Complete phase', () => {
+      render(<DrillController {...completeProps()} />);
+      expect(screen.getByRole('button', { name: 'Try Again' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'New Drill' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument();
+    });
+
+    it('calls onNewDrill when New Drill clicked', async () => {
+      const user = userEvent.setup();
+      const props = completeProps();
+      render(<DrillController {...props} />);
+      await user.click(screen.getByRole('button', { name: 'New Drill' }));
+      expect(props.onNewDrill).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onDone when Done clicked', async () => {
+      const user = userEvent.setup();
+      const props = completeProps();
+      render(<DrillController {...props} />);
+      await user.click(screen.getByRole('button', { name: 'Done' }));
+      expect(props.onDone).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not show New Drill/Done when callbacks not provided', () => {
+      const props = {
+        ...defaultProps(),
+        currentPhase: 'Complete' as const,
+        repHistory: [{ timingDeviationMs: 50, accuracy: 0.8 }],
+      };
+      render(<DrillController {...props} />);
+      expect(screen.queryByRole('button', { name: 'New Drill' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument();
+      // Try Again should still be present
+      expect(screen.getByRole('button', { name: 'Try Again' })).toBeInTheDocument();
+    });
+  });
+
   describe('Growth mindset', () => {
     it('never renders the word "failed"', () => {
       const { container } = render(

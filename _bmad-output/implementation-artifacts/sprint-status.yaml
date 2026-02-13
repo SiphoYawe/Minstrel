@@ -187,7 +187,7 @@ development_status:
   # Epic 15: Drill System Overhaul (P0/P1)
   epic-15: in-progress
   15-1-route-drill-generation-to-structured-api: done
-  15-2-build-drill-preview-and-audio-playback: ready-for-dev
+  15-2-build-drill-preview-and-audio-playback: done
   15-3-wire-drill-controller-with-full-phase-flow: ready-for-dev
   15-4-add-drill-persistence-to-indexeddb: ready-for-dev
   15-5-fix-drill-prompt-textarea: ready-for-dev
