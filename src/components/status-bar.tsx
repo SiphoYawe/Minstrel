@@ -8,6 +8,7 @@ import { useStreak } from '@/features/engagement/use-streak';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { StreakBadge } from '@/components/streak-badge';
 import { WarmUpProgress } from '@/components/warm-up-progress';
+import { Button } from '@/components/ui/button';
 import type { MidiConnectionStatus } from '@/features/midi/midi-types';
 
 const statusConfig: Record<
@@ -127,13 +128,14 @@ export function StatusBar() {
           )}
 
           {(connectionStatus === 'disconnected' || connectionStatus === 'error') && (
-            <button
-              type="button"
-              className="text-caption text-primary underline underline-offset-2 transition-opacity duration-micro hover:opacity-80"
+            <Button
+              variant="link"
+              size="sm"
+              className="text-caption h-auto p-0"
               onClick={() => useMidiStore.getState().setShowTroubleshooting(true)}
             >
               Help
-            </button>
+            </Button>
           )}
         </div>
 

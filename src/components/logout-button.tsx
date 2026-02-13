@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/client';
 import { capture, reset } from '@/lib/analytics';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
 export function LogoutButton() {
   const router = useRouter();
@@ -17,11 +18,12 @@ export function LogoutButton() {
   };
 
   return (
-    <button
+    <Button
+      variant="ghost"
       onClick={logout}
-      className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground transition-colors duration-150 hover:text-foreground/60"
+      className="font-mono text-[11px] uppercase tracking-[0.12em]"
     >
       Sign Out
-    </button>
+    </Button>
   );
 }

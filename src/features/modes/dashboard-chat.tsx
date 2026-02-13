@@ -58,6 +58,7 @@ export function DashboardChat() {
           {/* Engagement toggle (authenticated users only) */}
           {isAuthenticated && (
             <>
+              {/* Raw <button> retained: full-width accordion toggle with custom layout */}
               <button
                 onClick={() => setShowEngagement((v) => !v)}
                 className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-border hover:bg-card transition-colors duration-150"

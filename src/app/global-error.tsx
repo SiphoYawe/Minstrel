@@ -3,6 +3,7 @@
 import * as Sentry from '@sentry/nextjs';
 import { captureException } from '@/lib/analytics';
 import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 
 export default function GlobalError({
   error,
@@ -20,7 +21,7 @@ export default function GlobalError({
     <html lang="en">
       <body>
         <h2>Something went wrong!</h2>
-        <button onClick={() => reset()}>Try again</button>
+        <Button onClick={() => reset()}>Try again</Button>
       </body>
     </html>
   );

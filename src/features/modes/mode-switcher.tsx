@@ -75,6 +75,7 @@ export function ModeSwitcher() {
           const isActive = mode === currentMode;
 
           return (
+            /* Raw <button> retained: role="tab" + aria-selected semantics conflict with Button component */
             <button
               key={mode}
               type="button"

@@ -62,6 +62,7 @@ export function GuestPrompt() {
           </span>
         </p>
 
+        {/* Raw <button> retained: tiny 5x5 dismiss icon with custom sizing */}
         <button
           type="button"
           onClick={handleDismiss}

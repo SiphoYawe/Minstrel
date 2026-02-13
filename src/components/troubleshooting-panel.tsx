@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { TroubleshootingStep } from '@/features/midi/troubleshooting';
 import type { MidiConnectionStatus } from '@/features/midi/midi-types';
+import { Button } from '@/components/ui/button';
 
 interface TroubleshootingPanelProps {
   steps: TroubleshootingStep[];
@@ -84,6 +85,7 @@ export function TroubleshootingPanel({
           <h2 className="text-ui-label font-medium tracking-wide text-foreground">
             Let&apos;s get connected
           </h2>
+          {/* Raw <button> retained: tiny 7x7 dismiss icon with custom sizing */}
           <button
             type="button"
             onClick={onDismiss}
@@ -136,19 +138,21 @@ export function TroubleshootingPanel({
                 {/* Action */}
                 <div className="flex shrink-0 items-start pt-0.5">
                   {isChannel ? (
-                    <button
-                      type="button"
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={onDismiss}
-                      className="h-8 px-3 text-caption font-medium text-accent-warm border border-accent-warm/30 transition-colors duration-micro hover:bg-accent-warm/10"
+                      className="text-accent-warm border-accent-warm/30 hover:bg-accent-warm/10"
                     >
                       {step.actionLabel}
-                    </button>
+                    </Button>
                   ) : isAudioFallback ? (
-                    <button
-                      type="button"
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={handleAudioFallback}
                       disabled={audioStarting}
-                      className="flex h-8 items-center gap-2 px-3 text-caption font-medium text-accent-warm border border-accent-warm/30 transition-colors duration-micro hover:bg-accent-warm/10 disabled:opacity-50"
+                      className="text-accent-warm border-accent-warm/30 hover:bg-accent-warm/10"
                     >
                       {audioStarting && (
                         <span
@@ -157,14 +161,9 @@ export function TroubleshootingPanel({
                         />
                       )}
                       {step.actionLabel}
-                    </button>
+                    </Button>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={handleRetry}
-                      disabled={retrying}
-                      className="flex h-8 items-center gap-2 bg-primary px-3 text-caption font-medium text-background transition-opacity duration-micro hover:opacity-90 disabled:opacity-50"
-                    >
+                    <Button size="sm" onClick={handleRetry} disabled={retrying}>
                       {retrying ? (
                         <span
                           className="inline-block h-1.5 w-1.5 animate-pulse bg-background"
@@ -187,7 +186,7 @@ export function TroubleshootingPanel({
                         </svg>
                       ) : null}
                       {step.actionLabel}
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>

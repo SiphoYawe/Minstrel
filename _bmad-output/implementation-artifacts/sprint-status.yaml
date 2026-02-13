@@ -123,17 +123,17 @@ development_status:
   epic-8-retrospective: optional
 
   # Epic 9: Design System Remediation
-  epic-9: in-progress
+  epic-9: done
   9-1-change-destructive-error-colors-to-amber: done
-  9-2-replace-hardcoded-colors-with-design-tokens: ready-for-dev
-  9-3-refactor-raw-buttons-and-inline-styles: ready-for-dev
-  9-4-add-responsive-breakpoints-dashboard-replay: ready-for-dev
-  9-5-fix-accessibility-gaps: ready-for-dev
-  9-6-add-mobile-redirect-and-browser-incompatibility: ready-for-dev
+  9-2-replace-hardcoded-colors-with-design-tokens: done
+  9-3-refactor-raw-buttons-and-inline-styles: done
+  9-4-add-responsive-breakpoints-dashboard-replay: done
+  9-5-fix-accessibility-gaps: done
+  9-6-add-mobile-redirect-and-browser-incompatibility: done
   epic-9-retrospective: optional
 
   # Epic 10: Missing Screens & User Journeys
-  epic-10: backlog
+  epic-10: in-progress
   10-1-first-run-onboarding-empty-state: ready-for-dev
   10-2-session-summary-screen: ready-for-dev
   10-3-return-session-welcome-experience: ready-for-dev

@@ -164,6 +164,7 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
               aria-label="Replay details"
             >
               {TABS.map((tab) => (
+                /* Raw <button> retained: role="tab" + aria-selected semantics conflict with Button component */
                 <button
                   key={tab.id}
                   role="tab"

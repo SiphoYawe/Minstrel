@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { capture } from '@/lib/analytics';
+import { Button } from '@/components/ui/button';
 
 // --- Types ---
 
@@ -178,12 +179,9 @@ export function DrillController({
           <p className="text-caption text-accent-warm tracking-[0.08em] uppercase mb-3">
             Listen first
           </p>
-          <button
-            onClick={handleStartDrill}
-            className="h-9 px-4 text-ui-label font-medium bg-accent-blue text-primary-foreground hover:brightness-110 active:brightness-90 transition-all duration-micro focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
+          <Button size="sm" onClick={handleStartDrill} className="bg-accent-blue">
             Start Drill
-          </button>
+          </Button>
         </div>
       )}
 
@@ -272,18 +270,12 @@ export function DrillController({
       {/* Action buttons (Analyze or Complete phase) */}
       {(currentPhase === 'Analyze' || currentPhase === 'Complete') && (
         <div className="flex items-center gap-3">
-          <button
-            onClick={onOneMore}
-            className="h-9 px-4 text-ui-label font-medium border border-border text-text-secondary bg-transparent hover:bg-surface-light hover:text-text-primary active:brightness-90 transition-all duration-micro focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
+          <Button variant="outline" size="sm" onClick={onOneMore}>
             One more
-          </button>
-          <button
-            onClick={handleComplete}
-            className="h-9 px-4 text-ui-label font-medium bg-accent-blue text-primary-foreground hover:brightness-110 active:brightness-90 transition-all duration-micro focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
+          </Button>
+          <Button size="sm" onClick={handleComplete} className="bg-accent-blue">
             Complete
-          </button>
+          </Button>
         </div>
       )}
 
