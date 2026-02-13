@@ -10,9 +10,11 @@ import { useMidi } from '@/features/midi/use-midi';
 import { getTroubleshootingSteps } from '@/features/midi/troubleshooting';
 import { isAudioSupported } from '@/features/midi/audio-engine';
 import { useGuestSession } from '@/features/session/use-guest-session';
+import { useAnalysisPipeline } from '@/features/analysis/use-analysis-pipeline';
 
 export default function GuestPlayPage() {
   useGuestSession();
+  useAnalysisPipeline();
 
   const {
     connectionStatus,

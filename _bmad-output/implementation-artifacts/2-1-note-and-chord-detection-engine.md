@@ -1,6 +1,6 @@
 # Story 2.1: Note and Chord Detection Engine
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -91,6 +91,9 @@ so that I can see exactly what I'm playing displayed on screen.
 ## Dev Agent Record
 
 ### Agent Model Used
+
 ### Debug Log References
+
 ### Completion Notes List
+
 ### File List

@@ -25,6 +25,9 @@ vi.mock('@/components/api-key-prompt', () => ({
 vi.mock('@/features/session/use-guest-session', () => ({
   useGuestSession: vi.fn(),
 }));
+vi.mock('@/features/analysis/use-analysis-pipeline', () => ({
+  useAnalysisPipeline: vi.fn(),
+}));
 const mockUseMidi = vi.fn();
 vi.mock('@/features/midi/use-midi', () => ({
   useMidi: () => mockUseMidi(),

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useMidiStore } from '@/stores/midi-store';
+import { useSessionStore } from '@/stores/session-store';
 import type { MidiEvent } from '@/features/midi/midi-types';
 import { renderNotes, createFadingNote } from './piano-roll-renderer';
 import type { FadingNote } from './piano-roll-renderer';
@@ -15,6 +16,7 @@ export function VisualizationCanvas() {
   const fadingNotesRef = useRef<FadingNote[]>([]);
   const sizeRef = useRef({ w: 0, h: 0 });
   const dirtyRef = useRef(true); // Start dirty to render initial blank canvas
+  const chordLabelRef = useRef<string | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -43,8 +45,8 @@ export function VisualizationCanvas() {
     });
     resizeObserver.observe(canvas);
 
-    // --- Zustand vanilla subscription (AR13: bypass React cycle) ---
-    const unsubscribe = useMidiStore.subscribe(
+    // --- Zustand vanilla subscription for active notes (bypass React cycle) ---
+    const unsubMidi = useMidiStore.subscribe(
       (state) => state.activeNotes,
       (current) => {
         const prev = prevActiveNotesRef.current;
@@ -60,6 +62,15 @@ export function VisualizationCanvas() {
 
         activeNotesRef.current = current;
         prevActiveNotesRef.current = current;
+        dirtyRef.current = true;
+      }
+    );
+
+    // --- Zustand vanilla subscription for chord label from sessionStore ---
+    const unsubSession = useSessionStore.subscribe(
+      (state) => state.currentChordLabel,
+      (label) => {
+        chordLabelRef.current = label;
         dirtyRef.current = true;
       }
     );
@@ -94,7 +105,8 @@ export function VisualizationCanvas() {
           fadingNotesRef.current,
           logicalW,
           logicalH,
-          performance.now()
+          performance.now(),
+          chordLabelRef.current
         );
 
         // Keep rendering while fading notes remain
@@ -109,7 +121,8 @@ export function VisualizationCanvas() {
 
     return () => {
       cancelAnimationFrame(rafRef.current);
-      unsubscribe();
+      unsubMidi();
+      unsubSession();
       resizeObserver.disconnect();
       ctxRef.current = null;
     };

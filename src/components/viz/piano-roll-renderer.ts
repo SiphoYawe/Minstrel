@@ -2,8 +2,13 @@ import type { MidiEvent } from '@/features/midi/midi-types';
 import { clearCanvas, noteNumberToY, velocityToAlpha, velocityToSize } from './canvas-utils';
 
 const ACCENT_COLOR = { r: 124, g: 185, b: 232 }; // #7CB9E8
+const LABEL_COLOR = 'rgba(124, 185, 232, 0.7)';
+const CHORD_LABEL_COLOR = '#7CB9E8';
 const BASE_NOTE_WIDTH = 24;
 const BASE_NOTE_HEIGHT = 8;
+const NOTE_LABEL_OFFSET_X = 20;
+const NOTE_LABEL_FONT = '11px "JetBrains Mono", monospace';
+const CHORD_LABEL_FONT = '16px "Inter", sans-serif';
 
 export interface FadingNote {
   note: number;
@@ -21,7 +26,8 @@ export function renderNotes(
   fadingNotes: FadingNote[],
   canvasWidth: number,
   canvasHeight: number,
-  now: number
+  now: number,
+  chordLabel?: string | null
 ): FadingNote[] {
   clearCanvas(ctx, canvasWidth, canvasHeight);
 
@@ -42,7 +48,7 @@ export function renderNotes(
     remainingFading.push(fn);
   }
 
-  // Render active notes
+  // Render active notes with labels
   const noteEntries = Object.values(activeNotes);
   for (const event of noteEntries) {
     const y = noteNumberToY(event.note, canvasHeight);
@@ -53,6 +59,29 @@ export function renderNotes(
 
     ctx.fillStyle = `rgba(${ACCENT_COLOR.r}, ${ACCENT_COLOR.g}, ${ACCENT_COLOR.b}, ${alpha})`;
     ctx.fillRect(centerX - w / 2, y - h / 2, w, h);
+  }
+
+  // Note name labels (set font once, outside the loop)
+  if (noteEntries.length > 0) {
+    ctx.font = NOTE_LABEL_FONT;
+    ctx.fillStyle = LABEL_COLOR;
+    ctx.textBaseline = 'middle';
+    for (const event of noteEntries) {
+      const y = noteNumberToY(event.note, canvasHeight);
+      const size = velocityToSize(event.velocity);
+      const w = BASE_NOTE_WIDTH * size;
+      ctx.fillText(event.noteName, centerX + w / 2 + NOTE_LABEL_OFFSET_X, y);
+    }
+  }
+
+  // Render chord label in the upper area
+  if (chordLabel) {
+    ctx.font = CHORD_LABEL_FONT;
+    ctx.fillStyle = CHORD_LABEL_COLOR;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(chordLabel, centerX, 24);
+    ctx.textAlign = 'start'; // reset
   }
 
   return remainingFading;

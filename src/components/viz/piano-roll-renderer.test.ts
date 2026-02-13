@@ -102,6 +102,10 @@ function createMockCtx(): CanvasRenderingContext2D {
   return {
     fillStyle: '',
     fillRect: vi.fn(),
+    fillText: vi.fn(),
+    font: '',
+    textBaseline: 'alphabetic',
+    textAlign: 'start',
   } as unknown as CanvasRenderingContext2D;
 }
 
@@ -124,6 +128,9 @@ describe('renderNotes', () => {
 
     // fillRect called: once for clearCanvas, once for the active note
     expect(ctx.fillRect).toHaveBeenCalledTimes(2);
+    // fillText called for note name label
+    expect(ctx.fillText).toHaveBeenCalledTimes(1);
+    expect(ctx.fillText).toHaveBeenCalledWith('C4', expect.any(Number), expect.any(Number));
     expect(result).toEqual([]);
   });
 
@@ -190,5 +197,21 @@ describe('renderNotes', () => {
 
     // clearCanvas + 2 active notes
     expect(ctx.fillRect).toHaveBeenCalledTimes(3);
+    // fillText called for each note name label
+    expect(ctx.fillText).toHaveBeenCalledTimes(2);
+  });
+
+  it('renders chord label when provided', () => {
+    const ctx = createMockCtx();
+    renderNotes(ctx, {}, [], 800, 600, 1000, 'Cmaj');
+    // fillText called once for chord label
+    expect(ctx.fillText).toHaveBeenCalledTimes(1);
+    expect(ctx.fillText).toHaveBeenCalledWith('Cmaj', 400, 24);
+  });
+
+  it('does not render chord label when null', () => {
+    const ctx = createMockCtx();
+    renderNotes(ctx, {}, [], 800, 600, 1000, null);
+    expect(ctx.fillText).not.toHaveBeenCalled();
   });
 });
