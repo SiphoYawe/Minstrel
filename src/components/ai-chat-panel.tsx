@@ -1,20 +1,32 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect, type FormEvent, type KeyboardEvent, type ChangeEvent } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/stores/app-store';
-import type { ChatMessage } from '@/features/coaching/coaching-types';
+import type { ChatErrorInfo } from '@/features/coaching/coaching-types';
+import type { UIMessage } from 'ai';
 
 interface AIChatPanelProps {
-  messages: ChatMessage[];
-  onSubmit: (message: string) => void;
+  messages: UIMessage[];
+  input: string;
+  onInputChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
+  onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   isLoading: boolean;
+  error: ChatErrorInfo | null;
+  setInput: (input: string) => void;
 }
 
-export function AIChatPanel({ messages, onSubmit, isLoading }: AIChatPanelProps) {
+export function AIChatPanel({
+  messages,
+  input,
+  onInputChange,
+  onSubmit,
+  isLoading,
+  error,
+  setInput,
+}: AIChatPanelProps) {
   const hasApiKey = useAppStore((s) => s.hasApiKey);
-  const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -24,29 +36,19 @@ export function AIChatPanel({ messages, onSubmit, isLoading }: AIChatPanelProps)
     }
   }, [messages, isLoading]);
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
-    onSubmit(trimmed);
-    setInput('');
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-    }
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+  function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      const formEvent = new Event('submit', { bubbles: true, cancelable: true });
+      textareaRef.current?.form?.dispatchEvent(formEvent);
     }
     if (e.key === 'Escape') {
       textareaRef.current?.blur();
     }
   }
 
-  function handleInput(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    setInput(e.target.value);
+  function handleTextareaChange(e: ChangeEvent<HTMLTextAreaElement>) {
+    onInputChange(e);
     const el = e.target;
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
@@ -77,7 +79,7 @@ export function AIChatPanel({ messages, onSubmit, isLoading }: AIChatPanelProps)
           aria-live="polite"
           aria-busy={isLoading}
         >
-          {messages.length === 0 && (
+          {messages.length === 0 && !error && (
             <p className="text-xs text-muted-foreground text-center py-8">
               Ask about your playing — the Studio Engineer is listening.
             </p>
@@ -88,14 +90,29 @@ export function AIChatPanel({ messages, onSubmit, isLoading }: AIChatPanelProps)
               className={`max-w-[85%] px-3 py-2 text-sm ${
                 msg.role === 'user'
                   ? 'self-end bg-[#1A1A1A] text-foreground font-sans'
-                  : msg.role === 'system'
-                    ? 'self-center text-[#D4A43C] text-xs'
-                    : 'self-start bg-[#141414] text-foreground font-mono text-xs'
+                  : 'self-start bg-[#141414] text-foreground font-mono text-xs'
               }`}
             >
-              {msg.content}
+              {msg.parts
+                .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+                .map((part, i) => (
+                  <span key={i}>{part.text}</span>
+                ))}
             </div>
           ))}
+          {error && (
+            <div className="self-center px-3 py-2 text-[#D4A43C] text-xs" role="alert">
+              {error.message}
+              {error.actionUrl && (
+                <>
+                  {' '}
+                  <a href={error.actionUrl} className="underline underline-offset-2">
+                    Settings
+                  </a>
+                </>
+              )}
+            </div>
+          )}
           {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
             <div className="self-start px-3 py-2" aria-label="AI is thinking">
               <span className="inline-flex gap-1">
@@ -118,11 +135,11 @@ export function AIChatPanel({ messages, onSubmit, isLoading }: AIChatPanelProps)
         </div>
       </ScrollArea>
 
-      <form onSubmit={handleSubmit} className="flex items-end gap-2 p-3 border-t border-[#1A1A1A]">
+      <form onSubmit={onSubmit} className="flex items-end gap-2 p-3 border-t border-[#1A1A1A]">
         <textarea
           ref={textareaRef}
           value={input}
-          onChange={handleInput}
+          onChange={handleTextareaChange}
           onKeyDown={handleKeyDown}
           placeholder="Ask about your playing..."
           rows={1}

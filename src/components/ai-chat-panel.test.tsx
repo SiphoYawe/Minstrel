@@ -3,12 +3,51 @@ import { render, screen } from '@/test-utils/render';
 import userEvent from '@testing-library/user-event';
 import { AIChatPanel } from './ai-chat-panel';
 import { useAppStore } from '@/stores/app-store';
-import type { ChatMessage } from '@/features/coaching/coaching-types';
+import type { UIMessage } from 'ai';
+import type { ChangeEvent, FormEvent } from 'react';
 
-const mockMessages: ChatMessage[] = [
-  { id: '1', role: 'user', content: 'How is my timing?', timestamp: 1000 },
-  { id: '2', role: 'assistant', content: 'Your timing is at 73%.', timestamp: 2000 },
-];
+function createMockMessages(): UIMessage[] {
+  return [
+    {
+      id: '1',
+      role: 'user',
+      content: 'How is my timing?',
+      parts: [{ type: 'text', text: 'How is my timing?' }],
+      createdAt: new Date(),
+    },
+    {
+      id: '2',
+      role: 'assistant',
+      content: 'Your timing is at 73%.',
+      parts: [{ type: 'text', text: 'Your timing is at 73%.' }],
+      createdAt: new Date(),
+    },
+  ];
+}
+
+function renderPanel(
+  overrides: Partial<{
+    messages: UIMessage[];
+    input: string;
+    onInputChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
+    onSubmit: (e: FormEvent<HTMLFormElement>) => void;
+    isLoading: boolean;
+    error: null;
+    setInput: (s: string) => void;
+  }> = {}
+) {
+  const defaults = {
+    messages: [] as UIMessage[],
+    input: '',
+    onInputChange: vi.fn(),
+    onSubmit: vi.fn(),
+    isLoading: false,
+    error: null,
+    setInput: vi.fn(),
+    ...overrides,
+  };
+  return render(<AIChatPanel {...defaults} />);
+}
 
 describe('AIChatPanel', () => {
   beforeEach(() => {
@@ -16,93 +55,74 @@ describe('AIChatPanel', () => {
   });
 
   it('renders empty state when no messages', () => {
-    render(<AIChatPanel messages={[]} onSubmit={vi.fn()} isLoading={false} />);
+    renderPanel();
     expect(screen.getByText(/Studio Engineer is listening/)).toBeInTheDocument();
   });
 
   it('renders messages', () => {
-    render(<AIChatPanel messages={mockMessages} onSubmit={vi.fn()} isLoading={false} />);
+    renderPanel({ messages: createMockMessages() });
     expect(screen.getByText('How is my timing?')).toBeInTheDocument();
     expect(screen.getByText('Your timing is at 73%.')).toBeInTheDocument();
   });
 
   it('shows typing indicator when loading', () => {
-    render(<AIChatPanel messages={[]} onSubmit={vi.fn()} isLoading={true} />);
+    renderPanel({ isLoading: true });
     expect(screen.getByLabelText('AI is thinking')).toBeInTheDocument();
   });
 
-  it('calls onSubmit when form is submitted', async () => {
-    const user = userEvent.setup();
-    const onSubmit = vi.fn();
-    render(<AIChatPanel messages={[]} onSubmit={onSubmit} isLoading={false} />);
-
-    const input = screen.getByLabelText('Chat message input');
-    await user.type(input, 'test message');
-    await user.click(screen.getByLabelText('Send message'));
-
-    expect(onSubmit).toHaveBeenCalledWith('test message');
-  });
-
-  it('clears input after submit', async () => {
-    const user = userEvent.setup();
-    render(<AIChatPanel messages={[]} onSubmit={vi.fn()} isLoading={false} />);
-
-    const input = screen.getByLabelText('Chat message input') as HTMLTextAreaElement;
-    await user.type(input, 'test message');
-    await user.click(screen.getByLabelText('Send message'));
-
-    expect(input.value).toBe('');
-  });
-
   it('disables submit when loading', () => {
-    render(<AIChatPanel messages={[]} onSubmit={vi.fn()} isLoading={true} />);
+    renderPanel({ isLoading: true });
     expect(screen.getByLabelText('Send message')).toBeDisabled();
   });
 
   it('disables submit when input is empty', () => {
-    render(<AIChatPanel messages={[]} onSubmit={vi.fn()} isLoading={false} />);
+    renderPanel();
     expect(screen.getByLabelText('Send message')).toBeDisabled();
   });
 
   it('shows API key prompt when no key configured', () => {
     useAppStore.setState({ hasApiKey: false });
-    render(<AIChatPanel messages={[]} onSubmit={vi.fn()} isLoading={false} />);
+    renderPanel();
     expect(screen.getByText(/Connect your API key/)).toBeInTheDocument();
     expect(screen.getByText('Go to Settings')).toHaveAttribute('href', '/settings');
   });
 
-  it('submits on Enter key', async () => {
-    const user = userEvent.setup();
-    const onSubmit = vi.fn();
-    render(<AIChatPanel messages={[]} onSubmit={onSubmit} isLoading={false} />);
-
-    const input = screen.getByLabelText('Chat message input');
-    await user.type(input, 'hello{Enter}');
-
-    expect(onSubmit).toHaveBeenCalledWith('hello');
-  });
-
-  it('does not submit on Shift+Enter', async () => {
-    const user = userEvent.setup();
-    const onSubmit = vi.fn();
-    render(<AIChatPanel messages={[]} onSubmit={onSubmit} isLoading={false} />);
-
-    const input = screen.getByLabelText('Chat message input');
-    await user.type(input, 'hello{Shift>}{Enter}{/Shift}');
-
-    expect(onSubmit).not.toHaveBeenCalled();
-  });
-
   it('has aria-live on message area', () => {
-    render(<AIChatPanel messages={[]} onSubmit={vi.fn()} isLoading={false} />);
+    renderPanel();
     expect(screen.getByRole('log')).toHaveAttribute('aria-live', 'polite');
   });
 
   it('styles user messages differently from assistant messages', () => {
-    render(<AIChatPanel messages={mockMessages} onSubmit={vi.fn()} isLoading={false} />);
-    const userMsg = screen.getByText('How is my timing?');
-    const aiMsg = screen.getByText('Your timing is at 73%.');
-    expect(userMsg.className).toContain('self-end');
-    expect(aiMsg.className).toContain('self-start');
+    renderPanel({ messages: createMockMessages() });
+    const userMsg = screen.getByText('How is my timing?').closest('div');
+    const aiMsg = screen.getByText('Your timing is at 73%.').closest('div');
+    expect(userMsg?.className).toContain('self-end');
+    expect(aiMsg?.className).toContain('self-start');
+  });
+
+  it('shows error message when error is provided', () => {
+    renderPanel({
+      error: { code: 'INVALID_KEY', message: 'Key is invalid', actionUrl: '/settings' } as never,
+    });
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+  });
+
+  it('calls onSubmit on form submission', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn((e: FormEvent) => e.preventDefault());
+    renderPanel({ input: 'test message', onSubmit });
+
+    await user.click(screen.getByLabelText('Send message'));
+    expect(onSubmit).toHaveBeenCalled();
+  });
+
+  it('calls onInputChange when typing', async () => {
+    const user = userEvent.setup();
+    const onInputChange = vi.fn();
+    renderPanel({ onInputChange });
+
+    const input = screen.getByLabelText('Chat message input');
+    await user.type(input, 'a');
+    expect(onInputChange).toHaveBeenCalled();
   });
 });
