@@ -85,7 +85,7 @@ development_status:
   # Epic 5: Difficulty Engine & AI Drills
   epic-5: in-progress
   5-1-multi-dimensional-skill-assessment: done
-  5-2-dynamic-difficulty-adjustment-and-growth-zone-detection: ready-for-dev
+  5-2-dynamic-difficulty-adjustment-and-growth-zone-detection: done
   5-3-progressive-overload-and-cross-session-recalibration: ready-for-dev
   5-4-ai-drill-generation: ready-for-dev
   5-5-midi-output-demonstration-playback: ready-for-dev
@@ -94,7 +94,7 @@ development_status:
   epic-5-retrospective: optional
 
   # Epic 6: Session Replay & Continuity
-  epic-6: in-progress
+  epic-6: backlog
   6-1-replay-studio-mode-layout: ready-for-dev
   6-2-timeline-scrubbing-and-playback-controls: ready-for-dev
   6-3-ai-questions-about-replay-moments: ready-for-dev
@@ -103,7 +103,7 @@ development_status:
 
   # Epic 7: Engagement & Progress Tracking
   epic-7: in-progress
-  7-1-practice-streak-tracking: ready-for-dev
+  7-1-practice-streak-tracking: done
   7-2-xp-calculation-and-awards: ready-for-dev
   7-3-achievement-badges-system: ready-for-dev
   7-4-progress-trends-visualization: ready-for-dev

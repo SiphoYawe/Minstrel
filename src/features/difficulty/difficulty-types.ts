@@ -29,6 +29,44 @@ export interface SkillProfile {
   dimensions: Record<SkillDimension, DimensionScore>;
 }
 
+// Story 5.2: Dynamic Difficulty Adjustment types
+
+export interface DifficultyParameters {
+  tempo: number;
+  harmonicComplexity: number;
+  keyDifficulty: number;
+  rhythmicDensity: number;
+  noteRange: number;
+}
+
+export interface DifficultyAdjustment {
+  parameter: keyof DifficultyParameters;
+  direction: 'increase' | 'decrease' | 'maintain';
+  magnitude: number;
+}
+
+export enum GrowthZoneStatus {
+  TooEasy = 'TooEasy',
+  GrowthZone = 'GrowthZone',
+  TooHard = 'TooHard',
+}
+
+export type AccuracyTrend = 'improving' | 'declining' | 'stable';
+
+export interface RepPerformance {
+  repNumber: number;
+  accuracy: number;
+  timingDeviation: number;
+  completedAt: string;
+}
+
+export interface DifficultyState {
+  currentParameters: DifficultyParameters;
+  zoneStatus: GrowthZoneStatus;
+  repHistory: RepPerformance[];
+  pendingAdjustment: DifficultyAdjustment | null;
+}
+
 export interface SessionPerformanceData {
   timingEvents: TimingEvent[];
   tempoSegments: TempoSegment[];

@@ -18,7 +18,18 @@ import type {
 import type { SessionMode } from '@/features/modes/mode-types';
 import type { SessionType } from '@/features/session/session-types';
 import type { ChatMessage } from '@/features/coaching/coaching-types';
-import type { SkillProfile } from '@/features/difficulty/difficulty-types';
+import type {
+  SkillProfile,
+  DifficultyState,
+  RepPerformance,
+} from '@/features/difficulty/difficulty-types';
+import { GrowthZoneStatus } from '@/features/difficulty/difficulty-types';
+import {
+  initializeDifficulty,
+  computeAdjustment,
+  applyAdjustment,
+} from '@/features/difficulty/difficulty-engine';
+import { detectZone } from '@/features/difficulty/growth-zone-detector';
 
 interface SessionState {
   currentMode: SessionMode;
@@ -46,6 +57,7 @@ interface SessionState {
   chatHistory: ChatMessage[];
   totalNotesPlayed: number;
   skillProfile: SkillProfile | null;
+  difficultyState: DifficultyState | null;
 }
 
 interface SessionActions {
@@ -76,6 +88,9 @@ interface SessionActions {
   clearChatHistory: () => void;
   incrementNotesPlayed: (count?: number) => void;
   setSkillProfile: (profile: SkillProfile | null) => void;
+  initDifficulty: (skillProfile: SkillProfile | null) => void;
+  recordRepPerformance: (rep: RepPerformance) => void;
+  applyPendingAdjustment: () => void;
   resetAnalysis: () => void;
 }
 
@@ -107,6 +122,7 @@ const initialState: SessionState = {
   chatHistory: [],
   totalNotesPlayed: 0,
   skillProfile: null,
+  difficultyState: null,
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -190,6 +206,55 @@ export const useSessionStore = create<SessionStore>()(
       })),
 
     setSkillProfile: (profile) => set({ skillProfile: profile }),
+
+    initDifficulty: (skillProfile) =>
+      set({
+        difficultyState: {
+          currentParameters: initializeDifficulty(skillProfile),
+          zoneStatus: GrowthZoneStatus.GrowthZone,
+          repHistory: [],
+          pendingAdjustment: null,
+        },
+      }),
+
+    recordRepPerformance: (rep) =>
+      set((state) => {
+        if (!state.difficultyState) return state;
+        const repHistory = [...state.difficultyState.repHistory, rep];
+        const zoneStatus = detectZone(repHistory);
+        const recentReps = repHistory.slice(-3);
+        const avgAccuracy = recentReps.reduce((s, r) => s + r.accuracy, 0) / recentReps.length;
+        const pendingAdjustment = computeAdjustment(
+          zoneStatus,
+          state.difficultyState.currentParameters,
+          state.skillProfile,
+          avgAccuracy
+        );
+        return {
+          difficultyState: {
+            ...state.difficultyState,
+            repHistory,
+            zoneStatus,
+            pendingAdjustment,
+          },
+        };
+      }),
+
+    applyPendingAdjustment: () =>
+      set((state) => {
+        if (!state.difficultyState?.pendingAdjustment) return state;
+        const newParams = applyAdjustment(
+          state.difficultyState.currentParameters,
+          state.difficultyState.pendingAdjustment
+        );
+        return {
+          difficultyState: {
+            ...state.difficultyState,
+            currentParameters: newParams,
+            pendingAdjustment: null,
+          },
+        };
+      }),
 
     resetAnalysis: () =>
       set((state) => ({
