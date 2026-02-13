@@ -1,6 +1,6 @@
 # Story 3.4: API Key Validation and Encrypted Storage
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -115,6 +115,7 @@ So that I know it works and that it's protected.
 ### Project Structure Notes
 
 Files created/modified in this story:
+
 ```
 src/lib/crypto.ts                           (create)
 src/app/api/user/keys/route.ts              (create)
