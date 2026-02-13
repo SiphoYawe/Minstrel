@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { TroubleshootingPanel } from '@/components/troubleshooting-panel';
 import { KeyboardShortcutsPanel } from '@/components/keyboard-shortcuts-panel';
 import { FirstRunPrompt } from '@/components/first-run-prompt';
@@ -19,10 +20,11 @@ import { startWarmUp, skipWarmUp } from '@/features/session/warm-up-flow';
 
 export default function SessionPage() {
   useAnalysisPipeline();
+  const router = useRouter();
 
   const currentMode = useSessionStore((s) => s.currentMode);
   const activeSessionId = useSessionStore((s) => s.activeSessionId);
-  const [showSummary, setShowSummary] = useState(false);
+  const showSummary = useSessionStore((s) => s.showSessionSummary);
 
   const {
     connectionStatus,
@@ -36,23 +38,23 @@ export default function SessionPage() {
   const steps = getTroubleshootingSteps(connectionStatus, detectedChannel, isAudioSupported());
 
   const handleDismissSummary = useCallback(() => {
-    setShowSummary(false);
+    useSessionStore.getState().setShowSessionSummary(false);
   }, []);
 
   const handleContinuePracticing = useCallback(() => {
-    setShowSummary(false);
-    useSessionStore.getState().resetAnalysis();
+    useSessionStore.getState().setShowSessionSummary(false);
   }, []);
 
   const handleViewReplay = useCallback(() => {
-    setShowSummary(false);
+    useSessionStore.getState().setShowSessionSummary(false);
     useSessionStore.getState().setCurrentMode('replay-studio');
   }, []);
 
-  const handleSaveAndReview = useCallback(() => {
-    setShowSummary(false);
-    useSessionStore.getState().setCurrentMode('replay-studio');
-  }, []);
+  const handleEndSession = useCallback(() => {
+    useSessionStore.getState().setShowSessionSummary(false);
+    useSessionStore.getState().resetAnalysis();
+    router.push('/dashboard');
+  }, [router]);
 
   return (
     <>
@@ -72,7 +74,7 @@ export default function SessionPage() {
           onDismiss={handleDismissSummary}
           onContinuePracticing={handleContinuePracticing}
           onViewReplay={handleViewReplay}
-          onSaveAndReview={handleSaveAndReview}
+          onEndSession={handleEndSession}
         />
       )}
 

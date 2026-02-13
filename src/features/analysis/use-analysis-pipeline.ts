@@ -31,6 +31,7 @@ import type { DetectedNote, AnalysisAccumulator } from './analysis-types';
 import {
   SIMULTANEITY_WINDOW_MS,
   SILENCE_THRESHOLD_MS,
+  SESSION_END_SILENCE_MS,
   TIMING_UPDATE_INTERVAL_MS,
   TIMING_UPDATE_NOTE_COUNT,
   PITCH_CLASS_ROLLING_WINDOW,
@@ -49,6 +50,7 @@ export function useAnalysisPipeline() {
   const heldNotesRef = useRef<Map<number, DetectedNote>>(new Map());
   const clusterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const timingAnalysis = createTimingAnalysis();
@@ -224,6 +226,25 @@ export function useAnalysisPipeline() {
       }, SILENCE_THRESHOLD_MS);
     }
 
+    function resetSessionEndTimer() {
+      if (sessionEndTimerRef.current !== null) {
+        clearTimeout(sessionEndTimerRef.current);
+      }
+      // Clear summary if user resumes playing
+      const store = useSessionStore.getState();
+      if (store.showSessionSummary) {
+        store.setShowSessionSummary(false);
+      }
+      sessionEndTimerRef.current = setTimeout(() => {
+        // Only trigger if user has actually played notes in this session
+        const s = useSessionStore.getState();
+        if (s.totalNotesPlayed > 0 && s.sessionStartTimestamp !== null) {
+          s.setShowSessionSummary(true);
+        }
+        sessionEndTimerRef.current = null;
+      }, SESSION_END_SILENCE_MS);
+    }
+
     function dispatchTimingUpdate(now: number) {
       const store = useSessionStore.getState();
       store.setTimingData({
@@ -352,6 +373,7 @@ export function useAnalysisPipeline() {
 
           // Reset silence timer
           resetSilenceTimer();
+          resetSessionEndTimer();
         }
 
         if (event.type === 'note-off' || (event.type === 'note-on' && event.velocity === 0)) {
@@ -379,6 +401,7 @@ export function useAnalysisPipeline() {
       clearInterval(patternInterval);
       if (clusterTimerRef.current !== null) clearTimeout(clusterTimerRef.current);
       if (silenceTimerRef.current !== null) clearTimeout(silenceTimerRef.current);
+      if (sessionEndTimerRef.current !== null) clearTimeout(sessionEndTimerRef.current);
       analysisClusterRef.current = [];
       heldNotes.clear();
       timingAnalysis.reset();

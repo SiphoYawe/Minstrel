@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useSessionStore } from '@/stores/session-store';
 import { calculateSessionXp, formatXpBreakdown } from '@/features/engagement/xp-calculator';
+import { GROWTH_MINDSET_MESSAGES } from '@/lib/constants';
 
 /**
  * Format milliseconds as "Xm Ys".
@@ -15,6 +16,10 @@ function formatDuration(ms: number): string {
   return `${m}m ${s}s`;
 }
 
+function pickMotivationalMessage(): string {
+  return GROWTH_MINDSET_MESSAGES[Math.floor(Math.random() * GROWTH_MINDSET_MESSAGES.length)];
+}
+
 export interface SessionSummaryProps {
   /** Called when user dismisses the summary. */
   onDismiss: () => void;
@@ -22,8 +27,8 @@ export interface SessionSummaryProps {
   onContinuePracticing?: () => void;
   /** Called to view the replay of this session. */
   onViewReplay?: () => void;
-  /** Called to save and navigate to replay studio. */
-  onSaveAndReview?: () => void;
+  /** Called to end session and navigate away. */
+  onEndSession?: () => void;
 }
 
 /**
@@ -37,19 +42,22 @@ export function SessionSummary({
   onDismiss,
   onContinuePracticing,
   onViewReplay,
-  onSaveAndReview,
+  onEndSession,
 }: SessionSummaryProps) {
   const sessionStartTimestamp = useSessionStore((s) => s.sessionStartTimestamp);
   const totalNotesPlayed = useSessionStore((s) => s.totalNotesPlayed);
   const currentKey = useSessionStore((s) => s.currentKey);
+  const currentTempo = useSessionStore((s) => s.currentTempo);
   const timingAccuracy = useSessionStore((s) => s.timingAccuracy);
   const snapshots = useSessionStore((s) => s.snapshots);
   const drillRepHistory = useSessionStore((s) => s.drillRepHistory);
   const activeSessionId = useSessionStore((s) => s.activeSessionId);
+  const recentSessions = useSessionStore((s) => s.recentSessions);
 
   const [sessionDuration] = useState(() =>
     sessionStartTimestamp ? Date.now() - sessionStartTimestamp : 0
   );
+  const [motivationalMessage] = useState(pickMotivationalMessage);
 
   const latestSnapshot = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
   const latestInsights = latestSnapshot?.insights?.length
@@ -78,7 +86,15 @@ export function SessionSummary({
     });
   }, [sessionDuration, timingAccuracy, drillRepHistory]);
 
+  // Compute improvement vs last session
+  const lastSession = recentSessions.length > 0 ? recentSessions[recentSessions.length - 1] : null;
+  const timingImprovement =
+    lastSession?.timingAccuracy != null
+      ? Math.round(timingAccuracy - lastSession.timingAccuracy * 100)
+      : null;
+
   const keyDisplay = currentKey ? `${currentKey.root} ${currentKey.mode}` : '--';
+  const tempoDisplay = currentTempo ? `${Math.round(currentTempo)}` : '--';
 
   return (
     <div
@@ -130,11 +146,27 @@ export function SessionSummary({
           </div>
           <div className="border border-border bg-card p-3">
             <span className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-              Timing
+              Avg Tempo
             </span>
             <span className="block font-mono text-sm text-foreground">
+              {tempoDisplay} {currentTempo ? 'BPM' : ''}
+            </span>
+          </div>
+          <div className="border border-border bg-card p-3 col-span-2">
+            <span className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+              Timing Accuracy
+            </span>
+            <span className="inline font-mono text-sm text-foreground">
               {Math.round(timingAccuracy)}%
             </span>
+            {timingImprovement !== null && timingImprovement !== 0 && (
+              <span
+                className={`ml-2 text-xs font-mono ${timingImprovement > 0 ? 'text-primary' : 'text-amber-400'}`}
+              >
+                {timingImprovement > 0 ? '+' : ''}
+                {timingImprovement}% vs last
+              </span>
+            )}
           </div>
         </div>
 
@@ -156,7 +188,7 @@ export function SessionSummary({
 
         {/* Latest coaching insights */}
         {latestInsights && latestInsights.length > 0 && (
-          <div className="border-l-2 border-l-primary bg-card px-4 py-3 mb-6 space-y-2">
+          <div className="border-l-2 border-l-primary bg-card px-4 py-3 mb-4 space-y-2">
             {latestInsights.map((insight, idx) => (
               <p key={idx} className="text-sm text-muted-foreground">
                 {insight.text}
@@ -165,6 +197,9 @@ export function SessionSummary({
           </div>
         )}
 
+        {/* Growth-mindset motivational message */}
+        <p className="text-sm text-muted-foreground italic mb-6">{motivationalMessage}</p>
+
         {/* Action buttons */}
         <div className="flex flex-col gap-2">
           {onContinuePracticing && (
@@ -172,7 +207,7 @@ export function SessionSummary({
               onClick={onContinuePracticing}
               className="w-full border border-primary bg-primary/10 px-4 py-2.5 font-mono text-xs uppercase tracking-wider text-primary hover:bg-primary/20 transition-colors"
             >
-              Continue Practicing
+              Continue Playing
             </button>
           )}
           {onViewReplay && activeSessionId && (
@@ -183,20 +218,14 @@ export function SessionSummary({
               View Replay
             </button>
           )}
-          {onSaveAndReview && activeSessionId && (
+          {onEndSession && (
             <button
-              onClick={onSaveAndReview}
+              onClick={onEndSession}
               className="w-full border border-border bg-card px-4 py-2.5 font-mono text-xs uppercase tracking-wider text-foreground hover:bg-surface-light transition-colors"
             >
-              Save &amp; Review
+              End Session
             </button>
           )}
-          <button
-            onClick={onDismiss}
-            className="w-full px-4 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Done
-          </button>
         </div>
       </div>
     </div>

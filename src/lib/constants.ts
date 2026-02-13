@@ -72,6 +72,23 @@ export const TREND_FLAT_THRESHOLD = 0.02;
 // Weekly summary constants (Story 7.5)
 export const WEEK_START_DAY = 1; // Monday (ISO 8601)
 
+// Session end experience constants (Story 17.4)
+export const SESSION_END_SILENCE_MS = 60_000; // 60 seconds before showing summary
+export const GROWTH_MINDSET_MESSAGES = [
+  'Every note you played today was a step forward.',
+  "You showed up — that's the hardest part. The rest is momentum.",
+  "Progress isn't always loud. Sometimes it's in the spaces between notes.",
+  "Your ears are sharper than yesterday, even if it doesn't feel like it yet.",
+  "The fact that you noticed what needs work means you're already improving.",
+  'Consistency beats intensity. See you next session.',
+  "Today's rough patches are tomorrow's breakthroughs.",
+  "You're building muscle memory that compounds over time.",
+  "Great musicians aren't born — they're built, one session at a time.",
+  'The instrument remembers your effort, even when you forget.',
+  'What felt hard today will feel natural soon.',
+  "You practiced — that puts you ahead of everyone who didn't.",
+] as const;
+
 // Personal records constants (Story 7.6)
 export const CLEAN_TEMPO_ACCURACY_THRESHOLD = 0.85;
 export const RECORD_TYPES = {

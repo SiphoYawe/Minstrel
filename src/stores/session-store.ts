@@ -92,6 +92,7 @@ interface SessionState {
   replayState: 'paused' | 'playing';
   replaySpeed: number;
   tokenUsage: number;
+  showSessionSummary: boolean;
 }
 
 interface SessionActions {
@@ -147,6 +148,7 @@ interface SessionActions {
   setReplayState: (state: 'paused' | 'playing') => void;
   setReplaySpeed: (speed: number) => void;
   addTokenUsage: (tokens: number) => void;
+  setShowSessionSummary: (show: boolean) => void;
   resetReplay: () => void;
   resetAnalysis: () => void;
 }
@@ -199,6 +201,7 @@ const initialState: SessionState = {
   replayState: 'paused',
   replaySpeed: 1,
   tokenUsage: 0,
+  showSessionSummary: false,
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -393,6 +396,8 @@ export const useSessionStore = create<SessionStore>()(
     setReplayPosition: (position) => set({ replayPosition: position }),
     setReplayState: (state) => set({ replayState: state }),
     setReplaySpeed: (speed) => set({ replaySpeed: speed }),
+    setShowSessionSummary: (show) => set({ showSessionSummary: show }),
+
     resetReplay: () =>
       set({
         replaySession: null,
