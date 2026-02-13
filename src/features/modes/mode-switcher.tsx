@@ -1,0 +1,97 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+import { useSessionStore } from '@/stores/session-store';
+import type { SessionMode } from '@/features/modes/mode-types';
+import { MODE_CONFIGS } from '@/features/modes/mode-types';
+
+const MODE_ORDER: SessionMode[] = ['silent-coach', 'dashboard-chat', 'replay-studio'];
+
+export function ModeSwitcher() {
+  const currentMode = useSessionStore((s) => s.currentMode);
+  const announceRef = useRef<HTMLSpanElement>(null);
+
+  function switchMode(mode: SessionMode) {
+    if (mode === currentMode) return;
+    useSessionStore.getState().setCurrentMode(mode);
+  }
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (!e.altKey) return;
+
+      const modeByKey: Record<string, SessionMode> = {
+        '1': 'silent-coach',
+        '2': 'dashboard-chat',
+        '3': 'replay-studio',
+      };
+
+      const mode = modeByKey[e.key];
+      if (mode) {
+        e.preventDefault();
+        useSessionStore.getState().setCurrentMode(mode);
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Announce mode changes to screen readers
+  useEffect(() => {
+    if (announceRef.current) {
+      announceRef.current.textContent = `${MODE_CONFIGS[currentMode].name} mode active`;
+    }
+  }, [currentMode]);
+
+  return (
+    <>
+      {/* Screen reader announcement */}
+      <span ref={announceRef} className="sr-only" aria-live="polite" role="status" />
+
+      <nav
+        role="tablist"
+        aria-label="Session mode"
+        className="flex items-center gap-px bg-[#171717]/90 backdrop-blur-sm border border-[#2A2A2A]"
+      >
+        {MODE_ORDER.map((mode) => {
+          const config = MODE_CONFIGS[mode];
+          const isActive = mode === currentMode;
+
+          return (
+            <button
+              key={mode}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              aria-keyshortcuts={`Alt+${config.shortcut}`}
+              onClick={() => switchMode(mode)}
+              className={`
+                relative px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.1em]
+                transition-all duration-150
+                focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7CB9E8]
+                ${isActive ? 'text-[#E0E0E0]' : 'text-[#666666] hover:text-[#999999]'}
+              `}
+            >
+              {/* Active indicator — bottom edge line */}
+              {isActive && (
+                <span
+                  className="absolute inset-x-0 bottom-0 h-px bg-[#7CB9E8]"
+                  aria-hidden="true"
+                />
+              )}
+
+              {/* Shortcut number + label */}
+              <span className="flex items-center gap-1.5">
+                <span className={`text-[10px] ${isActive ? 'text-[#7CB9E8]' : 'text-[#444444]'}`}>
+                  {config.shortcut}
+                </span>
+                {config.label}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+    </>
+  );
+}

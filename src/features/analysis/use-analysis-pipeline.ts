@@ -224,8 +224,13 @@ export function useAnalysisPipeline() {
         if (event.type === 'note-on' && event.velocity > 0) {
           const detected = detectNote(event.note, event.velocity, event.timestamp);
 
-          // Clear snapshot on play resume (transition back to real-time mode)
+          // Set session start timestamp on first note
           const noteStore = useSessionStore.getState();
+          if (noteStore.sessionStartTimestamp === null) {
+            noteStore.setSessionStartTimestamp(Date.now());
+          }
+
+          // Clear snapshot on play resume (transition back to real-time mode)
           if (noteStore.currentSnapshot !== null) {
             noteStore.setCurrentSnapshot(null);
           }

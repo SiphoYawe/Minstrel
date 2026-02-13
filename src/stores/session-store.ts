@@ -15,8 +15,11 @@ import type {
   AvoidancePatterns,
   InstantSnapshot,
 } from '@/features/analysis/analysis-types';
+import type { SessionMode } from '@/features/modes/mode-types';
 
 interface SessionState {
+  currentMode: SessionMode;
+  sessionStartTimestamp: number | null;
   currentNotes: DetectedNote[];
   detectedChords: DetectedChord[];
   chordProgression: ChordProgression | null;
@@ -37,6 +40,8 @@ interface SessionState {
 }
 
 interface SessionActions {
+  setCurrentMode: (mode: SessionMode) => void;
+  setSessionStartTimestamp: (ts: number | null) => void;
   setCurrentNotes: (notes: DetectedNote[]) => void;
   addDetectedChord: (chord: DetectedChord, label: string) => void;
   setChordProgression: (progression: ChordProgression | null) => void;
@@ -61,6 +66,8 @@ interface SessionActions {
 type SessionStore = SessionState & SessionActions;
 
 const initialState: SessionState = {
+  currentMode: 'silent-coach',
+  sessionStartTimestamp: null,
   currentNotes: [],
   detectedChords: [],
   chordProgression: null,
@@ -83,6 +90,10 @@ const initialState: SessionState = {
 export const useSessionStore = create<SessionStore>()(
   subscribeWithSelector((set) => ({
     ...initialState,
+
+    setCurrentMode: (mode) => set({ currentMode: mode }),
+
+    setSessionStartTimestamp: (ts) => set({ sessionStartTimestamp: ts }),
 
     setCurrentNotes: (notes) => set({ currentNotes: notes }),
 
@@ -135,6 +146,12 @@ export const useSessionStore = create<SessionStore>()(
         return { snapshots: snaps };
       }),
 
-    resetAnalysis: () => set(initialState),
+    resetAnalysis: () =>
+      set((state) => ({
+        ...initialState,
+        // Preserve UI preferences and session identity across analysis resets
+        currentMode: state.currentMode,
+        sessionStartTimestamp: state.sessionStartTimestamp,
+      })),
   }))
 );

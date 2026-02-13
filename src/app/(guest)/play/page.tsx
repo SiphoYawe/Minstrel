@@ -1,20 +1,19 @@
 'use client';
 
-import { StatusBar } from '@/components/status-bar';
-import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
 import { TroubleshootingPanel } from '@/components/troubleshooting-panel';
-import { AudioModeBanner } from '@/components/audio-mode-banner';
-import { GuestPrompt } from '@/components/guest-prompt';
-import { ApiKeyPrompt } from '@/components/api-key-prompt';
+import { SilentCoach } from '@/features/modes/silent-coach';
 import { useMidi } from '@/features/midi/use-midi';
 import { getTroubleshootingSteps } from '@/features/midi/troubleshooting';
 import { isAudioSupported } from '@/features/midi/audio-engine';
 import { useGuestSession } from '@/features/session/use-guest-session';
 import { useAnalysisPipeline } from '@/features/analysis/use-analysis-pipeline';
+import { useSessionStore } from '@/stores/session-store';
 
 export default function GuestPlayPage() {
   useGuestSession();
   useAnalysisPipeline();
+
+  const currentMode = useSessionStore((s) => s.currentMode);
 
   const {
     connectionStatus,
@@ -28,25 +27,25 @@ export default function GuestPlayPage() {
   const steps = getTroubleshootingSteps(connectionStatus, detectedChannel, isAudioSupported());
 
   return (
-    <div className="flex h-screen flex-col bg-background pb-10">
-      {/* Banners — stacked above the canvas */}
-      <AudioModeBanner />
-      <GuestPrompt />
-
-      {/* Main stage — visualization takes all available space */}
-      <div className="relative flex flex-1 flex-col overflow-hidden lg:flex-row">
-        {/* Canvas — the star */}
-        <div className="flex-1">
-          <VisualizationCanvas />
+    <>
+      {/* Mode-specific layout */}
+      {currentMode === 'silent-coach' && <SilentCoach />}
+      {currentMode === 'dashboard-chat' && (
+        <div className="flex h-screen items-center justify-center bg-background">
+          <span className="font-mono text-caption text-muted-foreground">
+            Dashboard + Chat — coming soon
+          </span>
         </div>
+      )}
+      {currentMode === 'replay-studio' && (
+        <div className="flex h-screen items-center justify-center bg-background">
+          <span className="font-mono text-caption text-muted-foreground">
+            Replay Studio — coming soon
+          </span>
+        </div>
+      )}
 
-        {/* Sidebar — AI feature placeholder */}
-        <aside className="shrink-0 border-t border-border p-4 lg:w-72 lg:border-l lg:border-t-0">
-          <ApiKeyPrompt />
-        </aside>
-      </div>
-
-      {/* Troubleshooting overlay */}
+      {/* Troubleshooting overlay (always available regardless of mode) */}
       {showTroubleshooting && (
         <TroubleshootingPanel
           steps={steps}
@@ -56,8 +55,6 @@ export default function GuestPlayPage() {
           connectionStatus={connectionStatus}
         />
       )}
-
-      <StatusBar />
-    </div>
+    </>
   );
 }

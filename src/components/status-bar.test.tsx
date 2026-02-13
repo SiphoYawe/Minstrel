@@ -1,11 +1,15 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { StatusBar } from './status-bar';
 import { useMidiStore } from '@/stores/midi-store';
+import { useSessionStore } from '@/stores/session-store';
 
 describe('StatusBar', () => {
   beforeEach(() => {
     useMidiStore.getState().reset();
+    useSessionStore.getState().setCurrentMode('silent-coach');
+    useSessionStore.getState().setSessionStartTimestamp(null);
+    useSessionStore.getState().resetAnalysis();
   });
 
   it('renders with disconnected state by default', () => {
@@ -48,7 +52,7 @@ describe('StatusBar', () => {
     ).toBeDefined();
   });
 
-  it('shows session timer placeholder', () => {
+  it('shows session timer at 00:00 when no session started', () => {
     render(<StatusBar />);
     expect(screen.getByText('00:00')).toBeDefined();
   });
@@ -97,5 +101,66 @@ describe('StatusBar', () => {
     render(<StatusBar />);
     fireEvent.click(screen.getByText('Help'));
     expect(useMidiStore.getState().showTroubleshooting).toBe(true);
+  });
+
+  it('renders as a header element positioned at top', () => {
+    render(<StatusBar />);
+    const header = document.querySelector('header[role="status"]');
+    expect(header).not.toBeNull();
+  });
+
+  it('displays detected key when available', () => {
+    useSessionStore.getState().setKeyCenter({ root: 'C', mode: 'major', confidence: 0.9 });
+    render(<StatusBar />);
+    expect(screen.getByText('C major')).toBeDefined();
+  });
+
+  it('displays tempo when available', () => {
+    useSessionStore.getState().setTimingData({
+      tempo: 120,
+      accuracy: 100,
+      deviations: [],
+      tempoHistory: [],
+    });
+    render(<StatusBar />);
+    expect(screen.getByText('120 BPM')).toBeDefined();
+  });
+
+  it('timer ticks when sessionStartTimestamp is set', () => {
+    vi.useFakeTimers();
+    const startTime = Date.now();
+    useSessionStore.getState().setSessionStartTimestamp(startTime);
+
+    render(<StatusBar />);
+    expect(screen.getByText('00:00')).toBeDefined();
+
+    // Advance 65 seconds
+    act(() => {
+      vi.advanceTimersByTime(65_000);
+    });
+
+    expect(screen.getByText('01:05')).toBeDefined();
+    vi.useRealTimers();
+  });
+
+  it('timer resets to 00:00 when sessionStartTimestamp becomes null', () => {
+    vi.useFakeTimers();
+    useSessionStore.getState().setSessionStartTimestamp(Date.now());
+
+    const { rerender } = render(<StatusBar />);
+
+    act(() => {
+      vi.advanceTimersByTime(5_000);
+    });
+    expect(screen.getByText('00:05')).toBeDefined();
+
+    // Clear timestamp
+    act(() => {
+      useSessionStore.getState().setSessionStartTimestamp(null);
+    });
+    rerender(<StatusBar />);
+
+    expect(screen.getByText('00:00')).toBeDefined();
+    vi.useRealTimers();
   });
 });

@@ -1,6 +1,6 @@
 # Story 2.6: Silent Coach Mode Layout
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -119,6 +119,9 @@ so that I can focus on my instrument with minimal screen distraction.
 ## Dev Agent Record
 
 ### Agent Model Used
+
 ### Debug Log References
+
 ### Completion Notes List
+
 ### File List

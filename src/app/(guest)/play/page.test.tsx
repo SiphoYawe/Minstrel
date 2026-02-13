@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@/test-utils/render';
+import { useSessionStore } from '@/stores/session-store';
 
-// Mock all child components
+// Mock child components
 vi.mock('@/components/status-bar', () => ({
   StatusBar: () => <div data-testid="status-bar">StatusBar</div>,
 }));
@@ -11,14 +12,8 @@ vi.mock('@/components/viz/visualization-canvas', () => ({
 vi.mock('@/components/troubleshooting-panel', () => ({
   TroubleshootingPanel: () => <div data-testid="troubleshooting-panel">TroubleshootingPanel</div>,
 }));
-vi.mock('@/components/audio-mode-banner', () => ({
-  AudioModeBanner: () => <div data-testid="audio-mode-banner">AudioModeBanner</div>,
-}));
-vi.mock('@/components/guest-prompt', () => ({
-  GuestPrompt: () => <div data-testid="guest-prompt">GuestPrompt</div>,
-}));
-vi.mock('@/components/api-key-prompt', () => ({
-  ApiKeyPrompt: () => <div data-testid="api-key-prompt">ApiKeyPrompt</div>,
+vi.mock('@/features/modes/mode-switcher', () => ({
+  ModeSwitcher: () => <div data-testid="mode-switcher">ModeSwitcher</div>,
 }));
 
 // Mock hooks and utilities
@@ -43,6 +38,9 @@ import GuestPlayPage from './page';
 
 describe('GuestPlayPage', () => {
   beforeEach(() => {
+    useSessionStore.getState().setCurrentMode('silent-coach');
+    useSessionStore.getState().setSessionStartTimestamp(null);
+    useSessionStore.getState().resetAnalysis();
     mockUseMidi.mockReturnValue({
       connectionStatus: 'connecting',
       showTroubleshooting: false,
@@ -59,29 +57,19 @@ describe('GuestPlayPage', () => {
     expect(screen.getByTestId('visualization-canvas')).toBeInTheDocument();
   });
 
-  it('renders StatusBar', () => {
+  it('renders StatusBar in Silent Coach mode', () => {
     render(<GuestPlayPage />);
     expect(screen.getByTestId('status-bar')).toBeInTheDocument();
   });
 
-  it('renders VisualizationCanvas', () => {
+  it('renders VisualizationCanvas in Silent Coach mode', () => {
     render(<GuestPlayPage />);
     expect(screen.getByTestId('visualization-canvas')).toBeInTheDocument();
   });
 
-  it('renders GuestPrompt banner', () => {
+  it('renders ModeSwitcher in Silent Coach mode', () => {
     render(<GuestPlayPage />);
-    expect(screen.getByTestId('guest-prompt')).toBeInTheDocument();
-  });
-
-  it('renders ApiKeyPrompt', () => {
-    render(<GuestPlayPage />);
-    expect(screen.getByTestId('api-key-prompt')).toBeInTheDocument();
-  });
-
-  it('renders AudioModeBanner', () => {
-    render(<GuestPlayPage />);
-    expect(screen.getByTestId('audio-mode-banner')).toBeInTheDocument();
+    expect(screen.getByTestId('mode-switcher')).toBeInTheDocument();
   });
 
   it('does not render TroubleshootingPanel when showTroubleshooting is false', () => {
@@ -101,5 +89,19 @@ describe('GuestPlayPage', () => {
     });
     render(<GuestPlayPage />);
     expect(screen.getByTestId('troubleshooting-panel')).toBeInTheDocument();
+  });
+
+  it('renders Dashboard placeholder when mode is dashboard-chat', () => {
+    useSessionStore.getState().setCurrentMode('dashboard-chat');
+    render(<GuestPlayPage />);
+    expect(screen.getByText(/Dashboard \+ Chat/)).toBeInTheDocument();
+    expect(screen.queryByTestId('visualization-canvas')).not.toBeInTheDocument();
+  });
+
+  it('renders Replay placeholder when mode is replay-studio', () => {
+    useSessionStore.getState().setCurrentMode('replay-studio');
+    render(<GuestPlayPage />);
+    expect(screen.getByText(/Replay Studio/)).toBeInTheDocument();
+    expect(screen.queryByTestId('visualization-canvas')).not.toBeInTheDocument();
   });
 });

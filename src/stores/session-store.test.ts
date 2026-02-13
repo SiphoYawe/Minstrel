@@ -29,10 +29,26 @@ describe('useSessionStore', () => {
 
   it('returns initial state with empty analysis fields', () => {
     const state = useSessionStore.getState();
+    expect(state.currentMode).toBe('silent-coach');
+    expect(state.sessionStartTimestamp).toBeNull();
     expect(state.currentNotes).toEqual([]);
     expect(state.detectedChords).toEqual([]);
     expect(state.chordProgression).toBeNull();
     expect(state.currentChordLabel).toBeNull();
+  });
+
+  it('setCurrentMode updates mode', () => {
+    useSessionStore.getState().setCurrentMode('dashboard-chat');
+    expect(useSessionStore.getState().currentMode).toBe('dashboard-chat');
+    useSessionStore.getState().setCurrentMode('replay-studio');
+    expect(useSessionStore.getState().currentMode).toBe('replay-studio');
+  });
+
+  it('setSessionStartTimestamp sets and clears timestamp', () => {
+    useSessionStore.getState().setSessionStartTimestamp(12345);
+    expect(useSessionStore.getState().sessionStartTimestamp).toBe(12345);
+    useSessionStore.getState().setSessionStartTimestamp(null);
+    expect(useSessionStore.getState().sessionStartTimestamp).toBeNull();
   });
 
   it('setCurrentNotes updates the current notes', () => {
@@ -353,6 +369,8 @@ describe('useSessionStore', () => {
       timestamp: 1000,
     };
 
+    useSessionStore.getState().setCurrentMode('dashboard-chat');
+    useSessionStore.getState().setSessionStartTimestamp(99999);
     useSessionStore.getState().setCurrentNotes([note]);
     useSessionStore.getState().addDetectedChord(chord, 'Cmaj');
     useSessionStore
@@ -451,6 +469,9 @@ describe('useSessionStore', () => {
 
     useSessionStore.getState().resetAnalysis();
     const state = useSessionStore.getState();
+    // Mode and session timestamp are preserved across analysis resets
+    expect(state.currentMode).toBe('dashboard-chat');
+    expect(state.sessionStartTimestamp).toBe(99999);
     expect(state.currentNotes).toEqual([]);
     expect(state.detectedChords).toEqual([]);
     expect(state.chordProgression).toBeNull();

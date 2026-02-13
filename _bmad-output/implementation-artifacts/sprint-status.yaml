@@ -58,7 +58,7 @@ development_status:
   2-3-key-center-and-harmonic-analysis: done
   2-4-genre-pattern-and-tendency-tracking: done
   2-5-silence-triggered-session-snapshot: done
-  2-6-silent-coach-mode-layout: ready-for-dev
+  2-6-silent-coach-mode-layout: done
   2-7-freeform-play-mode: ready-for-dev
   2-8-session-recording-to-indexeddb: ready-for-dev
   epic-2-retrospective: optional
