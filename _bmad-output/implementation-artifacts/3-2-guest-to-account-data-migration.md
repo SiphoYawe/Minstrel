@@ -1,6 +1,6 @@
 # Story 3.2: Guest-to-Account Data Migration
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -82,6 +82,7 @@ So that I don't lose the practice I've already done.
 ### Project Structure Notes
 
 Files created/modified in this story:
+
 ```
 src/lib/dexie/db.ts                 (update - add user_id fields)
 src/lib/dexie/migration.ts          (create)

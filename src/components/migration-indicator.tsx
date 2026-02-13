@@ -1,0 +1,95 @@
+'use client';
+
+import { useAppStore } from '@/stores/app-store';
+
+export function MigrationIndicator() {
+  const migrationStatus = useAppStore((s) => s.migrationStatus);
+  const migrationProgress = useAppStore((s) => s.migrationProgress);
+
+  if (migrationStatus === 'idle') return null;
+
+  const progressFraction =
+    migrationProgress.total > 0 ? migrationProgress.synced / migrationProgress.total : 0;
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-50 pointer-events-none animate-in fade-in slide-in-from-bottom duration-300">
+      {/* Progress track — thin accent line */}
+      {migrationStatus === 'migrating' && (
+        <div className="h-px w-full bg-[#2A2A2A]">
+          <div
+            className="h-full bg-[#7CB9E8]"
+            style={{
+              width: `${progressFraction * 100}%`,
+              transition: 'width 400ms ease-out',
+            }}
+          />
+        </div>
+      )}
+
+      {/* Status bar */}
+      <div className="flex h-8 items-center justify-between border-t border-[#2A2A2A] bg-[#0F0F0F] px-4">
+        <div className="flex items-center gap-3">
+          {/* Status LED */}
+          <span
+            className={
+              migrationStatus === 'migrating'
+                ? 'inline-block h-1.5 w-1.5 bg-[#7CB9E8] animate-pulse'
+                : migrationStatus === 'complete'
+                  ? 'inline-block h-1.5 w-1.5 bg-[#81C995]'
+                  : 'inline-block h-1.5 w-1.5 bg-[#E8C77B]'
+            }
+          />
+
+          {/* Status text */}
+          <span
+            className="font-mono text-[11px] uppercase tracking-[0.15em]"
+            style={{
+              color:
+                migrationStatus === 'migrating'
+                  ? '#7CB9E8'
+                  : migrationStatus === 'complete'
+                    ? '#81C995'
+                    : '#E8C77B',
+            }}
+          >
+            {migrationStatus === 'migrating' && 'Syncing your practice history'}
+            {migrationStatus === 'complete' && 'All practice data synced to your account'}
+            {migrationStatus === 'partial-failure' &&
+              "Some sessions are still syncing \u2014 we'll keep trying"}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Counter — only during active migration */}
+          {migrationStatus === 'migrating' && migrationProgress.total > 0 && (
+            <span className="font-mono text-[11px] tabular-nums tracking-wider text-[#666666]">
+              {migrationProgress.synced}/{migrationProgress.total}
+            </span>
+          )}
+
+          {/* Dismiss — only for partial-failure */}
+          {migrationStatus === 'partial-failure' && (
+            <button
+              type="button"
+              className="pointer-events-auto flex h-5 w-5 items-center justify-center text-[#666666] transition-colors duration-150 hover:text-[#E8C77B]"
+              onClick={() => useAppStore.getState().setMigrationStatus('idle')}
+              aria-label="Dismiss sync notification"
+            >
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="square"
+              >
+                <path d="M1 1l8 8M9 1l-8 8" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

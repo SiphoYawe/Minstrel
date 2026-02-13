@@ -41,6 +41,9 @@ export async function startRecording(
     status: 'recording',
     key: null,
     tempo: null,
+    userId: null,
+    syncStatus: 'pending',
+    supabaseId: null,
   });
 
   activeSessionId = id as number;
@@ -57,6 +60,8 @@ export async function startRecording(
       channel: event.channel,
       timestamp: event.timestamp,
       source: event.source,
+      userId: null,
+      syncStatus: 'pending',
     });
   }
   pendingBuffer = [];
@@ -93,6 +98,8 @@ export function recordEvent(event: MidiEvent): void {
     channel: event.channel,
     timestamp: event.timestamp,
     source: event.source,
+    userId: null,
+    syncStatus: 'pending',
   });
 
   // Early flush if buffer exceeds cap
@@ -153,6 +160,8 @@ export async function recordSnapshot(snapshot: InstantSnapshot): Promise<void> {
     sessionId: activeSessionId,
     createdAt: snapshot.timestamp,
     data: snapshot as unknown as Record<string, unknown>,
+    userId: null,
+    syncStatus: 'pending',
   });
 }
 

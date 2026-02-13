@@ -44,6 +44,9 @@ export async function startGuestSession(inputSource: MidiEvent['source']): Promi
     status: 'recording',
     key: null,
     tempo: null,
+    userId: null,
+    syncStatus: 'pending',
+    supabaseId: null,
   });
   activeSessionId = id as number;
   resetInactivityTimer();
@@ -77,6 +80,8 @@ export async function recordGuestEvent(sessionId: number, event: MidiEvent): Pro
     channel: event.channel,
     timestamp: event.timestamp,
     source: event.source,
+    userId: null,
+    syncStatus: 'pending',
   });
 }
 

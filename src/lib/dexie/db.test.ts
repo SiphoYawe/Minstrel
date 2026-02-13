@@ -39,6 +39,9 @@ describe('MinstrelDatabase', () => {
         status: 'recording',
         key: null,
         tempo: null,
+        userId: null,
+        syncStatus: 'pending',
+        supabaseId: null,
       };
       const id = await db.sessions.add(session);
       expect(id).toBeGreaterThan(0);
@@ -55,6 +58,9 @@ describe('MinstrelDatabase', () => {
         status: 'recording',
         key: null,
         tempo: null,
+        userId: null,
+        syncStatus: 'pending',
+        supabaseId: null,
       });
       const session = await db.sessions.get(id);
       expect(session).toBeDefined();
@@ -65,6 +71,8 @@ describe('MinstrelDatabase', () => {
       expect(session!.status).toBe('recording');
       expect(session!.key).toBeNull();
       expect(session!.tempo).toBeNull();
+      expect(session!.userId).toBeNull();
+      expect(session!.syncStatus).toBe('pending');
     });
 
     it('updates a session with end time', async () => {
@@ -78,6 +86,9 @@ describe('MinstrelDatabase', () => {
         status: 'recording',
         key: null,
         tempo: null,
+        userId: null,
+        syncStatus: 'pending',
+        supabaseId: null,
       });
       const endedAt = startedAt + 60000;
       await db.sessions.update(id, { endedAt, duration: endedAt - startedAt, status: 'completed' });
@@ -97,6 +108,9 @@ describe('MinstrelDatabase', () => {
         status: 'recording',
         key: null,
         tempo: null,
+        userId: null,
+        syncStatus: 'pending',
+        supabaseId: null,
       });
       await db.sessions.update(id, { key: 'C major', tempo: 120 });
       const session = await db.sessions.get(id);
@@ -115,6 +129,9 @@ describe('MinstrelDatabase', () => {
           status: 'recording',
           key: null,
           tempo: null,
+          userId: null,
+          syncStatus: 'pending',
+          supabaseId: null,
         },
         {
           startedAt: 2000,
@@ -125,6 +142,9 @@ describe('MinstrelDatabase', () => {
           status: 'recording',
           key: null,
           tempo: null,
+          userId: null,
+          syncStatus: 'pending',
+          supabaseId: null,
         },
         {
           startedAt: 3000,
@@ -135,10 +155,48 @@ describe('MinstrelDatabase', () => {
           status: 'completed',
           key: null,
           tempo: null,
+          userId: null,
+          syncStatus: 'pending',
+          supabaseId: null,
         },
       ]);
       const freeform = await db.sessions.where('sessionType').equals('freeform').toArray();
       expect(freeform).toHaveLength(2);
+    });
+
+    it('queries sessions by userId index', async () => {
+      await db.sessions.bulkAdd([
+        {
+          startedAt: 1000,
+          endedAt: null,
+          duration: null,
+          inputSource: 'midi',
+          sessionType: 'freeform',
+          status: 'completed',
+          key: null,
+          tempo: null,
+          userId: null,
+          syncStatus: 'pending',
+          supabaseId: null,
+        },
+        {
+          startedAt: 2000,
+          endedAt: null,
+          duration: null,
+          inputSource: 'midi',
+          sessionType: 'freeform',
+          status: 'completed',
+          key: null,
+          tempo: null,
+          userId: 'user-123',
+          syncStatus: 'synced',
+          supabaseId: null,
+        },
+      ]);
+      const guest = await db.sessions.filter((s) => s.userId === null).toArray();
+      expect(guest).toHaveLength(1);
+      const owned = await db.sessions.where('userId').equals('user-123').toArray();
+      expect(owned).toHaveLength(1);
     });
   });
 
@@ -153,6 +211,9 @@ describe('MinstrelDatabase', () => {
         status: 'recording',
         key: null,
         tempo: null,
+        userId: null,
+        syncStatus: 'pending',
+        supabaseId: null,
       })) as number;
 
       const event: Omit<StoredMidiEvent, 'id'> = {
@@ -164,6 +225,8 @@ describe('MinstrelDatabase', () => {
         channel: 0,
         timestamp: performance.now(),
         source: 'midi',
+        userId: null,
+        syncStatus: 'pending',
       };
 
       const eventId = await db.midiEvents.add(event);
@@ -185,6 +248,8 @@ describe('MinstrelDatabase', () => {
           channel: 0,
           timestamp: 1,
           source: 'midi',
+          userId: null,
+          syncStatus: 'pending',
         },
         {
           sessionId,
@@ -195,6 +260,8 @@ describe('MinstrelDatabase', () => {
           channel: 0,
           timestamp: 2,
           source: 'midi',
+          userId: null,
+          syncStatus: 'pending',
         },
         {
           sessionId: 2,
@@ -205,6 +272,8 @@ describe('MinstrelDatabase', () => {
           channel: 0,
           timestamp: 3,
           source: 'midi',
+          userId: null,
+          syncStatus: 'pending',
         },
       ]);
 
@@ -224,6 +293,8 @@ describe('MinstrelDatabase', () => {
           channel: 0,
           timestamp: 100,
           source: 'midi',
+          userId: null,
+          syncStatus: 'pending',
         },
         {
           sessionId,
@@ -234,6 +305,8 @@ describe('MinstrelDatabase', () => {
           channel: 0,
           timestamp: 200,
           source: 'midi',
+          userId: null,
+          syncStatus: 'pending',
         },
         {
           sessionId,
@@ -244,6 +317,8 @@ describe('MinstrelDatabase', () => {
           channel: 0,
           timestamp: 300,
           source: 'midi',
+          userId: null,
+          syncStatus: 'pending',
         },
         {
           sessionId: 2,
@@ -254,6 +329,8 @@ describe('MinstrelDatabase', () => {
           channel: 0,
           timestamp: 150,
           source: 'midi',
+          userId: null,
+          syncStatus: 'pending',
         },
       ]);
 
@@ -273,6 +350,8 @@ describe('MinstrelDatabase', () => {
         sessionId: 1,
         createdAt: Date.now(),
         data: { keyCentre: 'C', tempo: 120 },
+        userId: null,
+        syncStatus: 'pending',
       };
       const id = await db.analysisSnapshots.add(snapshot);
       const stored = await db.analysisSnapshots.get(id);
@@ -282,10 +361,34 @@ describe('MinstrelDatabase', () => {
 
     it('queries snapshots by compound index [sessionId+createdAt]', async () => {
       await db.analysisSnapshots.bulkAdd([
-        { sessionId: 1, createdAt: 100, data: { key: 'C' } },
-        { sessionId: 1, createdAt: 200, data: { key: 'G' } },
-        { sessionId: 1, createdAt: 300, data: { key: 'D' } },
-        { sessionId: 2, createdAt: 150, data: { key: 'F' } },
+        {
+          sessionId: 1,
+          createdAt: 100,
+          data: { key: 'C' },
+          userId: null,
+          syncStatus: 'pending' as const,
+        },
+        {
+          sessionId: 1,
+          createdAt: 200,
+          data: { key: 'G' },
+          userId: null,
+          syncStatus: 'pending' as const,
+        },
+        {
+          sessionId: 1,
+          createdAt: 300,
+          data: { key: 'D' },
+          userId: null,
+          syncStatus: 'pending' as const,
+        },
+        {
+          sessionId: 2,
+          createdAt: 150,
+          data: { key: 'F' },
+          userId: null,
+          syncStatus: 'pending' as const,
+        },
       ]);
 
       const results = await db.analysisSnapshots

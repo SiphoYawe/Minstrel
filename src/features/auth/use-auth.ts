@@ -75,7 +75,7 @@ export function useAuth() {
     if (validationError) return { error: validationError };
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
+    const { data: authData, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
@@ -83,6 +83,17 @@ export function useAuth() {
       },
     });
     if (error) return { error: mapAuthError(error.message) };
+
+    // Associate guest IndexedDB data with the new user ID (local only — no Supabase write yet).
+    // The actual sync to Supabase happens in AuthProvider when the user signs in.
+    if (authData.user) {
+      import('@/lib/dexie/migration').then(({ associateGuestData }) => {
+        associateGuestData(authData.user!.id).catch(() => {
+          // Silently fail — association will be retried on sign-in
+        });
+      });
+    }
+
     return { error: null };
   }, []);
 

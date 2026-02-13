@@ -8,6 +8,8 @@ describe('useAppStore', () => {
       isAuthenticated: false,
       isLoading: true,
       hasApiKey: false,
+      migrationStatus: 'idle',
+      migrationProgress: { synced: 0, total: 0 },
     });
   });
 
@@ -65,5 +67,25 @@ describe('useAppStore', () => {
     expect(useAppStore.getState().hasApiKey).toBe(true);
     useAppStore.getState().setHasApiKey(false);
     expect(useAppStore.getState().hasApiKey).toBe(false);
+  });
+
+  it('has initial migration state', () => {
+    const state = useAppStore.getState();
+    expect(state.migrationStatus).toBe('idle');
+    expect(state.migrationProgress).toEqual({ synced: 0, total: 0 });
+  });
+
+  it('setMigrationStatus updates migration status', () => {
+    useAppStore.getState().setMigrationStatus('migrating');
+    expect(useAppStore.getState().migrationStatus).toBe('migrating');
+    useAppStore.getState().setMigrationStatus('complete');
+    expect(useAppStore.getState().migrationStatus).toBe('complete');
+    useAppStore.getState().setMigrationStatus('partial-failure');
+    expect(useAppStore.getState().migrationStatus).toBe('partial-failure');
+  });
+
+  it('setMigrationProgress updates progress', () => {
+    useAppStore.getState().setMigrationProgress({ synced: 3, total: 5 });
+    expect(useAppStore.getState().migrationProgress).toEqual({ synced: 3, total: 5 });
   });
 });

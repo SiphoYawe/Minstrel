@@ -5,6 +5,13 @@ import { createClient } from '@/lib/supabase/client';
 import { useAppStore } from '@/stores/app-store';
 import { mapSupabaseUser } from './use-auth';
 
+function handleAuthenticated(userId: string): void {
+  // Trigger background sync of any unsynced guest data to Supabase
+  import('@/lib/dexie/migration').then(({ triggerMigrationIfNeeded }) => {
+    triggerMigrationIfNeeded(userId);
+  });
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const supabase = createClient();
@@ -13,10 +20,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth state changes — fires synchronously with INITIAL_SESSION
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       authStateSettled = true;
       if (session?.user) {
         useAppStore.getState().setUser(mapSupabaseUser(session.user));
+        // Only trigger migration on initial load or sign-in, not token refresh
+        if (event !== 'TOKEN_REFRESHED') {
+          handleAuthenticated(session.user.id);
+        }
       } else {
         useAppStore.getState().clearUser();
       }
@@ -28,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (authStateSettled) return; // onAuthStateChange already handled it
       if (user) {
         useAppStore.getState().setUser(mapSupabaseUser(user));
+        handleAuthenticated(user.id);
       }
       useAppStore.getState().setLoading(false);
     });

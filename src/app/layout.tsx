@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/features/auth/auth-provider';
+import { MigrationIndicator } from '@/components/migration-indicator';
 import './globals.css';
 
 const inter = Inter({
@@ -37,6 +38,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <AuthProvider>
           <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+          <MigrationIndicator />
         </AuthProvider>
         <Toaster />
       </body>

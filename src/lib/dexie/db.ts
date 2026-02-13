@@ -2,6 +2,8 @@ import Dexie, { type Table } from 'dexie';
 import type { InputSource, MidiEventType } from '@/features/midi/midi-types';
 import type { SessionType, RecordingStatus } from '@/features/session/session-types';
 
+export type SyncStatus = 'pending' | 'synced' | 'failed';
+
 export interface GuestSession {
   id?: number;
   startedAt: number;
@@ -12,6 +14,9 @@ export interface GuestSession {
   status: RecordingStatus;
   key: string | null;
   tempo: number | null;
+  userId: string | null;
+  syncStatus: SyncStatus;
+  supabaseId: string | null;
 }
 
 export interface StoredMidiEvent {
@@ -24,6 +29,8 @@ export interface StoredMidiEvent {
   channel: number;
   timestamp: number;
   source: InputSource;
+  userId: string | null;
+  syncStatus: SyncStatus;
 }
 
 export interface AnalysisSnapshot {
@@ -31,6 +38,8 @@ export interface AnalysisSnapshot {
   sessionId: number;
   createdAt: number;
   data: Record<string, unknown>;
+  userId: string | null;
+  syncStatus: SyncStatus;
 }
 
 class MinstrelDatabase extends Dexie {
@@ -62,6 +71,30 @@ class MinstrelDatabase extends Dexie {
             session.key = null;
             session.tempo = null;
           });
+      });
+
+    this.version(3)
+      .stores({
+        sessions: '++id, startedAt, sessionType, status, userId, syncStatus',
+        midiEvents: '++id, sessionId, [sessionId+timestamp], userId, syncStatus',
+        analysisSnapshots: '++id, sessionId, createdAt, [sessionId+createdAt], userId, syncStatus',
+      })
+      .upgrade((tx) => {
+        const tables = ['sessions', 'midiEvents', 'analysisSnapshots'] as const;
+        return Promise.all(
+          tables.map((table) =>
+            tx
+              .table(table)
+              .toCollection()
+              .modify((record) => {
+                record.userId = null;
+                record.syncStatus = 'pending';
+                if (table === 'sessions') {
+                  record.supabaseId = null;
+                }
+              })
+          )
+        );
       });
   }
 }
