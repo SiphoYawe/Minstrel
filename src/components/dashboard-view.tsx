@@ -7,6 +7,7 @@ import { useDashboardStats } from '@/hooks/use-dashboard-stats';
 import { useStreak } from '@/features/engagement/use-streak';
 import { fetchAchievementDisplay } from '@/features/engagement/achievement-service';
 import { achievementRegistry } from '@/features/engagement/achievement-definitions';
+import Link from 'next/link';
 import { ProgressTrends } from '@/components/progress-trends';
 import { SkillRadarChart } from '@/components/skill-radar-chart';
 import {
@@ -431,6 +432,31 @@ export function DashboardView() {
             }
             label="Avg Session"
           />
+        </div>
+      </section>
+
+      {/* Section: Warm-Up */}
+      <section>
+        <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-3">
+          Warm-Up
+        </p>
+        <div className="border border-surface-light bg-card px-5 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-foreground">Quick Warm-Up</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {stats && stats.totalSessions > 0
+                  ? 'Loosen up before your session'
+                  : 'Start with a basic warm-up to calibrate your skill profile'}
+              </p>
+            </div>
+            <Link
+              href="/session"
+              className="h-8 px-4 inline-flex items-center bg-primary text-background hover:brightness-90 font-mono text-xs uppercase tracking-wider"
+            >
+              Start
+            </Link>
+          </div>
         </div>
       </section>
 

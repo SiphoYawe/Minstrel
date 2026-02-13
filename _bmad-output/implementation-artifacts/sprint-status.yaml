@@ -204,7 +204,7 @@ development_status:
 
   # Epic 17: UX Polish & Missing Features (P2/P3)
   epic-17: in-progress
-  17-1-surface-warm-up-drills-section: ready-for-dev
+  17-1-surface-warm-up-drills-section: done
   17-2-surface-progress-data-prominently: ready-for-dev
   17-3-improve-mode-switching-ux: ready-for-dev
   17-4-add-session-end-experience: ready-for-dev
