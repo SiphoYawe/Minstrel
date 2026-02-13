@@ -210,3 +210,43 @@ export interface WeeklySummary {
   highestImpactInsight: string;
   previousWeekComparison: WeeklyComparison | null;
 }
+
+// --- Personal Records Types (Story 7.6) ---
+
+export enum PersonalRecordType {
+  CleanTempo = 'CleanTempo',
+  TimingAccuracy = 'TimingAccuracy',
+  HarmonicComplexity = 'HarmonicComplexity',
+  PracticeStreak = 'PracticeStreak',
+}
+
+export interface RecordHistoryEntry {
+  value: number;
+  date: string; // ISO date
+  sessionId: string | null;
+}
+
+export interface PersonalRecord {
+  recordType: PersonalRecordType;
+  currentValue: number;
+  previousValue: number | null;
+  achievedAt: string; // ISO timestamp
+  sessionId: string | null;
+}
+
+export interface PersonalRecordWithHistory {
+  recordType: PersonalRecordType;
+  currentValue: number;
+  history: RecordHistoryEntry[];
+  label: string;
+  unit: string;
+}
+
+export interface RecordDetectionInput {
+  maxCleanTempo: number | null; // BPM at >85% accuracy
+  bestTimingAccuracy: number | null; // 0-1
+  maxChordComplexity: number | null; // unique chord count
+  currentStreak: number;
+  sessionId: string | null;
+  date: string; // ISO date
+}

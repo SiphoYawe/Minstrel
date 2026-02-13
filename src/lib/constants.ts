@@ -67,3 +67,12 @@ export const TREND_FLAT_THRESHOLD = 0.02;
 
 // Weekly summary constants (Story 7.5)
 export const WEEK_START_DAY = 1; // Monday (ISO 8601)
+
+// Personal records constants (Story 7.6)
+export const CLEAN_TEMPO_ACCURACY_THRESHOLD = 0.85;
+export const RECORD_TYPES = {
+  CleanTempo: { label: 'Clean Tempo', unit: 'BPM' },
+  TimingAccuracy: { label: 'Timing Accuracy', unit: '%' },
+  HarmonicComplexity: { label: 'Harmonic Complexity', unit: 'chords' },
+  PracticeStreak: { label: 'Practice Streak', unit: 'days' },
+} as const;

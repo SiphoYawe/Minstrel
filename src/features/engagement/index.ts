@@ -43,3 +43,18 @@ export {
   formatPracticeTime,
   identifyHighestImpactInsight,
 } from './weekly-summary-generator';
+export { PersonalRecordType } from './engagement-types';
+export type {
+  PersonalRecord,
+  PersonalRecordWithHistory,
+  RecordDetectionInput,
+  RecordHistoryEntry,
+} from './engagement-types';
+export {
+  detectNewRecords,
+  applyNewRecords,
+  updateRecordHistory,
+  createEmptyRecordSet,
+  formatNewRecord,
+} from './record-tracker';
+export { fetchPersonalRecords, saveNewRecords } from './record-service';
