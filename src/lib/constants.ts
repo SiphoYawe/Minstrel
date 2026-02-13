@@ -42,6 +42,11 @@ export const METADATA_UPDATE_INTERVAL_MS = 10_000;
 export const RATE_LIMIT_MAX = 100;
 export const RATE_LIMIT_WINDOW_MS = 60_000;
 
+// Replay constants (Story 6.2)
+export const REPLAY_SPEEDS = [0.5, 1, 1.5, 2] as const;
+export const SCRUB_STEP_SMALL_MS = 1000;
+export const SCRUB_STEP_LARGE_MS = 10_000;
+
 // Engagement / streak constants (Story 7.1)
 export const MIN_MEANINGFUL_PRACTICE_MS = 180_000; // 3 minutes
 export const STREAK_RESET_WINDOW_MS = 172_800_000; // 48 hours

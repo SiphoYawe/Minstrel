@@ -96,7 +96,7 @@ development_status:
   # Epic 6: Session Replay & Continuity
   epic-6: in-progress
   6-1-replay-studio-mode-layout: done
-  6-2-timeline-scrubbing-and-playback-controls: ready-for-dev
+  6-2-timeline-scrubbing-and-playback-controls: done
   6-3-ai-questions-about-replay-moments: ready-for-dev
   6-4-cross-session-continuity: ready-for-dev
   epic-6-retrospective: optional

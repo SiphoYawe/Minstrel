@@ -9,6 +9,19 @@ vi.mock('@/features/session/use-replay-session', () => ({
   useReplaySession: vi.fn(),
 }));
 
+// Mock replay engine to avoid rAF side effects
+vi.mock('@/features/session/replay-engine', () => ({
+  togglePlayback: vi.fn(() => {
+    const state = useSessionStore.getState();
+    useSessionStore
+      .getState()
+      .setReplayState(state.replayState === 'playing' ? 'paused' : 'playing');
+  }),
+  setPlaybackSpeed: vi.fn((speed: number) => {
+    useSessionStore.getState().setReplaySpeed(speed);
+  }),
+}));
+
 describe('ReplayStudio', () => {
   beforeEach(() => {
     useSessionStore.setState({
@@ -192,7 +205,11 @@ describe('ReplayStudio', () => {
 
     it('displays session duration formatted as mm:ss', () => {
       render(<ReplayStudio sessionId={1} />);
-      expect(screen.getByText('04:00')).toBeInTheDocument(); // 240 seconds
+      const insightsRegion = screen.getByRole('region', { name: 'Session insights' });
+      const durationCard = Array.from(
+        insightsRegion.querySelectorAll('[class*="bg-\\[\\#141414\\]"]')
+      ).find((el) => el.textContent?.includes('Duration'));
+      expect(durationCard?.textContent).toContain('04:00');
     });
 
     it('displays note count from events', () => {
@@ -261,16 +278,16 @@ describe('ReplayStudio', () => {
       expect(btn1x).toHaveAttribute('aria-pressed', 'true');
     });
 
-    it('renders a position slider', () => {
+    it('renders a session timeline slider', () => {
       render(<ReplayStudio sessionId={1} />);
-      expect(screen.getByRole('slider', { name: /playback position/i })).toBeInTheDocument();
+      expect(screen.getByRole('slider', { name: /session timeline/i })).toBeInTheDocument();
     });
 
-    it('slider updates position on change', () => {
+    it('slider responds to keyboard navigation', () => {
       render(<ReplayStudio sessionId={1} />);
-      const slider = screen.getByRole('slider', { name: /playback position/i });
-      fireEvent.change(slider, { target: { value: '120000' } });
-      expect(useSessionStore.getState().replayPosition).toBe(120000);
+      const slider = screen.getByRole('slider', { name: /session timeline/i });
+      fireEvent.keyDown(slider, { key: 'ArrowRight' });
+      expect(useSessionStore.getState().replayPosition).toBe(61_000); // 60000 + 1000
     });
   });
 });

@@ -4,17 +4,11 @@ import { useState, useCallback, useMemo } from 'react';
 import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
 import { StatusBar } from '@/components/status-bar';
 import { ModeSwitcher } from '@/features/modes/mode-switcher';
+import { TimelineScrubber } from '@/components/timeline-scrubber';
+import type { TimelineMarker } from '@/components/timeline-scrubber';
 import { useReplaySession } from '@/features/session/use-replay-session';
 import { useSessionStore } from '@/stores/session-store';
-
-// --- Formatting utilities ---
-
-function formatTime(ms: number): string {
-  const totalSeconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
+import { togglePlayback, setPlaybackSpeed } from '@/features/session/replay-engine';
 
 function formatDate(timestamp: number): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -42,10 +36,6 @@ const TABS: Array<{ id: TabId; label: string }> = [
   { id: 'sessions', label: 'Sessions' },
 ];
 
-// --- Speed presets ---
-
-const SPEED_OPTIONS = [0.5, 1, 2] as const;
-
 // --- Main Component ---
 
 interface ReplayStudioProps {
@@ -62,8 +52,6 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
   const replayState = useSessionStore((s) => s.replayState);
   const replaySpeed = useSessionStore((s) => s.replaySpeed);
   const setReplayPosition = useSessionStore((s) => s.setReplayPosition);
-  const setReplayState = useSessionStore((s) => s.setReplayState);
-  const setReplaySpeed = useSessionStore((s) => s.setReplaySpeed);
 
   const [activeTab, setActiveTab] = useState<TabId>('insights');
 
@@ -78,16 +66,8 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
 
   const noteCount = replayEvents.filter((e) => e.type === 'note-on').length;
 
-  const handlePlayPause = useCallback(() => {
-    setReplayState(replayState === 'playing' ? 'paused' : 'playing');
-  }, [replayState, setReplayState]);
-
-  const handlePositionChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setReplayPosition(Number(e.target.value));
-    },
-    [setReplayPosition]
-  );
+  // Build markers from analysis snapshots (empty for now — populated in Story 6.3)
+  const markers = useMemo<TimelineMarker[]>(() => [], []);
 
   const handleTabKeyDown = useCallback((e: React.KeyboardEvent, tabId: TabId) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -244,15 +224,16 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
           </div>
         </div>
 
-        {/* Timeline bar — bottom anchored */}
-        <TimelineBar
+        {/* Timeline scrubber — bottom anchored */}
+        <TimelineScrubber
           position={replayPosition}
           totalDuration={totalDurationMs}
           playbackState={replayState}
           speed={replaySpeed}
-          onPositionChange={handlePositionChange}
-          onPlayPause={handlePlayPause}
-          onSpeedChange={setReplaySpeed}
+          markers={markers}
+          onPositionChange={setReplayPosition}
+          onPlayPause={togglePlayback}
+          onSpeedChange={setPlaybackSpeed}
         />
       </div>
     </div>
@@ -320,105 +301,6 @@ function InsightsPanel({
             </span>
           </div>
         ))}
-      </div>
-    </div>
-  );
-}
-
-// --- Timeline Bar ---
-
-function TimelineBar({
-  position,
-  totalDuration,
-  playbackState,
-  speed,
-  onPositionChange,
-  onPlayPause,
-  onSpeedChange,
-}: {
-  position: number;
-  totalDuration: number;
-  playbackState: 'paused' | 'playing';
-  speed: number;
-  onPositionChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onPlayPause: () => void;
-  onSpeedChange: (speed: number) => void;
-}) {
-  return (
-    <div
-      className="shrink-0 border-t border-[#1A1A1A] bg-[#0F0F0F] px-4 py-3"
-      role="region"
-      aria-label="Playback timeline"
-    >
-      {/* Scrubber track */}
-      <div className="mb-3">
-        <input
-          type="range"
-          min={0}
-          max={totalDuration || 1}
-          value={position}
-          onChange={onPositionChange}
-          aria-label="Playback position"
-          className="w-full h-1 appearance-none cursor-pointer bg-[#1A1A1A] outline-none
-            [&::-webkit-slider-thumb]:appearance-none
-            [&::-webkit-slider-thumb]:w-3
-            [&::-webkit-slider-thumb]:h-3
-            [&::-webkit-slider-thumb]:bg-[#7CB9E8]
-            [&::-webkit-slider-thumb]:cursor-pointer
-            [&::-moz-range-thumb]:w-3
-            [&::-moz-range-thumb]:h-3
-            [&::-moz-range-thumb]:bg-[#7CB9E8]
-            [&::-moz-range-thumb]:border-0
-            [&::-moz-range-thumb]:cursor-pointer"
-        />
-      </div>
-
-      {/* Controls row */}
-      <div className="flex items-center gap-4 font-mono text-xs">
-        {/* Time display */}
-        <span className="text-[#999] tabular-nums tracking-tight min-w-[100px]">
-          {formatTime(position)}
-          <span className="text-[#444] mx-1">/</span>
-          {formatTime(totalDuration)}
-        </span>
-
-        {/* Play / Pause */}
-        <button
-          onClick={onPlayPause}
-          aria-label={playbackState === 'playing' ? 'Pause' : 'Play'}
-          className="flex items-center justify-center w-8 h-8
-            text-[#7CB9E8] hover:text-white
-            border border-[#1A1A1A] hover:border-[#333]
-            bg-transparent transition-colors duration-150"
-        >
-          {playbackState === 'playing' ? '⏸' : '▶'}
-        </button>
-
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Speed controls */}
-        <div className="flex items-center gap-1">
-          {SPEED_OPTIONS.map((s) => (
-            <button
-              key={s}
-              onClick={() => onSpeedChange(s)}
-              aria-label={`Set speed to ${s}x`}
-              aria-pressed={speed === s}
-              className={`
-                px-2 py-1 text-[11px] tabular-nums
-                border transition-colors duration-150
-                ${
-                  speed === s
-                    ? 'text-[#7CB9E8] border-[#7CB9E8]/30 bg-[#7CB9E8]/5'
-                    : 'text-[#555] border-[#1A1A1A] hover:text-[#999] hover:border-[#333]'
-                }
-              `}
-            >
-              {s}x
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   );
