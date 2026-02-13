@@ -4,13 +4,13 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
 import { StatusBar } from '@/components/status-bar';
-import { ModeSwitcher } from '@/features/modes/mode-switcher';
 import { TimelineScrubber } from '@/components/timeline-scrubber';
 import type { TimelineMarker } from '@/components/timeline-scrubber';
 import { useReplaySession } from '@/features/session/use-replay-session';
 import { useSessionStore } from '@/stores/session-store';
 import { useReplayChat } from '@/features/coaching/use-replay-chat';
 import { togglePlayback, setPlaybackSpeed } from '@/features/session/replay-engine';
+import type { AnalysisSnapshot, StoredDrillRecord } from '@/lib/dexie/db';
 
 function formatDate(timestamp: number): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -76,8 +76,85 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
 
   const noteCount = replayEvents.filter((e) => e.type === 'note-on').length;
 
-  // Build markers from analysis snapshots (empty for now — populated in Story 6.3)
-  const markers = useMemo<TimelineMarker[]>(() => [], []);
+  // --- Load analysis snapshots and drill records for timeline markers ---
+  const [snapshots, setSnapshots] = useState<AnalysisSnapshot[]>([]);
+  const [drillRecords, setDrillRecords] = useState<StoredDrillRecord[]>([]);
+
+  useEffect(() => {
+    if (!replaySession?.id) {
+      setSnapshots([]);
+      setDrillRecords([]);
+      return;
+    }
+
+    const sessionId = replaySession.id;
+
+    import('@/lib/dexie/db').then(({ db }) => {
+      if (!db) return;
+
+      // Load analysis snapshots for this session
+      db.analysisSnapshots
+        .where('sessionId')
+        .equals(sessionId)
+        .sortBy('createdAt')
+        .then((snaps) => setSnapshots(snaps))
+        .catch(() => setSnapshots([]));
+
+      // Load drill records for this session (sessionId stored as string)
+      db.drillRecords
+        .where('sessionId')
+        .equals(String(sessionId))
+        .toArray()
+        .then((drills) => setDrillRecords(drills))
+        .catch(() => setDrillRecords([]));
+    });
+  }, [replaySession?.id]);
+
+  // --- Build timeline markers from loaded data ---
+  const markers = useMemo<TimelineMarker[]>(() => {
+    if (!replaySession) return [];
+
+    const sessionStart = replaySession.startedAt;
+    const result: TimelineMarker[] = [];
+
+    // Snapshot markers
+    for (const snap of snapshots) {
+      const relativeTs = snap.createdAt - sessionStart;
+      if (relativeTs < 0) continue;
+
+      // Extract summary from snapshot data
+      const data = snap.data as Record<string, unknown>;
+      const key = (data.key as string) ?? '';
+      const tempo = data.tempo as number | undefined;
+      const summary = key
+        ? `Snapshot: ${key}${tempo ? ` @ ${Math.round(tempo)} BPM` : ''}`
+        : 'Analysis snapshot';
+
+      result.push({
+        timestamp: relativeTs,
+        type: 'snapshot',
+        summary,
+      });
+    }
+
+    // Drill markers
+    for (const drill of drillRecords) {
+      const createdAtMs = new Date(drill.createdAt).getTime();
+      const relativeTs = createdAtMs - sessionStart;
+      if (relativeTs < 0) continue;
+
+      result.push({
+        timestamp: relativeTs,
+        type: 'drill',
+        summary: `Drill: ${drill.targetSkill || drill.weaknessDescription || 'Practice exercise'}`,
+      });
+    }
+
+    // Sort by timestamp
+    result.sort((a, b) => a.timestamp - b.timestamp);
+
+    return result;
+  }, [replaySession, snapshots, drillRecords]);
 
   const handleTabKeyDown = useCallback((e: React.KeyboardEvent, tabId: TabId) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -89,11 +166,8 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
   // --- Loading state ---
   if (replayStatus === 'loading') {
     return (
-      <div id="main-content" className="relative h-dvh w-screen bg-background">
+      <div className="relative h-dvh w-full bg-background">
         <StatusBar />
-        <div className="fixed right-4 top-12 z-30">
-          <ModeSwitcher />
-        </div>
         <div className="flex h-full pt-10 items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <div
@@ -118,11 +192,8 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
   // --- Error state ---
   if (replayStatus === 'error') {
     return (
-      <div id="main-content" className="relative h-dvh w-screen bg-background">
+      <div className="relative h-dvh w-full bg-background">
         <StatusBar />
-        <div className="fixed right-4 top-12 z-30">
-          <ModeSwitcher />
-        </div>
         <div className="flex h-full pt-10 items-center justify-center">
           <div className="max-w-md px-6 text-center">
             <div className="mb-4 font-mono text-lg text-accent-warm" aria-live="polite">
@@ -137,26 +208,35 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
     );
   }
 
-  // --- Success state: three-panel layout ---
+  // --- Success state: two-column layout with scrubber in left column (Story 13.4) ---
   return (
-    <div id="main-content" className="relative h-dvh w-screen bg-background">
+    <div className="relative h-dvh w-full bg-background">
       <StatusBar />
 
-      <div className="fixed right-4 top-12 z-30">
-        <ModeSwitcher />
-      </div>
-
-      {/* Main grid: canvas + detail panel, then timeline below */}
+      {/* Main grid: canvas+scrubber column + detail panel */}
       <div className="flex flex-col h-full pt-10">
         {/* Upper region: canvas + right panel */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[3fr_1fr] transition-all duration-300 overflow-y-auto lg:overflow-hidden">
-          {/* Canvas area */}
-          <div className="min-w-0 min-h-[400px] lg:min-h-0 h-full">
-            <VisualizationCanvas />
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[2fr_1fr] transition-all duration-300 overflow-y-auto lg:overflow-hidden">
+          {/* Left column: canvas + timeline scrubber (Story 13.4) */}
+          <div className="flex flex-col min-w-0 min-h-[400px] lg:min-h-0 h-full">
+            <div className="flex-1 min-h-0">
+              <VisualizationCanvas />
+            </div>
+            {/* Timeline scrubber — contained within canvas column */}
+            <TimelineScrubber
+              position={replayPosition}
+              totalDuration={totalDurationMs}
+              playbackState={replayState}
+              speed={replaySpeed}
+              markers={markers}
+              onPositionChange={setReplayPosition}
+              onPlayPause={togglePlayback}
+              onSpeedChange={setPlaybackSpeed}
+            />
           </div>
 
-          {/* Right detail panel */}
-          <div className="flex flex-col h-full border-l border-border min-w-0 bg-background">
+          {/* Right detail panel (Story 13.4: min-w-[320px], visual separator) */}
+          <div className="flex flex-col h-full border-l border-border min-w-0 lg:min-w-[320px] bg-background">
             {/* Tab bar */}
             <div
               className="flex shrink-0 border-b border-border"
@@ -232,18 +312,6 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
             </div>
           </div>
         </div>
-
-        {/* Timeline scrubber — bottom anchored */}
-        <TimelineScrubber
-          position={replayPosition}
-          totalDuration={totalDurationMs}
-          playbackState={replayState}
-          speed={replaySpeed}
-          markers={markers}
-          onPositionChange={setReplayPosition}
-          onPlayPause={togglePlayback}
-          onSpeedChange={setPlaybackSpeed}
-        />
       </div>
     </div>
   );

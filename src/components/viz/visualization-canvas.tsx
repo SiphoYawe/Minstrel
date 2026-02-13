@@ -17,9 +17,11 @@ import type {
   NoteAnalysis,
   InstantSnapshot,
 } from '@/features/analysis/analysis-types';
+import type { SessionMode } from '@/features/modes/mode-types';
 
 export function VisualizationCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLSpanElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const rafRef = useRef<number>(0);
@@ -40,6 +42,11 @@ export function VisualizationCanvas() {
   const snapshotTransitionStartRef = useRef(0);
   const timingAccuracyRef = useRef(100);
   const prefersReducedMotionRef = useRef(false);
+  // Replay mode indicator refs (Story 12.5)
+  const currentModeRef = useRef<SessionMode>('silent-coach');
+  const replayPositionRef = useRef(0);
+  const replayTotalDurationRef = useRef(0);
+  const replayStateRef = useRef<'paused' | 'playing'>('paused');
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -186,6 +193,68 @@ export function VisualizationCanvas() {
       }
     }
 
+    // --- Zustand vanilla subscription for mode changes (Story 12.2 + 12.5) ---
+    // Clear all note state when switching between live and replay modes
+    const unsubMode = useSessionStore.subscribe(
+      (state) => state.currentMode,
+      (mode) => {
+        currentModeRef.current = mode;
+        useMidiStore.getState().clearEvents();
+        activeNotesRef.current = {};
+        prevActiveNotesRef.current = {};
+        fadingNotesRef.current = [];
+        dirtyRef.current = true;
+        // Toggle replay border on container (Story 12.5)
+        if (containerRef.current) {
+          if (mode === 'replay-studio') {
+            containerRef.current.classList.add('replay-active');
+          } else {
+            containerRef.current.classList.remove('replay-active');
+          }
+        }
+      }
+    );
+
+    // --- Zustand vanilla subscriptions for replay playback head (Story 12.5) ---
+    const unsubReplayPosition = useSessionStore.subscribe(
+      (state) => state.replayPosition,
+      (position) => {
+        replayPositionRef.current = position;
+        if (currentModeRef.current === 'replay-studio') {
+          dirtyRef.current = true;
+        }
+      }
+    );
+
+    const unsubReplayState = useSessionStore.subscribe(
+      (state) => state.replayState,
+      (state) => {
+        replayStateRef.current = state;
+        if (currentModeRef.current === 'replay-studio') {
+          dirtyRef.current = true;
+        }
+      }
+    );
+
+    // Track total duration from replaySession for playback head rendering
+    const unsubReplaySession = useSessionStore.subscribe(
+      (state) => state.replaySession,
+      (session) => {
+        if (session) {
+          if (session.duration) {
+            replayTotalDurationRef.current = session.duration * 1000;
+          } else if (session.endedAt && session.startedAt) {
+            replayTotalDurationRef.current = session.endedAt - session.startedAt;
+          } else {
+            replayTotalDurationRef.current = 0;
+          }
+        } else {
+          replayTotalDurationRef.current = 0;
+        }
+        dirtyRef.current = true;
+      }
+    );
+
     // --- Zustand vanilla subscription for snapshot display mode ---
     const unsubSnapshot = useSessionStore.subscribe(
       (state) => state.currentSnapshot,
@@ -285,6 +354,43 @@ export function VisualizationCanvas() {
           );
         }
 
+        // --- Replay mode overlay (Story 12.5) ---
+        if (currentModeRef.current === 'replay-studio') {
+          // "REPLAY" label in top-left
+          c.save();
+          c.font = 'bold 14px Inter, sans-serif';
+          c.letterSpacing = '2px';
+          c.fillStyle = 'rgba(255, 191, 0, 0.4)'; // Amber at 40%
+          c.fillText('REPLAY', 16, 28);
+          c.restore();
+
+          // Playback-head vertical line
+          const totalDur = replayTotalDurationRef.current;
+          if (totalDur > 0) {
+            const ratio = Math.min(replayPositionRef.current / totalDur, 1);
+            const headX = ratio * logicalW;
+            const isPaused = replayStateRef.current === 'paused';
+
+            let headAlpha = 0.6;
+            if (isPaused && !prefersReducedMotionRef.current) {
+              // Pulse alpha between 0.3 and 0.7 when paused
+              headAlpha = 0.5 + 0.2 * Math.sin(now * 0.004);
+            }
+
+            c.save();
+            c.strokeStyle = `rgba(255, 191, 0, ${headAlpha})`;
+            c.lineWidth = 1.5;
+            c.beginPath();
+            c.moveTo(headX, 0);
+            c.lineTo(headX, logicalH);
+            c.stroke();
+            c.restore();
+          }
+
+          // Keep rendering during replay for playback head animation
+          dirtyRef.current = true;
+        }
+
         // Keep rendering while fading notes remain or snapshot transitioning
         if (fadingNotesRef.current.length > 0 || snapshotTransitionRef.current !== 'none') {
           dirtyRef.current = true;
@@ -304,6 +410,10 @@ export function VisualizationCanvas() {
       unsubKey();
       unsubHarmonicFn();
       unsubNoteAnalyses();
+      unsubMode();
+      unsubReplayPosition();
+      unsubReplayState();
+      unsubReplaySession();
       unsubSnapshot();
       unsubTimingAccuracy();
       motionMql?.removeEventListener('change', handleMotionChange);
@@ -313,7 +423,11 @@ export function VisualizationCanvas() {
   }, []);
 
   return (
-    <>
+    <div
+      ref={containerRef}
+      className="w-full h-full [&.replay-active]:border-2 [&.replay-active]:border-accent-warm/30"
+      style={{ position: 'relative' }}
+    >
       <canvas
         ref={canvasRef}
         role="img"
@@ -328,6 +442,6 @@ export function VisualizationCanvas() {
       <span ref={statusRef} role="status" aria-live="polite" className="sr-only">
         Waiting for input.
       </span>
-    </>
+    </div>
   );
 }

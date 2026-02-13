@@ -121,9 +121,9 @@ describe('ReplayStudio', () => {
       expect(screen.getByRole('region', { name: 'Playback timeline' })).toBeInTheDocument();
     });
 
-    it('uses CSS grid with 3fr 1fr split', () => {
+    it('uses CSS grid with 2fr 1fr split', () => {
       const { container } = render(<ReplayStudio sessionId={1} />);
-      const grid = container.querySelector('.lg\\:grid-cols-\\[3fr_1fr\\]');
+      const grid = container.querySelector('.lg\\:grid-cols-\\[2fr_1fr\\]');
       expect(grid).not.toBeNull();
     });
   });

@@ -4,6 +4,7 @@ import { useEffect, useCallback } from 'react';
 import { useSessionStore } from '@/stores/session-store';
 import { db } from '@/lib/dexie/db';
 import type { GuestSession, StoredMidiEvent } from '@/lib/dexie/db';
+import { resetReplayDispatcher } from '@/features/session/replay-engine';
 
 export interface ReplaySessionData {
   session: GuestSession | null;
@@ -58,6 +59,7 @@ export function useReplaySession(sessionId: number | null) {
 
         const events = await loadEventsFromDexie(id);
         setReplayEvents(events);
+        resetReplayDispatcher();
         setReplayStatus('success');
       } catch {
         setReplayStatus('error');
@@ -80,6 +82,7 @@ export function useReplaySession(sessionId: number | null) {
 
       const events = await loadEventsFromDexie(latest.id);
       setReplayEvents(events);
+      resetReplayDispatcher();
       setReplayStatus('success');
     } catch {
       setReplayStatus('error');
