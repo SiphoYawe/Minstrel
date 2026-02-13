@@ -31,6 +31,7 @@ import type {
   WarmupRoutine,
   MicroSessionStack,
 } from '@/features/drills/drill-types';
+import type { GuestSession, StoredMidiEvent } from '@/lib/dexie/db';
 import { DrillPhase } from '@/features/drills/drill-types';
 import type { DrillRepResult, ImprovementDelta } from '@/features/drills/drill-tracker';
 import { calculateImprovementDelta, toRepPerformance } from '@/features/drills/drill-tracker';
@@ -78,6 +79,13 @@ interface SessionState {
   currentWarmupExercise: number;
   warmupRoutine: WarmupRoutine | null;
   microSessionStack: MicroSessionStack | null;
+  // Replay Studio state
+  replaySession: GuestSession | null;
+  replayEvents: StoredMidiEvent[];
+  replayStatus: 'idle' | 'loading' | 'success' | 'error';
+  replayPosition: number;
+  replayState: 'paused' | 'playing';
+  replaySpeed: number;
 }
 
 interface SessionActions {
@@ -121,6 +129,14 @@ interface SessionActions {
   setCurrentWarmupExercise: (index: number) => void;
   setWarmupRoutine: (routine: WarmupRoutine | null) => void;
   setMicroSessionStack: (stack: MicroSessionStack | null) => void;
+  // Replay actions
+  setReplaySession: (session: GuestSession | null) => void;
+  setReplayEvents: (events: StoredMidiEvent[]) => void;
+  setReplayStatus: (status: 'idle' | 'loading' | 'success' | 'error') => void;
+  setReplayPosition: (position: number) => void;
+  setReplayState: (state: 'paused' | 'playing') => void;
+  setReplaySpeed: (speed: number) => void;
+  resetReplay: () => void;
   resetAnalysis: () => void;
 }
 
@@ -163,6 +179,12 @@ const initialState: SessionState = {
   currentWarmupExercise: 0,
   warmupRoutine: null,
   microSessionStack: null,
+  replaySession: null,
+  replayEvents: [],
+  replayStatus: 'idle',
+  replayPosition: 0,
+  replayState: 'paused',
+  replaySpeed: 1,
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -344,6 +366,22 @@ export const useSessionStore = create<SessionStore>()(
     setWarmupRoutine: (routine) => set({ warmupRoutine: routine }),
 
     setMicroSessionStack: (stack) => set({ microSessionStack: stack }),
+
+    setReplaySession: (session) => set({ replaySession: session }),
+    setReplayEvents: (events) => set({ replayEvents: events }),
+    setReplayStatus: (status) => set({ replayStatus: status }),
+    setReplayPosition: (position) => set({ replayPosition: position }),
+    setReplayState: (state) => set({ replayState: state }),
+    setReplaySpeed: (speed) => set({ replaySpeed: speed }),
+    resetReplay: () =>
+      set({
+        replaySession: null,
+        replayEvents: [],
+        replayStatus: 'idle',
+        replayPosition: 0,
+        replayState: 'paused',
+        replaySpeed: 1,
+      }),
 
     resetAnalysis: () =>
       set((state) => ({

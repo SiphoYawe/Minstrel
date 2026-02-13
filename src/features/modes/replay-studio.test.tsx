@@ -1,0 +1,276 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, fireEvent } from '@/test-utils/render';
+import { ReplayStudio } from './replay-studio';
+import { useSessionStore } from '@/stores/session-store';
+import { createMockSession } from '@/test-utils/session-fixtures';
+
+// Mock the hook to avoid Dexie side effects
+vi.mock('@/features/session/use-replay-session', () => ({
+  useReplaySession: vi.fn(),
+}));
+
+describe('ReplayStudio', () => {
+  beforeEach(() => {
+    useSessionStore.setState({
+      currentMode: 'replay-studio',
+      replaySession: null,
+      replayEvents: [],
+      replayStatus: 'idle',
+      replayPosition: 0,
+      replayState: 'paused',
+      replaySpeed: 1,
+    });
+  });
+
+  describe('loading state', () => {
+    it('shows loading indicator when status is loading', () => {
+      useSessionStore.setState({ replayStatus: 'loading' });
+      render(<ReplayStudio sessionId={1} />);
+      expect(screen.getByText(/loading session/i)).toBeInTheDocument();
+    });
+
+    it('shows a progress bar during loading', () => {
+      useSessionStore.setState({ replayStatus: 'loading' });
+      render(<ReplayStudio sessionId={1} />);
+      expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    });
+  });
+
+  describe('error state', () => {
+    it('shows error message when session not found', () => {
+      useSessionStore.setState({ replayStatus: 'error' });
+      render(<ReplayStudio sessionId={999} />);
+      expect(screen.getByText(/session not found/i)).toBeInTheDocument();
+    });
+
+    it('shows helpful context about why session is missing', () => {
+      useSessionStore.setState({ replayStatus: 'error' });
+      render(<ReplayStudio sessionId={999} />);
+      expect(screen.getByText(/deleted or not yet synced/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('success state - layout', () => {
+    beforeEach(() => {
+      useSessionStore.setState({
+        replayStatus: 'success',
+        replaySession: createMockSession({ id: 1, key: 'C major', tempo: 120, duration: 300 }),
+        replayEvents: [
+          {
+            id: 1,
+            sessionId: 1,
+            type: 'note-on',
+            note: 60,
+            noteName: 'C',
+            velocity: 80,
+            channel: 1,
+            timestamp: 1000,
+            source: 'midi' as const,
+            userId: null,
+            syncStatus: 'pending' as const,
+          },
+        ],
+      });
+    });
+
+    it('renders the visualization canvas', () => {
+      render(<ReplayStudio sessionId={1} />);
+      expect(screen.getByRole('img', { name: 'MIDI note visualization' })).toBeInTheDocument();
+    });
+
+    it('renders the mode switcher', () => {
+      render(<ReplayStudio sessionId={1} />);
+      expect(screen.getByRole('tablist', { name: 'Session mode' })).toBeInTheDocument();
+    });
+
+    it('renders the playback timeline region', () => {
+      render(<ReplayStudio sessionId={1} />);
+      expect(screen.getByRole('region', { name: 'Playback timeline' })).toBeInTheDocument();
+    });
+
+    it('uses CSS grid with 3fr 1fr split', () => {
+      const { container } = render(<ReplayStudio sessionId={1} />);
+      const grid = container.querySelector('[style*="grid-template-columns"]');
+      expect(grid).not.toBeNull();
+      expect(grid?.getAttribute('style')).toContain('3fr 1fr');
+    });
+  });
+
+  describe('tabs', () => {
+    beforeEach(() => {
+      useSessionStore.setState({
+        replayStatus: 'success',
+        replaySession: createMockSession({ id: 1, key: 'G major', tempo: 100, duration: 180 }),
+        replayEvents: [],
+      });
+    });
+
+    it('renders tablist with Insights and Sessions tabs', () => {
+      render(<ReplayStudio sessionId={1} />);
+      const tablist = screen.getByRole('tablist', { name: 'Replay details' });
+      expect(tablist).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /insights/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /sessions/i })).toBeInTheDocument();
+    });
+
+    it('Insights tab is active by default', () => {
+      render(<ReplayStudio sessionId={1} />);
+      const insightsTab = screen.getByRole('tab', { name: /insights/i });
+      expect(insightsTab).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('switches to Sessions tab on click', () => {
+      render(<ReplayStudio sessionId={1} />);
+      fireEvent.click(screen.getByRole('tab', { name: /sessions/i }));
+      expect(screen.getByRole('tab', { name: /sessions/i })).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
+      expect(screen.getByText(/coming in story 6\.2/i)).toBeInTheDocument();
+    });
+
+    it('tab panels have correct aria linkage', () => {
+      render(<ReplayStudio sessionId={1} />);
+      const insightsTab = screen.getByRole('tab', { name: /insights/i });
+      expect(insightsTab).toHaveAttribute('aria-controls', 'panel-insights');
+      expect(insightsTab).toHaveAttribute('id', 'tab-insights');
+    });
+  });
+
+  describe('insights panel', () => {
+    beforeEach(() => {
+      useSessionStore.setState({
+        replayStatus: 'success',
+        replaySession: createMockSession({
+          id: 1,
+          key: 'A minor',
+          tempo: 95,
+          duration: 240,
+          sessionType: 'freeform',
+        }),
+        replayEvents: [
+          {
+            id: 1,
+            sessionId: 1,
+            type: 'note-on',
+            note: 60,
+            noteName: 'C',
+            velocity: 80,
+            channel: 1,
+            timestamp: 1000,
+            source: 'midi' as const,
+            userId: null,
+            syncStatus: 'pending' as const,
+          },
+          {
+            id: 2,
+            sessionId: 1,
+            type: 'note-off',
+            note: 60,
+            noteName: 'C',
+            velocity: 0,
+            channel: 1,
+            timestamp: 1500,
+            source: 'midi' as const,
+            userId: null,
+            syncStatus: 'pending' as const,
+          },
+        ],
+      });
+    });
+
+    it('displays session key', () => {
+      render(<ReplayStudio sessionId={1} />);
+      expect(screen.getByText('A minor')).toBeInTheDocument();
+    });
+
+    it('displays session tempo with BPM unit', () => {
+      render(<ReplayStudio sessionId={1} />);
+      expect(screen.getByText('95')).toBeInTheDocument();
+      expect(screen.getByText('BPM')).toBeInTheDocument();
+    });
+
+    it('displays session duration formatted as mm:ss', () => {
+      render(<ReplayStudio sessionId={1} />);
+      expect(screen.getByText('04:00')).toBeInTheDocument(); // 240 seconds
+    });
+
+    it('displays note count from events', () => {
+      render(<ReplayStudio sessionId={1} />);
+      const insightsRegion = screen.getByRole('region', { name: 'Session insights' });
+      const notesCard = Array.from(
+        insightsRegion.querySelectorAll('[class*="bg-\\[\\#141414\\]"]')
+      ).find((el) => el.textContent?.includes('Notes'));
+      expect(notesCard?.textContent).toContain('1');
+    });
+
+    it('displays session type', () => {
+      render(<ReplayStudio sessionId={1} />);
+      expect(screen.getByText('freeform')).toBeInTheDocument();
+    });
+  });
+
+  describe('timeline bar', () => {
+    beforeEach(() => {
+      useSessionStore.setState({
+        replayStatus: 'success',
+        replaySession: createMockSession({ id: 1, duration: 300 }),
+        replayEvents: [],
+        replayPosition: 60000, // 1 minute
+        replayState: 'paused',
+        replaySpeed: 1,
+      });
+    });
+
+    it('displays current position and total time', () => {
+      render(<ReplayStudio sessionId={1} />);
+      // Time display is within a single span with child elements for the divider
+      const timeDisplay = screen.getByText((_content, element) => {
+        return element?.textContent === '01:00/05:00' || false;
+      });
+      expect(timeDisplay).toBeInTheDocument();
+    });
+
+    it('renders play button when paused', () => {
+      render(<ReplayStudio sessionId={1} />);
+      expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
+    });
+
+    it('toggles to pause on play click', () => {
+      render(<ReplayStudio sessionId={1} />);
+      fireEvent.click(screen.getByRole('button', { name: /play/i }));
+      expect(useSessionStore.getState().replayState).toBe('playing');
+    });
+
+    it('renders speed control buttons', () => {
+      render(<ReplayStudio sessionId={1} />);
+      expect(screen.getByRole('button', { name: /0\.5x/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /1x/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /2x/i })).toBeInTheDocument();
+    });
+
+    it('changes speed when speed button is clicked', () => {
+      render(<ReplayStudio sessionId={1} />);
+      fireEvent.click(screen.getByRole('button', { name: /2x/i }));
+      expect(useSessionStore.getState().replaySpeed).toBe(2);
+    });
+
+    it('has active state on current speed button', () => {
+      render(<ReplayStudio sessionId={1} />);
+      const btn1x = screen.getByRole('button', { name: /set speed to 1x/i });
+      expect(btn1x).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    it('renders a position slider', () => {
+      render(<ReplayStudio sessionId={1} />);
+      expect(screen.getByRole('slider', { name: /playback position/i })).toBeInTheDocument();
+    });
+
+    it('slider updates position on change', () => {
+      render(<ReplayStudio sessionId={1} />);
+      const slider = screen.getByRole('slider', { name: /playback position/i });
+      fireEvent.change(slider, { target: { value: '120000' } });
+      expect(useSessionStore.getState().replayPosition).toBe(120000);
+    });
+  });
+});
