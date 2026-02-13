@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
 import { StatusBar } from '@/components/status-bar';
-import { ModeSwitcher } from '@/features/modes/mode-switcher';
 import { SnapshotCTA } from '@/components/snapshot-cta';
 import { DataCard } from '@/components/data-card';
 import { AIChatPanel } from '@/components/ai-chat-panel';
@@ -36,12 +35,8 @@ export function DashboardChat() {
   }, [pendingDrillRequest, handleSubmit, setInput]);
 
   return (
-    <div id="main-content" className="relative h-dvh w-screen bg-background">
+    <div className="relative h-dvh w-full bg-background">
       <StatusBar />
-
-      <div className="fixed right-4 top-12 z-30">
-        <ModeSwitcher />
-      </div>
 
       <div className="h-full pt-10 grid grid-cols-1 lg:grid-cols-[3fr_2fr] transition-all duration-300 overflow-y-auto lg:overflow-hidden">
         <div className="min-w-0 min-h-[400px] lg:min-h-0 h-full relative">

@@ -24,9 +24,10 @@ describe('SilentCoach', () => {
     expect(screen.getByTestId('status-bar')).toBeInTheDocument();
   });
 
-  it('renders ModeSwitcher', () => {
+  it('ModeSwitcher is rendered via StatusBar (not directly)', () => {
     render(<SilentCoach />);
-    expect(screen.getByTestId('mode-switcher')).toBeInTheDocument();
+    // ModeSwitcher was moved into StatusBar in Story 13.2
+    expect(screen.getByTestId('status-bar')).toBeInTheDocument();
   });
 
   it('does not render any chat panel or data cards', () => {

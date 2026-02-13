@@ -53,10 +53,15 @@ export function ModeSwitcher() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [switchMode]);
 
-  // Announce mode changes to screen readers
+  // Announce mode changes to screen readers and focus main content (Story 13.5)
   useEffect(() => {
     if (announceRef.current) {
       announceRef.current.textContent = `${MODE_CONFIGS[currentMode].name} mode active`;
+    }
+    // Move focus to main content area after mode switch
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+      mainContent.focus({ preventScroll: true });
     }
   }, [currentMode]);
 

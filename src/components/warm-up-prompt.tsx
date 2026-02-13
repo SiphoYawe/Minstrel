@@ -65,7 +65,7 @@ export function WarmUpPrompt({ onStartWarmUp, onSkip }: WarmUpPromptProps) {
   }
 
   return (
-    <div className="absolute top-24 left-1/2 z-20 -translate-x-1/2 w-full max-w-sm">
+    <div className="absolute top-14 left-1/2 z-10 -translate-x-1/2 w-full max-w-sm">
       <div className="mx-4 border border-border bg-card/95 backdrop-blur-sm px-4 py-3">
         <p className="text-sm text-foreground mb-1">Warm up first?</p>
         {showLongAbsenceMessage && (

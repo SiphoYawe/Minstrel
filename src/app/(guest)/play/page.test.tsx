@@ -73,9 +73,10 @@ describe('GuestPlayPage', () => {
     expect(screen.getByTestId('visualization-canvas')).toBeInTheDocument();
   });
 
-  it('renders ModeSwitcher in Silent Coach mode', () => {
+  it('renders StatusBar which contains ModeSwitcher', () => {
     render(<GuestPlayPage />);
-    expect(screen.getByTestId('mode-switcher')).toBeInTheDocument();
+    // ModeSwitcher was moved into StatusBar in Story 13.2
+    expect(screen.getByTestId('status-bar')).toBeInTheDocument();
   });
 
   it('does not render TroubleshootingPanel when showTroubleshooting is false', () => {

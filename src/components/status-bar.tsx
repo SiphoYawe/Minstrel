@@ -8,6 +8,7 @@ import { useStreak } from '@/features/engagement/use-streak';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { StreakBadge } from '@/components/streak-badge';
 import { WarmUpProgress } from '@/components/warm-up-progress';
+import { ModeSwitcher } from '@/features/modes/mode-switcher';
 import { Button } from '@/components/ui/button';
 import type { MidiConnectionStatus } from '@/features/midi/midi-types';
 
@@ -91,7 +92,7 @@ export function StatusBar() {
 
   return (
     <header
-      className="fixed inset-x-0 top-0 z-40 h-10 border-b border-border bg-background/80 backdrop-blur-sm"
+      className="absolute inset-x-0 top-0 z-40 h-10 border-b border-border bg-background/80 backdrop-blur-sm"
       role="status"
     >
       <div className="mx-auto flex h-full items-center justify-between px-4">
@@ -159,8 +160,10 @@ export function StatusBar() {
           )}
         </div>
 
-        {/* Right: Warm-up progress, Offline indicator, Streak, Session timer */}
+        {/* Right: ModeSwitcher, Warm-up progress, Offline indicator, Streak, Session timer */}
         <div className="flex items-center gap-3">
+          <ModeSwitcher />
+          <span className="h-3 w-px bg-surface-border" aria-hidden="true" />
           {isWarmingUp && (
             <>
               <WarmUpProgress />

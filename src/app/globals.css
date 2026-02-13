@@ -35,6 +35,13 @@
     /* 0px border radius everywhere */
     --radius: 0rem;
 
+    /* Z-index scale */
+    --z-base: 0;
+    --z-overlay: 10;
+    --z-nav: 20;
+    --z-modal: 30;
+    --z-toast: 40;
+
     /* Minstrel extended palette */
     --surface: 0 0% 9%;
     --surface-light: 0 0% 12.2%;
@@ -84,6 +91,13 @@
 @layer base {
   :focus-visible:not([data-slot]) {
     @apply outline-2 outline-offset-2 outline-primary;
+  }
+}
+
+/* Sidebar transition utility */
+@layer utilities {
+  .sidebar-transition {
+    transition: width 200ms ease-in-out;
   }
 }
 

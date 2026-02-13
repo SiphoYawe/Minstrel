@@ -19,6 +19,7 @@ interface AppState {
   migrationStatus: MigrationStatus;
   migrationProgress: MigrationProgress;
   sessionExpired: boolean;
+  sidebarCollapsed: boolean;
   setUser: (user: AuthUser) => void;
   clearUser: () => void;
   setLoading: (loading: boolean) => void;
@@ -28,6 +29,18 @@ interface AppState {
   setMigrationStatus: (status: MigrationStatus) => void;
   setMigrationProgress: (progress: MigrationProgress) => void;
   setSessionExpired: (expired: boolean) => void;
+  setSidebarCollapsed: (collapsed: boolean) => void;
+}
+
+function getInitialSidebarCollapsed(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const stored = localStorage.getItem('minstrel:sidebar-collapsed');
+    if (stored !== null) return stored === 'true';
+    return window.innerWidth < 1024;
+  } catch {
+    return false;
+  }
 }
 
 export const useAppStore = create<AppState>()((set) => ({
@@ -40,6 +53,7 @@ export const useAppStore = create<AppState>()((set) => ({
   migrationStatus: 'idle',
   migrationProgress: { synced: 0, total: 0 },
   sessionExpired: false,
+  sidebarCollapsed: getInitialSidebarCollapsed(),
   setUser: (user) => set({ user, isAuthenticated: true, sessionExpired: false }),
   clearUser: () =>
     set({
@@ -64,4 +78,12 @@ export const useAppStore = create<AppState>()((set) => ({
   setMigrationStatus: (migrationStatus) => set({ migrationStatus }),
   setMigrationProgress: (migrationProgress) => set({ migrationProgress }),
   setSessionExpired: (sessionExpired) => set({ sessionExpired }),
+  setSidebarCollapsed: (sidebarCollapsed) => {
+    try {
+      localStorage.setItem('minstrel:sidebar-collapsed', String(sidebarCollapsed));
+    } catch {
+      /* noop */
+    }
+    set({ sidebarCollapsed });
+  },
 }));
