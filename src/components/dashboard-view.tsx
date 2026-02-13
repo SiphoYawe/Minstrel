@@ -5,6 +5,7 @@ import { useSessionStore } from '@/stores/session-store';
 import { useAppStore } from '@/stores/app-store';
 import { useDashboardStats } from '@/hooks/use-dashboard-stats';
 import { useStreak } from '@/features/engagement/use-streak';
+import { useXp } from '@/features/engagement/use-xp';
 import { fetchAchievementDisplay } from '@/features/engagement/achievement-service';
 import { achievementRegistry } from '@/features/engagement/achievement-definitions';
 import Link from 'next/link';
@@ -350,6 +351,7 @@ function PlayingStyleCard() {
 export function DashboardView() {
   const { stats, isLoading: statsLoading } = useDashboardStats();
   const { streak, loading: streakLoading } = useStreak();
+  const { lifetimeXp, isLoading: xpLoading } = useXp();
   const skillProfile = useSessionStore((s) => s.skillProfile);
   const difficultyState = useSessionStore((s) => s.difficultyState);
 
@@ -392,7 +394,15 @@ export function DashboardView() {
     };
   }, [isAuthenticated, user?.id]);
 
-  const isLoading = statsLoading || streakLoading;
+  const isLoading = statsLoading || streakLoading || xpLoading;
+
+  // XP level calculation (100 XP per level)
+  const xpPerLevel = 100;
+  const currentLevel = Math.floor(lifetimeXp / xpPerLevel) + 1;
+  const xpInLevel = lifetimeXp % xpPerLevel;
+  const xpProgress = Math.round((xpInLevel / xpPerLevel) * 100);
+
+  const unlockedCount = achievementItems.filter((a) => a.unlocked).length;
 
   if (isLoading) {
     return (
@@ -406,6 +416,67 @@ export function DashboardView() {
 
   return (
     <div className="w-full space-y-8">
+      {/* Section: Progress Summary (always visible) */}
+      <section>
+        <div className="grid grid-cols-3 gap-3">
+          {/* Streak */}
+          <Link
+            href="/achievements"
+            className="border border-surface-light bg-card px-4 py-3 hover:border-primary/30 transition-colors"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-accent-warm" aria-hidden="true">
+                {ICON_MAP.calendar}
+              </span>
+              <span className="font-mono text-lg text-white">
+                {streak.currentStreak > 0 ? `${streak.currentStreak}` : '0'}
+              </span>
+            </div>
+            <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+              {streak.currentStreak > 0 ? 'Day streak' : 'Play today to start!'}
+            </p>
+          </Link>
+
+          {/* XP */}
+          <Link
+            href="/achievements"
+            className="border border-surface-light bg-card px-4 py-3 hover:border-primary/30 transition-colors"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-primary" aria-hidden="true">
+                {ICON_MAP.xp}
+              </span>
+              <span className="font-mono text-lg text-white">Lvl {currentLevel}</span>
+            </div>
+            <div className="h-1 w-full bg-surface-light mt-1">
+              <div
+                className="h-full bg-primary transition-all duration-500"
+                style={{ width: `${xpProgress}%` }}
+              />
+            </div>
+            <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mt-1">
+              {lifetimeXp} XP
+            </p>
+          </Link>
+
+          {/* Achievements */}
+          <Link
+            href="/achievements"
+            className="border border-surface-light bg-card px-4 py-3 hover:border-primary/30 transition-colors"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-primary" aria-hidden="true">
+                {ICON_MAP.drill}
+              </span>
+              <span className="font-mono text-lg text-white">{unlockedCount}</span>
+            </div>
+            <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+              {unlockedCount > 0 ? 'Achievements' : 'First one is a session away'}
+            </p>
+          </Link>
+        </div>
+      </section>
+
       {/* Section: Session Stats Summary */}
       <section>
         <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-3">
