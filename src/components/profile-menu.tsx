@@ -54,7 +54,7 @@ export function ProfileMenu({ email, displayName }: ProfileMenuProps) {
             >
               {initial}
             </div>
-            <span className="hidden font-mono text-[11px] uppercase tracking-[0.08em] text-secondary sm:inline">
+            <span className="hidden font-mono text-xs uppercase tracking-[0.08em] text-foreground/80 sm:inline">
               {label}
             </span>
           </button>
