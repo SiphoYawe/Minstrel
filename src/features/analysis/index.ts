@@ -17,6 +17,8 @@ export type {
   AvoidancePatterns,
   RhythmProfile,
   TempoRange,
+  InsightCategory,
+  InstantSnapshot,
   AnalysisAccumulator,
 } from './analysis-types';
 
@@ -40,3 +42,5 @@ export {
 } from './harmonic-analyzer';
 export { detectGenrePatterns } from './genre-detector';
 export { trackTendencies, detectAvoidance } from './tendency-tracker';
+export { generateSnapshot, generateKeyInsight, applyGrowthMindset } from './snapshot-generator';
+export type { SnapshotInput } from './snapshot-generator';

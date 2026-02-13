@@ -1,6 +1,6 @@
 # Story 2.5: Silence-Triggered Session Snapshot
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -115,6 +115,9 @@ so that I get immediate actionable feedback without navigating menus.
 ## Dev Agent Record
 
 ### Agent Model Used
+
 ### Debug Log References
+
 ### Completion Notes List
+
 ### File List

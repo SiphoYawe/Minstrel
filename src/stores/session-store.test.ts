@@ -12,6 +12,7 @@ import type {
   GenrePattern,
   PlayingTendencies,
   AvoidancePatterns,
+  InstantSnapshot,
 } from '@/features/analysis/analysis-types';
 
 describe('useSessionStore', () => {
@@ -268,6 +269,75 @@ describe('useSessionStore', () => {
     expect(useSessionStore.getState().avoidancePatterns).toBeNull();
   });
 
+  it('returns initial snapshot state', () => {
+    const state = useSessionStore.getState();
+    expect(state.currentSnapshot).toBeNull();
+    expect(state.snapshots).toEqual([]);
+  });
+
+  it('setCurrentSnapshot updates current snapshot', () => {
+    const snap: InstantSnapshot = {
+      id: 'snap-1',
+      key: { root: 'C', mode: 'major', confidence: 0.9 },
+      chordsUsed: [],
+      timingAccuracy: 85,
+      averageTempo: 120,
+      keyInsight: 'Great session',
+      insightCategory: 'GENERAL',
+      genrePatterns: [],
+      timestamp: 1000,
+    };
+    useSessionStore.getState().setCurrentSnapshot(snap);
+    expect(useSessionStore.getState().currentSnapshot).toEqual(snap);
+  });
+
+  it('setCurrentSnapshot clears with null', () => {
+    const snap: InstantSnapshot = {
+      id: 'snap-2',
+      key: null,
+      chordsUsed: [],
+      timingAccuracy: 100,
+      averageTempo: null,
+      keyInsight: 'Keep going',
+      insightCategory: 'GENERAL',
+      genrePatterns: [],
+      timestamp: 2000,
+    };
+    useSessionStore.getState().setCurrentSnapshot(snap);
+    useSessionStore.getState().setCurrentSnapshot(null);
+    expect(useSessionStore.getState().currentSnapshot).toBeNull();
+  });
+
+  it('addSnapshot appends to snapshots array', () => {
+    const snap1: InstantSnapshot = {
+      id: 'snap-a',
+      key: null,
+      chordsUsed: [],
+      timingAccuracy: 80,
+      averageTempo: 100,
+      keyInsight: 'First',
+      insightCategory: 'GENERAL',
+      genrePatterns: [],
+      timestamp: 1000,
+    };
+    const snap2: InstantSnapshot = {
+      id: 'snap-b',
+      key: null,
+      chordsUsed: [],
+      timingAccuracy: 90,
+      averageTempo: 110,
+      keyInsight: 'Second',
+      insightCategory: 'TIMING',
+      genrePatterns: [],
+      timestamp: 2000,
+    };
+    useSessionStore.getState().addSnapshot(snap1);
+    useSessionStore.getState().addSnapshot(snap2);
+    expect(useSessionStore.getState().snapshots).toHaveLength(2);
+    expect(useSessionStore.getState().snapshots[0].id).toBe('snap-a');
+    expect(useSessionStore.getState().snapshots[1].id).toBe('snap-b');
+  });
+
   it('resetAnalysis restores initial state including timing', () => {
     const note: DetectedNote = {
       name: 'C',
@@ -356,6 +426,28 @@ describe('useSessionStore', () => {
       avoidedTempoRanges: [],
       avoidedIntervals: [],
     });
+    useSessionStore.getState().setCurrentSnapshot({
+      id: 'snap-reset',
+      key: null,
+      chordsUsed: [],
+      timingAccuracy: 90,
+      averageTempo: 100,
+      keyInsight: 'Test',
+      insightCategory: 'GENERAL',
+      genrePatterns: [],
+      timestamp: 1000,
+    });
+    useSessionStore.getState().addSnapshot({
+      id: 'snap-reset',
+      key: null,
+      chordsUsed: [],
+      timingAccuracy: 90,
+      averageTempo: 100,
+      keyInsight: 'Test',
+      insightCategory: 'GENERAL',
+      genrePatterns: [],
+      timestamp: 1000,
+    });
 
     useSessionStore.getState().resetAnalysis();
     const state = useSessionStore.getState();
@@ -374,5 +466,7 @@ describe('useSessionStore', () => {
     expect(state.detectedGenres).toEqual([]);
     expect(state.playingTendencies).toBeNull();
     expect(state.avoidancePatterns).toBeNull();
+    expect(state.currentSnapshot).toBeNull();
+    expect(state.snapshots).toEqual([]);
   });
 });

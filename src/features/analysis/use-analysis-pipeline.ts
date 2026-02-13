@@ -15,6 +15,7 @@ import {
 } from './harmonic-analyzer';
 import { detectGenrePatterns } from './genre-detector';
 import { trackTendencies, detectAvoidance } from './tendency-tracker';
+import { generateSnapshot } from './snapshot-generator';
 import type { DetectedNote, AnalysisAccumulator } from './analysis-types';
 import {
   SIMULTANEITY_WINDOW_MS,
@@ -163,6 +164,26 @@ export function useAnalysisPipeline() {
       }
       silenceTimerRef.current = setTimeout(() => {
         const silenceStore = useSessionStore.getState();
+
+        // Run pattern analysis first so snapshot captures latest genre/tendency data
+        runPatternAnalysis();
+
+        // Generate snapshot before resetting analysis state
+        if (accumulator.totalNoteCount > 0) {
+          const updatedStore = useSessionStore.getState();
+          const snapshot = generateSnapshot({
+            currentKey: updatedStore.currentKey,
+            detectedChords: updatedStore.detectedChords,
+            timingAccuracy: updatedStore.timingAccuracy,
+            currentTempo: updatedStore.currentTempo,
+            detectedGenres: updatedStore.detectedGenres,
+            playingTendencies: updatedStore.playingTendencies,
+            avoidancePatterns: updatedStore.avoidancePatterns,
+          });
+          updatedStore.setCurrentSnapshot(snapshot);
+          updatedStore.addSnapshot(snapshot);
+        }
+
         silenceStore.setChordProgression(null);
         timingAnalysis.reset();
         silenceStore.setTimingData({
@@ -175,8 +196,6 @@ export function useAnalysisPipeline() {
         silenceStore.setKeyCenter(null);
         silenceStore.setHarmonicFunction(null);
         silenceStore.setNoteAnalyses([]);
-        // Run pattern analysis before silence reset (captures full session)
-        runPatternAnalysis();
         // Reset accumulator so next phrase starts clean
         resetAccumulator();
         lastChord = null;
@@ -204,6 +223,12 @@ export function useAnalysisPipeline() {
 
         if (event.type === 'note-on' && event.velocity > 0) {
           const detected = detectNote(event.note, event.velocity, event.timestamp);
+
+          // Clear snapshot on play resume (transition back to real-time mode)
+          const noteStore = useSessionStore.getState();
+          if (noteStore.currentSnapshot !== null) {
+            noteStore.setCurrentSnapshot(null);
+          }
 
           // Track held note for display
           heldNotesRef.current.set(detected.midiNumber, detected);

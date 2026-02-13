@@ -8,11 +8,14 @@ import { renderNotes, createFadingNote } from './piano-roll-renderer';
 import type { FadingNote } from './piano-roll-renderer';
 import { renderTimingGrid } from './timing-grid-renderer';
 import { renderHarmonicOverlay } from './harmonic-overlay-renderer';
+import { renderSnapshotOverlay } from './snapshot-renderer';
+import { SNAPSHOT_FADE_IN_MS, SNAPSHOT_FADE_OUT_MS } from '@/lib/constants';
 import type {
   TimingEvent,
   KeyCenter,
   HarmonicFunction,
   NoteAnalysis,
+  InstantSnapshot,
 } from '@/features/analysis/analysis-types';
 
 export function VisualizationCanvas() {
@@ -30,6 +33,10 @@ export function VisualizationCanvas() {
   const keyRef = useRef<KeyCenter | null>(null);
   const harmonicFnRef = useRef<HarmonicFunction | null>(null);
   const noteAnalysesRef = useRef<NoteAnalysis[]>([]);
+  const snapshotRef = useRef<InstantSnapshot | null>(null);
+  const snapshotAlphaRef = useRef(0);
+  const snapshotTransitionRef = useRef<'none' | 'fade-in' | 'fade-out'>('none');
+  const snapshotTransitionStartRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -127,6 +134,22 @@ export function VisualizationCanvas() {
       }
     );
 
+    // --- Zustand vanilla subscription for snapshot display mode ---
+    const unsubSnapshot = useSessionStore.subscribe(
+      (state) => state.currentSnapshot,
+      (snapshot) => {
+        if (snapshot) {
+          snapshotRef.current = snapshot;
+          snapshotTransitionRef.current = 'fade-in';
+          snapshotTransitionStartRef.current = performance.now();
+        } else if (snapshotRef.current) {
+          snapshotTransitionRef.current = 'fade-out';
+          snapshotTransitionStartRef.current = performance.now();
+        }
+        dirtyRef.current = true;
+      }
+    );
+
     // --- Render loop (60fps via requestAnimationFrame) ---
     function frame() {
       const c = ctxRef.current;
@@ -176,8 +199,35 @@ export function VisualizationCanvas() {
           noteAnalysesRef.current
         );
 
-        // Keep rendering while fading notes remain
-        if (fadingNotesRef.current.length > 0) {
+        // Snapshot transition animation
+        if (snapshotTransitionRef.current !== 'none') {
+          const elapsed = now - snapshotTransitionStartRef.current;
+          if (snapshotTransitionRef.current === 'fade-in') {
+            snapshotAlphaRef.current = Math.min(elapsed / SNAPSHOT_FADE_IN_MS, 1);
+            if (snapshotAlphaRef.current >= 1) snapshotTransitionRef.current = 'none';
+          } else {
+            snapshotAlphaRef.current = Math.max(1 - elapsed / SNAPSHOT_FADE_OUT_MS, 0);
+            if (snapshotAlphaRef.current <= 0) {
+              snapshotTransitionRef.current = 'none';
+              snapshotRef.current = null;
+            }
+          }
+          dirtyRef.current = true;
+        }
+
+        // Render snapshot overlay if visible
+        if (snapshotRef.current && snapshotAlphaRef.current > 0) {
+          renderSnapshotOverlay(
+            c,
+            logicalW,
+            logicalH,
+            snapshotRef.current,
+            snapshotAlphaRef.current
+          );
+        }
+
+        // Keep rendering while fading notes remain or snapshot transitioning
+        if (fadingNotesRef.current.length > 0 || snapshotTransitionRef.current !== 'none') {
           dirtyRef.current = true;
         }
       }
@@ -195,6 +245,7 @@ export function VisualizationCanvas() {
       unsubKey();
       unsubHarmonicFn();
       unsubNoteAnalyses();
+      unsubSnapshot();
       resizeObserver.disconnect();
       ctxRef.current = null;
     };

@@ -13,6 +13,7 @@ import type {
   GenrePattern,
   PlayingTendencies,
   AvoidancePatterns,
+  InstantSnapshot,
 } from '@/features/analysis/analysis-types';
 
 interface SessionState {
@@ -31,6 +32,8 @@ interface SessionState {
   detectedGenres: GenrePattern[];
   playingTendencies: PlayingTendencies | null;
   avoidancePatterns: AvoidancePatterns | null;
+  currentSnapshot: InstantSnapshot | null;
+  snapshots: InstantSnapshot[];
 }
 
 interface SessionActions {
@@ -50,6 +53,8 @@ interface SessionActions {
   setDetectedGenres: (genres: GenrePattern[]) => void;
   setPlayingTendencies: (tendencies: PlayingTendencies | null) => void;
   setAvoidancePatterns: (patterns: AvoidancePatterns | null) => void;
+  setCurrentSnapshot: (snapshot: InstantSnapshot | null) => void;
+  addSnapshot: (snapshot: InstantSnapshot) => void;
   resetAnalysis: () => void;
 }
 
@@ -71,6 +76,8 @@ const initialState: SessionState = {
   detectedGenres: [],
   playingTendencies: null,
   avoidancePatterns: null,
+  currentSnapshot: null,
+  snapshots: [],
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -115,6 +122,18 @@ export const useSessionStore = create<SessionStore>()(
     setPlayingTendencies: (tendencies) => set({ playingTendencies: tendencies }),
 
     setAvoidancePatterns: (patterns) => set({ avoidancePatterns: patterns }),
+
+    setCurrentSnapshot: (snapshot) => set({ currentSnapshot: snapshot }),
+
+    addSnapshot: (snapshot) =>
+      set((state) => {
+        const MAX_SNAPSHOTS = 50;
+        const snaps =
+          state.snapshots.length >= MAX_SNAPSHOTS
+            ? [...state.snapshots.slice(-(MAX_SNAPSHOTS - 1)), snapshot]
+            : [...state.snapshots, snapshot];
+        return { snapshots: snaps };
+      }),
 
     resetAnalysis: () => set(initialState),
   }))

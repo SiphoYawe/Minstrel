@@ -28,3 +28,7 @@ export const TEMPO_BUCKET_MIN = 40;
 export const TEMPO_BUCKET_MAX = 200;
 export const ACCUMULATOR_MAX_NOTES = 2000;
 export const ACCUMULATOR_MAX_CHORDS = 500;
+
+// Snapshot overlay constants (Story 2.5)
+export const SNAPSHOT_FADE_IN_MS = 300;
+export const SNAPSHOT_FADE_OUT_MS = 200;

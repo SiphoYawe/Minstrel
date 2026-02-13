@@ -126,6 +126,22 @@ export interface AvoidancePatterns {
   avoidedIntervals: number[];
 }
 
+// --- Snapshot Types (Story 2.5) ---
+
+export type InsightCategory = 'TIMING' | 'HARMONIC' | 'TENDENCY' | 'GENERAL';
+
+export interface InstantSnapshot {
+  id: string;
+  key: KeyCenter | null;
+  chordsUsed: DetectedChord[];
+  timingAccuracy: number;
+  averageTempo: number | null;
+  keyInsight: string;
+  insightCategory: InsightCategory;
+  genrePatterns: GenrePattern[];
+  timestamp: number;
+}
+
 export interface AnalysisAccumulator {
   notes: DetectedNote[];
   chords: DetectedChord[];
