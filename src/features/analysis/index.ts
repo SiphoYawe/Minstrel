@@ -11,6 +11,13 @@ export type {
   HarmonicFunction,
   NoteAnalysis,
   KeySegment,
+  GenreName,
+  GenrePattern,
+  PlayingTendencies,
+  AvoidancePatterns,
+  RhythmProfile,
+  TempoRange,
+  AnalysisAccumulator,
 } from './analysis-types';
 
 export { detectNote, noteDisplayName } from './note-detector';
@@ -31,3 +38,5 @@ export {
   analyzeHarmonicFunction,
   classifyNote,
 } from './harmonic-analyzer';
+export { detectGenrePatterns } from './genre-detector';
+export { trackTendencies, detectAvoidance } from './tendency-tracker';

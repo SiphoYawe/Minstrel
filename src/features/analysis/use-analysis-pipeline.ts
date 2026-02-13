@@ -13,7 +13,9 @@ import {
   analyzeHarmonicFunction,
   classifyNote,
 } from './harmonic-analyzer';
-import type { DetectedNote } from './analysis-types';
+import { detectGenrePatterns } from './genre-detector';
+import { trackTendencies, detectAvoidance } from './tendency-tracker';
+import type { DetectedNote, AnalysisAccumulator } from './analysis-types';
 import {
   SIMULTANEITY_WINDOW_MS,
   SILENCE_THRESHOLD_MS,
@@ -21,6 +23,9 @@ import {
   TIMING_UPDATE_NOTE_COUNT,
   PITCH_CLASS_ROLLING_WINDOW,
   KEY_DETECTION_CHORD_WINDOW,
+  PATTERN_ANALYSIS_INTERVAL_MS,
+  ACCUMULATOR_MAX_NOTES,
+  ACCUMULATOR_MAX_CHORDS,
 } from '@/lib/constants';
 
 /**
@@ -40,6 +45,56 @@ export function useAnalysisPipeline() {
     const allPitchClasses: number[] = [];
     let lastChord: import('./analysis-types').DetectedChord | null = null;
 
+    // Analysis accumulator for genre/tendency tracking
+    const accumulator: AnalysisAccumulator = {
+      notes: [],
+      chords: [],
+      tempoSegments: [],
+      keySegments: [],
+      totalNoteCount: 0,
+      totalChordCount: 0,
+      startTimestamp: 0,
+      lastTimestamp: 0,
+    };
+    let lastPatternNoteCount = 0;
+
+    function resetAccumulator() {
+      accumulator.notes.length = 0;
+      accumulator.chords.length = 0;
+      accumulator.tempoSegments = [];
+      accumulator.keySegments = [];
+      accumulator.totalNoteCount = 0;
+      accumulator.totalChordCount = 0;
+      accumulator.startTimestamp = 0;
+      accumulator.lastTimestamp = 0;
+      lastPatternNoteCount = 0;
+    }
+
+    function runPatternAnalysis() {
+      // Skip if no new data since last run (fix #4: avoid idle updates)
+      if (accumulator.totalNoteCount === lastPatternNoteCount) return;
+      if (accumulator.notes.length < 8 && accumulator.chords.length < 3) return;
+
+      lastPatternNoteCount = accumulator.totalNoteCount;
+      const store = useSessionStore.getState();
+
+      // Snapshot current tempo/key segments from store (fix #10: copy arrays)
+      accumulator.tempoSegments = [...store.tempoHistory];
+      accumulator.keySegments = [...store.keyHistory];
+
+      const genres = detectGenrePatterns(accumulator);
+      store.setDetectedGenres(genres);
+
+      const tendencies = trackTendencies(accumulator);
+      store.setPlayingTendencies(tendencies);
+
+      const avoidance = detectAvoidance(tendencies, accumulator);
+      store.setAvoidancePatterns(avoidance);
+    }
+
+    // Schedule pattern analysis every 30 seconds during active play
+    const patternInterval = setInterval(runPatternAnalysis, PATTERN_ANALYSIS_INTERVAL_MS);
+
     function flushCluster() {
       const cluster = analysisClusterRef.current;
       analysisClusterRef.current = [];
@@ -58,6 +113,13 @@ export function useAnalysisPipeline() {
 
       // Track last chord for chord-tone classification
       lastChord = chord;
+
+      // Accumulator: track chord for genre/tendency analysis
+      if (accumulator.chords.length >= ACCUMULATOR_MAX_CHORDS) {
+        accumulator.chords.splice(0, accumulator.chords.length - ACCUMULATOR_MAX_CHORDS + 1);
+      }
+      accumulator.chords.push(chord);
+      accumulator.totalChordCount++;
 
       // Harmonic analysis: key detection from chords
       const chords = store.detectedChords;
@@ -113,6 +175,10 @@ export function useAnalysisPipeline() {
         silenceStore.setKeyCenter(null);
         silenceStore.setHarmonicFunction(null);
         silenceStore.setNoteAnalyses([]);
+        // Run pattern analysis before silence reset (captures full session)
+        runPatternAnalysis();
+        // Reset accumulator so next phrase starts clean
+        resetAccumulator();
         lastChord = null;
         allPitchClasses.length = 0;
         silenceTimerRef.current = null;
@@ -168,6 +234,17 @@ export function useAnalysisPipeline() {
             dispatchTimingUpdate(now);
           }
 
+          // Accumulator: track note for genre/tendency analysis
+          if (accumulator.totalNoteCount === 0) {
+            accumulator.startTimestamp = event.timestamp;
+          }
+          accumulator.lastTimestamp = event.timestamp;
+          if (accumulator.notes.length >= ACCUMULATOR_MAX_NOTES) {
+            accumulator.notes.splice(0, accumulator.notes.length - ACCUMULATOR_MAX_NOTES + 1);
+          }
+          accumulator.notes.push(detected);
+          accumulator.totalNoteCount++;
+
           // Harmonic analysis: key detection from individual notes (rolling window)
           allPitchClasses.push(detected.midiNumber % 12);
           if (allPitchClasses.length > PITCH_CLASS_ROLLING_WINDOW) {
@@ -207,6 +284,7 @@ export function useAnalysisPipeline() {
 
     return () => {
       unsubscribe();
+      clearInterval(patternInterval);
       if (clusterTimerRef.current !== null) clearTimeout(clusterTimerRef.current);
       if (silenceTimerRef.current !== null) clearTimeout(silenceTimerRef.current);
       analysisClusterRef.current = [];

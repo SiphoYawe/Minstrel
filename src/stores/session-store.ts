@@ -10,6 +10,9 @@ import type {
   KeySegment,
   HarmonicFunction,
   NoteAnalysis,
+  GenrePattern,
+  PlayingTendencies,
+  AvoidancePatterns,
 } from '@/features/analysis/analysis-types';
 
 interface SessionState {
@@ -25,6 +28,9 @@ interface SessionState {
   keyHistory: KeySegment[];
   currentHarmonicFunction: HarmonicFunction | null;
   currentNoteAnalyses: NoteAnalysis[];
+  detectedGenres: GenrePattern[];
+  playingTendencies: PlayingTendencies | null;
+  avoidancePatterns: AvoidancePatterns | null;
 }
 
 interface SessionActions {
@@ -41,6 +47,9 @@ interface SessionActions {
   addKeySegment: (segment: KeySegment) => void;
   setHarmonicFunction: (fn: HarmonicFunction | null) => void;
   setNoteAnalyses: (analyses: NoteAnalysis[]) => void;
+  setDetectedGenres: (genres: GenrePattern[]) => void;
+  setPlayingTendencies: (tendencies: PlayingTendencies | null) => void;
+  setAvoidancePatterns: (patterns: AvoidancePatterns | null) => void;
   resetAnalysis: () => void;
 }
 
@@ -59,6 +68,9 @@ const initialState: SessionState = {
   keyHistory: [],
   currentHarmonicFunction: null,
   currentNoteAnalyses: [],
+  detectedGenres: [],
+  playingTendencies: null,
+  avoidancePatterns: null,
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -97,6 +109,12 @@ export const useSessionStore = create<SessionStore>()(
     setHarmonicFunction: (fn) => set({ currentHarmonicFunction: fn }),
 
     setNoteAnalyses: (analyses) => set({ currentNoteAnalyses: analyses }),
+
+    setDetectedGenres: (genres) => set({ detectedGenres: genres }),
+
+    setPlayingTendencies: (tendencies) => set({ playingTendencies: tendencies }),
+
+    setAvoidancePatterns: (patterns) => set({ avoidancePatterns: patterns }),
 
     resetAnalysis: () => set(initialState),
   }))

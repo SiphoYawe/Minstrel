@@ -17,3 +17,14 @@ export const TIMING_UPDATE_NOTE_COUNT = 4;
 // Harmonic analysis constants (Story 2.3)
 export const PITCH_CLASS_ROLLING_WINDOW = 64;
 export const KEY_DETECTION_CHORD_WINDOW = 8;
+
+// Genre & tendency analysis constants (Story 2.4)
+export const PATTERN_ANALYSIS_INTERVAL_MS = 30_000;
+export const MIN_NOTES_FOR_TENDENCIES = 200;
+export const MIN_CHORDS_FOR_TENDENCIES = 50;
+export const AVOIDANCE_KEY_THRESHOLD = 0.02;
+export const TEMPO_BUCKET_SIZE = 10;
+export const TEMPO_BUCKET_MIN = 40;
+export const TEMPO_BUCKET_MAX = 200;
+export const ACCUMULATOR_MAX_NOTES = 2000;
+export const ACCUMULATOR_MAX_CHORDS = 500;

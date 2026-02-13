@@ -89,3 +89,50 @@ export interface KeySegment {
   endTimestamp: number;
   chordCount: number;
 }
+
+// --- Genre & Tendency Analysis Types (Story 2.4) ---
+
+export type GenreName = 'Blues' | 'Jazz' | 'Pop' | 'Rock' | 'Classical';
+
+export interface GenrePattern {
+  genre: GenreName;
+  confidence: number;
+  matchedPatterns: string[];
+}
+
+export interface RhythmProfile {
+  swingRatio: number;
+  commonSubdivisions: string[];
+  averageDensity: number;
+}
+
+export interface PlayingTendencies {
+  keyDistribution: Record<string, number>;
+  chordTypeDistribution: Record<string, number>;
+  tempoHistogram: number[];
+  intervalDistribution: Record<number, number>;
+  rhythmProfile: RhythmProfile;
+}
+
+export interface TempoRange {
+  minBpm: number;
+  maxBpm: number;
+}
+
+export interface AvoidancePatterns {
+  avoidedKeys: string[];
+  avoidedChordTypes: ChordQuality[];
+  avoidedTempoRanges: TempoRange[];
+  avoidedIntervals: number[];
+}
+
+export interface AnalysisAccumulator {
+  notes: DetectedNote[];
+  chords: DetectedChord[];
+  tempoSegments: TempoSegment[];
+  keySegments: KeySegment[];
+  totalNoteCount: number;
+  totalChordCount: number;
+  startTimestamp: number;
+  lastTimestamp: number;
+}

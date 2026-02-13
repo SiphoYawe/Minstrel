@@ -9,6 +9,9 @@ import type {
   KeySegment,
   HarmonicFunction,
   NoteAnalysis,
+  GenrePattern,
+  PlayingTendencies,
+  AvoidancePatterns,
 } from '@/features/analysis/analysis-types';
 
 describe('useSessionStore', () => {
@@ -153,6 +156,118 @@ describe('useSessionStore', () => {
     expect(useSessionStore.getState().currentNoteAnalyses).toEqual(analyses);
   });
 
+  it('returns initial genre and tendency state', () => {
+    const state = useSessionStore.getState();
+    expect(state.detectedGenres).toEqual([]);
+    expect(state.playingTendencies).toBeNull();
+    expect(state.avoidancePatterns).toBeNull();
+  });
+
+  it('setDetectedGenres updates detected genres', () => {
+    const genres: GenrePattern[] = [
+      { genre: 'Blues', confidence: 0.8, matchedPatterns: ['dominant-chords', 'pentatonic'] },
+      { genre: 'Jazz', confidence: 0.4, matchedPatterns: ['chord-voicing'] },
+    ];
+    useSessionStore.getState().setDetectedGenres(genres);
+    const state = useSessionStore.getState();
+    expect(state.detectedGenres).toHaveLength(2);
+    expect(state.detectedGenres[0].genre).toBe('Blues');
+    expect(state.detectedGenres[1].confidence).toBe(0.4);
+  });
+
+  it('setPlayingTendencies updates playing tendencies', () => {
+    const tendencies: PlayingTendencies = {
+      keyDistribution: {
+        C: 10,
+        D: 5,
+        E: 3,
+        F: 0,
+        G: 0,
+        A: 0,
+        B: 0,
+        'C#': 0,
+        'D#': 0,
+        'F#': 0,
+        'G#': 0,
+        'A#': 0,
+      },
+      chordTypeDistribution: {
+        Major: 5,
+        Minor: 3,
+        Dominant7: 1,
+        Diminished: 0,
+        Augmented: 0,
+        Minor7: 0,
+        Major7: 0,
+        Sus2: 0,
+        Sus4: 0,
+      },
+      tempoHistogram: new Array(16).fill(0),
+      intervalDistribution: new Array(13).fill(0),
+      rhythmProfile: { averageDensity: 4.2, swingRatio: 0, commonSubdivisions: [] },
+    };
+    useSessionStore.getState().setPlayingTendencies(tendencies);
+    expect(useSessionStore.getState().playingTendencies).toEqual(tendencies);
+  });
+
+  it('setPlayingTendencies clears with null', () => {
+    const tendencies: PlayingTendencies = {
+      keyDistribution: {
+        C: 1,
+        D: 0,
+        E: 0,
+        F: 0,
+        G: 0,
+        A: 0,
+        B: 0,
+        'C#': 0,
+        'D#': 0,
+        'F#': 0,
+        'G#': 0,
+        'A#': 0,
+      },
+      chordTypeDistribution: {
+        Major: 1,
+        Minor: 0,
+        Dominant7: 0,
+        Diminished: 0,
+        Augmented: 0,
+        Minor7: 0,
+        Major7: 0,
+        Sus2: 0,
+        Sus4: 0,
+      },
+      tempoHistogram: new Array(16).fill(0),
+      intervalDistribution: new Array(13).fill(0),
+      rhythmProfile: { averageDensity: 0, swingRatio: 0, commonSubdivisions: [] },
+    };
+    useSessionStore.getState().setPlayingTendencies(tendencies);
+    useSessionStore.getState().setPlayingTendencies(null);
+    expect(useSessionStore.getState().playingTendencies).toBeNull();
+  });
+
+  it('setAvoidancePatterns updates avoidance patterns', () => {
+    const patterns: AvoidancePatterns = {
+      avoidedKeys: ['C#', 'F#', 'G#'],
+      avoidedChordTypes: ['Diminished', 'Augmented'],
+      avoidedTempoRanges: [{ minBpm: 90, maxBpm: 110 }],
+      avoidedIntervals: [1, 6, 11],
+    };
+    useSessionStore.getState().setAvoidancePatterns(patterns);
+    expect(useSessionStore.getState().avoidancePatterns).toEqual(patterns);
+  });
+
+  it('setAvoidancePatterns clears with null', () => {
+    useSessionStore.getState().setAvoidancePatterns({
+      avoidedKeys: ['C#'],
+      avoidedChordTypes: [],
+      avoidedTempoRanges: [],
+      avoidedIntervals: [],
+    });
+    useSessionStore.getState().setAvoidancePatterns(null);
+    expect(useSessionStore.getState().avoidancePatterns).toBeNull();
+  });
+
   it('resetAnalysis restores initial state including timing', () => {
     const note: DetectedNote = {
       name: 'C',
@@ -200,6 +315,47 @@ describe('useSessionStore', () => {
         chordContext: null,
       },
     ]);
+    useSessionStore
+      .getState()
+      .setDetectedGenres([
+        { genre: 'Blues', confidence: 0.7, matchedPatterns: ['dominant-chords'] },
+      ]);
+    useSessionStore.getState().setPlayingTendencies({
+      keyDistribution: {
+        C: 1,
+        D: 0,
+        E: 0,
+        F: 0,
+        G: 0,
+        A: 0,
+        B: 0,
+        'C#': 0,
+        'D#': 0,
+        'F#': 0,
+        'G#': 0,
+        'A#': 0,
+      },
+      chordTypeDistribution: {
+        Major: 1,
+        Minor: 0,
+        Dominant7: 0,
+        Diminished: 0,
+        Augmented: 0,
+        Minor7: 0,
+        Major7: 0,
+        Sus2: 0,
+        Sus4: 0,
+      },
+      tempoHistogram: new Array(16).fill(0),
+      intervalDistribution: new Array(13).fill(0),
+      rhythmProfile: { averageDensity: 0, swingRatio: 0, commonSubdivisions: [] },
+    });
+    useSessionStore.getState().setAvoidancePatterns({
+      avoidedKeys: ['C#'],
+      avoidedChordTypes: [],
+      avoidedTempoRanges: [],
+      avoidedIntervals: [],
+    });
 
     useSessionStore.getState().resetAnalysis();
     const state = useSessionStore.getState();
@@ -215,5 +371,8 @@ describe('useSessionStore', () => {
     expect(state.keyHistory).toEqual([]);
     expect(state.currentHarmonicFunction).toBeNull();
     expect(state.currentNoteAnalyses).toEqual([]);
+    expect(state.detectedGenres).toEqual([]);
+    expect(state.playingTendencies).toBeNull();
+    expect(state.avoidancePatterns).toBeNull();
   });
 });

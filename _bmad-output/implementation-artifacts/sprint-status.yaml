@@ -56,7 +56,7 @@ development_status:
   2-1-note-and-chord-detection-engine: done
   2-2-timing-accuracy-and-tempo-analysis: done
   2-3-key-center-and-harmonic-analysis: done
-  2-4-genre-pattern-and-tendency-tracking: ready-for-dev
+  2-4-genre-pattern-and-tendency-tracking: done
   2-5-silence-triggered-session-snapshot: ready-for-dev
   2-6-silent-coach-mode-layout: ready-for-dev
   2-7-freeform-play-mode: ready-for-dev
