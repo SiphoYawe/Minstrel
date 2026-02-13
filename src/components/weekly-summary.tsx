@@ -5,9 +5,9 @@ import { TrendDirection, type WeeklyMetricDelta } from '@/features/engagement/en
 import { formatPracticeTime } from '@/features/engagement/weekly-summary-generator';
 
 function directionColor(direction: TrendDirection): string {
-  if (direction === TrendDirection.Up) return '#4CAF50';
-  if (direction === TrendDirection.Down) return '#D4A843';
-  return '#808080';
+  if (direction === TrendDirection.Up) return 'hsl(var(--accent-success))';
+  if (direction === TrendDirection.Down) return 'hsl(var(--accent-warm))';
+  return 'hsl(var(--muted-foreground))';
 }
 
 function directionArrow(direction: TrendDirection): string {
@@ -43,9 +43,11 @@ function formatSessionDelta(delta: number): string {
 
 function StatCell({ value, label }: { value: string; label: string }) {
   return (
-    <div className="bg-[#141414] border border-[#1A1A1A] px-3 py-2">
+    <div className="bg-card border border-surface-light px-3 py-2">
       <div className="font-mono text-lg text-white leading-tight">{value}</div>
-      <div className="text-[10px] uppercase tracking-wider text-[#606060] mt-0.5">{label}</div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
+        {label}
+      </div>
     </div>
   );
 }
@@ -55,8 +57,8 @@ function MetricRow({ delta }: { delta: WeeklyMetricDelta }) {
   const arrow = directionArrow(delta.direction);
 
   return (
-    <div className="flex items-center justify-between py-2 border-b border-[#1A1A1A] last:border-b-0">
-      <span className="text-xs text-[#808080] flex-shrink-0 w-32">{delta.metricName}</span>
+    <div className="flex items-center justify-between py-2 border-b border-surface-light last:border-b-0">
+      <span className="text-xs text-muted-foreground flex-shrink-0 w-32">{delta.metricName}</span>
 
       <span className="font-mono text-sm text-white text-center flex-1">{delta.currentValue}</span>
 
@@ -67,7 +69,7 @@ function MetricRow({ delta }: { delta: WeeklyMetricDelta }) {
             {delta.deltaPercent}%
           </span>
         ) : (
-          <span className="font-mono text-[10px] text-[#606060]">&mdash;</span>
+          <span className="font-mono text-[10px] text-muted-foreground">&mdash;</span>
         )}
         <span className="sr-only">{srDeltaText(delta)}</span>
       </span>
@@ -81,7 +83,7 @@ export function WeeklySummary() {
   if (isLoading) {
     return (
       <div className="max-w-[480px] flex items-center justify-center py-12">
-        <p className="font-mono text-xs tracking-widest uppercase text-[#808080]/60">
+        <p className="font-mono text-xs tracking-widest uppercase text-muted-foreground/60">
           Loading summary...
         </p>
       </div>
@@ -91,11 +93,11 @@ export function WeeklySummary() {
   if (!hasData || !weeklySummary) {
     return (
       <div className="max-w-[480px] flex flex-col items-center justify-center py-12 gap-3">
-        <div className="w-8 h-px bg-[#1A1A1A]" />
-        <p className="text-sm text-[#808080] text-center">
+        <div className="w-8 h-px bg-surface-light" />
+        <p className="text-sm text-muted-foreground text-center">
           No sessions this week yet. Your instrument is waiting.
         </p>
-        <div className="w-8 h-px bg-[#1A1A1A]" />
+        <div className="w-8 h-px bg-surface-light" />
       </div>
     );
   }
@@ -106,14 +108,16 @@ export function WeeklySummary() {
     <div className="max-w-[480px] w-full flex flex-col gap-4">
       {/* Header */}
       <div>
-        <h3 className="text-sm font-medium uppercase tracking-wider text-[#808080]">This Week</h3>
-        <p className="text-xs text-[#606060] mt-0.5">
+        <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+          This Week
+        </h3>
+        <p className="text-xs text-muted-foreground mt-0.5">
           {formatDateRange(weeklySummary.weekStartDate, weeklySummary.weekEndDate)}
         </p>
       </div>
 
       {/* Top-line stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[#1A1A1A]">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-surface-light">
         <StatCell value={formatPracticeTime(weeklySummary.totalPracticeMs)} label="Total time" />
         <StatCell value={String(weeklySummary.sessionCount)} label="Sessions" />
         <StatCell value={String(weeklySummary.drillsCompleted)} label="Drills" />
@@ -122,11 +126,11 @@ export function WeeklySummary() {
 
       {/* Metric deltas */}
       {weeklySummary.metricDeltas.length > 0 && (
-        <div className="bg-[#141414] border border-[#1A1A1A] px-3 py-1">
+        <div className="bg-card border border-surface-light px-3 py-1">
           {!previousWeekComparison && (
-            <div className="flex items-center gap-2 py-1.5 border-b border-[#1A1A1A]">
-              <div className="w-1.5 h-1.5 bg-[#7CB9E8]" />
-              <span className="font-mono text-[10px] uppercase tracking-wider text-[#606060]">
+            <div className="flex items-center gap-2 py-1.5 border-b border-surface-light">
+              <div className="w-1.5 h-1.5 bg-primary" />
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                 First week
               </span>
             </div>
@@ -140,19 +144,21 @@ export function WeeklySummary() {
       {/* Week-over-week comparison */}
       {previousWeekComparison && (
         <div className="flex items-center gap-4 px-1">
-          <span className="text-[10px] uppercase tracking-wider text-[#606060]">vs. last week</span>
-          <span className="font-mono text-xs text-[#808080]">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            vs. last week
+          </span>
+          <span className="font-mono text-xs text-muted-foreground">
             {formatTimeDelta(previousWeekComparison.totalTimeDeltaMs)}
           </span>
-          <span className="font-mono text-xs text-[#808080]">
+          <span className="font-mono text-xs text-muted-foreground">
             {formatSessionDelta(previousWeekComparison.sessionCountDelta)}
           </span>
         </div>
       )}
 
       {/* Highest impact insight */}
-      <div className="bg-[#141414] border border-[#1A1A1A] border-l-2 border-l-[#7CB9E8] px-3 py-2.5">
-        <p className="text-sm text-[#A0A0A0] leading-relaxed">
+      <div className="bg-card border border-surface-light border-l-2 border-l-primary px-3 py-2.5">
+        <p className="text-sm text-muted-foreground leading-relaxed">
           {weeklySummary.highestImpactInsight}
         </p>
       </div>

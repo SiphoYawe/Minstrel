@@ -37,6 +37,77 @@ export interface GrowthMindsetValidation {
   violations: string[];
 }
 
+/**
+ * Replace prohibited words with growth mindset alternatives.
+ * Uses word-boundary-aware regex to avoid partial matches.
+ */
+export function replaceProhibitedWords(text: string): string {
+  let result = text;
+  for (const [word, reframe] of Object.entries(GROWTH_REFRAMES)) {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    result = result.replace(regex, (match) => {
+      // Preserve original casing pattern
+      if (match === match.toUpperCase()) return reframe.toUpperCase();
+      if (match[0] === match[0].toUpperCase())
+        return reframe.charAt(0).toUpperCase() + reframe.slice(1);
+      return reframe;
+    });
+  }
+  return result;
+}
+
+/**
+ * Creates a TransformStream that replaces prohibited words in streamed text.
+ * Buffers partial words at chunk boundaries to handle splits by finding
+ * the last word boundary (whitespace/punctuation) to split safely.
+ */
+export function createGrowthMindsetTransform(): TransformStream<string, string> {
+  let buffer = '';
+  // Min buffer size before we attempt to flush safe content
+  const minBufferSize = Math.max(...PROHIBITED_WORDS.map((w) => w.length)) + 2;
+
+  return new TransformStream({
+    transform(chunk, controller) {
+      buffer += chunk;
+
+      if (buffer.length > minBufferSize) {
+        // Find the last word boundary (space, punctuation, etc.) to split safely.
+        // This ensures we never split in the middle of a word.
+        const lastBoundary = findLastWordBoundary(buffer, minBufferSize);
+
+        if (lastBoundary > 0) {
+          const safe = buffer.slice(0, lastBoundary);
+          buffer = buffer.slice(lastBoundary);
+          controller.enqueue(replaceProhibitedWords(safe));
+        }
+      }
+    },
+    flush(controller) {
+      if (buffer.length > 0) {
+        controller.enqueue(replaceProhibitedWords(buffer));
+        buffer = '';
+      }
+    },
+  });
+}
+
+/**
+ * Find the last word boundary position in text, ensuring at least
+ * `reserveFromEnd` characters remain after the split point.
+ * Returns 0 if no safe boundary is found.
+ */
+function findLastWordBoundary(text: string, reserveFromEnd: number): number {
+  // Search from (text.length - reserveFromEnd) backwards for a word boundary
+  const searchEnd = text.length - reserveFromEnd;
+  for (let i = searchEnd; i >= 0; i--) {
+    if (/\s/.test(text[i])) {
+      // Split after the whitespace
+      return i + 1;
+    }
+  }
+  return 0;
+}
+
 export function validateGrowthMindset(text: string): GrowthMindsetValidation {
   const lower = text.toLowerCase();
   const violations: string[] = [];

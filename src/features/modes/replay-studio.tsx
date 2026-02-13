@@ -111,12 +111,6 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
             </p>
           </div>
         </div>
-        <style>{`
-          @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(400%); }
-          }
-        `}</style>
       </div>
     );
   }
@@ -155,10 +149,7 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
       {/* Main grid: canvas + detail panel, then timeline below */}
       <div className="flex flex-col h-full pt-10">
         {/* Upper region: canvas + right panel */}
-        <div
-          className="flex-1 min-h-0 grid transition-all duration-300"
-          style={{ gridTemplateColumns: '3fr 1fr' }}
-        >
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[3fr_1fr] transition-all duration-300">
           {/* Canvas area */}
           <div className="min-w-0 h-full">
             <VisualizationCanvas />
@@ -224,13 +215,7 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
                 hidden={activeTab !== 'sessions'}
                 className="h-full overflow-y-auto"
               >
-                {activeTab === 'sessions' && (
-                  <div className="p-4">
-                    <p className="text-xs text-[#555] font-mono tracking-wide">
-                      Session list — coming in Story 6.2
-                    </p>
-                  </div>
-                )}
+                {activeTab === 'sessions' && <SessionsListPanel />}
               </div>
 
               {/* Chat panel */}
@@ -506,13 +491,110 @@ function ChatPanel() {
           </button>
         </form>
       </div>
+    </div>
+  );
+}
 
-      <style>{`
-        @keyframes pulse-dot {
-          0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-          40% { opacity: 1; transform: scale(1.2); }
-        }
-      `}</style>
+// --- Sessions List Panel ---
+
+function SessionsListPanel() {
+  const [sessions, setSessions] = useState<
+    Array<{
+      id: number;
+      startedAt: number;
+      duration: number | null;
+      key: string | null;
+      tempo: number | null;
+    }>
+  >([]);
+  const [loadingList, setLoadingList] = useState(true);
+
+  useEffect(() => {
+    import('@/lib/dexie/db').then(({ db }) => {
+      db.sessions
+        .orderBy('startedAt')
+        .reverse()
+        .limit(20)
+        .toArray()
+        .then((rows) => {
+          setSessions(
+            rows.map((r) => ({
+              id: r.id!,
+              startedAt: r.startedAt,
+              duration: r.duration,
+              key: r.key,
+              tempo: r.tempo,
+            }))
+          );
+        })
+        .finally(() => setLoadingList(false));
+    });
+  }, []);
+
+  if (loadingList) {
+    return (
+      <div className="p-4">
+        <p className="font-mono text-xs text-muted-foreground">Loading sessions...</p>
+      </div>
+    );
+  }
+
+  if (sessions.length === 0) {
+    return (
+      <div className="p-4">
+        <p className="text-xs text-muted-foreground">No sessions recorded yet.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-2 flex flex-col gap-1">
+      {sessions.map((session) => (
+        <button
+          key={session.id}
+          onClick={() => {
+            useSessionStore.getState().resetReplay();
+            useSessionStore.getState().setReplayStatus('loading');
+            // Trigger reload by updating the replay session
+            import('@/lib/dexie/db').then(({ db }) => {
+              db.sessions.get(session.id).then((s) => {
+                if (s) {
+                  useSessionStore.getState().setReplaySession(s);
+                  db.midiEvents
+                    .where('sessionId')
+                    .equals(session.id)
+                    .sortBy('timestamp')
+                    .then((events) => {
+                      useSessionStore.getState().setReplayEvents(events);
+                      useSessionStore.getState().setReplayStatus('success');
+                    });
+                }
+              });
+            });
+          }}
+          className="text-left bg-card border border-surface-light p-3 hover:bg-surface-light transition-colors"
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-mono text-xs text-foreground">
+              {new Intl.DateTimeFormat(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              }).format(new Date(session.startedAt))}
+            </span>
+            <span className="font-mono text-[10px] text-muted-foreground">
+              {session.duration
+                ? `${Math.floor(session.duration / 60)}m ${session.duration % 60}s`
+                : '--'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+            {session.key && <span>{session.key}</span>}
+            {session.tempo && <span>{Math.round(session.tempo)} BPM</span>}
+          </div>
+        </button>
+      ))}
     </div>
   );
 }

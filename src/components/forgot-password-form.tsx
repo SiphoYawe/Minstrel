@@ -70,9 +70,15 @@ export function ForgotPasswordForm({ className, ...props }: React.ComponentProps
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    aria-invalid={!!error}
+                    aria-describedby={error ? 'forgot-error' : undefined}
                   />
                 </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
+                {error && (
+                  <p id="forgot-error" role="alert" className="text-sm text-destructive">
+                    {error}
+                  </p>
+                )}
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? 'Sending...' : 'Send reset email'}
                 </Button>

@@ -4,10 +4,12 @@ import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useState, useCallback, useMemo, type FormEvent, type ChangeEvent } from 'react';
 import { useSessionStore } from '@/stores/session-store';
+import { useAppStore } from '@/stores/app-store';
 import { getSessionContextForAI } from './session-context-provider';
 import { parseChatError } from './chat-error-handler';
 import { uiMessagesToSimple } from './message-adapter';
 import type { ChatErrorInfo } from './coaching-types';
+import { replaceProhibitedWords } from './growth-mindset-rules';
 
 /**
  * Custom hook wrapping Vercel AI SDK useChat for coaching chat.
@@ -15,6 +17,7 @@ import type { ChatErrorInfo } from './coaching-types';
  */
 export function useCoachingChat() {
   const [input, setInput] = useState('');
+  const hasApiKey = useAppStore((s) => s.hasApiKey);
 
   const transport = useMemo(
     () =>
@@ -22,7 +25,7 @@ export function useCoachingChat() {
         api: '/api/ai/chat',
         body: () => ({
           sessionContext: getSessionContextForAI(),
-          providerId: 'openai',
+          providerId: useAppStore.getState().apiKeyProvider ?? 'openai',
         }),
         prepareSendMessagesRequest: async ({ messages: uiMessages, body, ...rest }) => ({
           ...rest,
@@ -51,7 +54,7 @@ export function useCoachingChat() {
     []
   );
 
-  const { messages, sendMessage, status, error, setMessages } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     transport,
     messages: initialMessages,
     onFinish: ({ message }) => {
@@ -59,10 +62,11 @@ export function useCoachingChat() {
         .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
         .map((p) => p.text)
         .join('');
+      const filtered = replaceProhibitedWords(textContent);
       useSessionStore.getState().addChatMessage({
         id: message.id,
         role: 'assistant',
-        content: textContent,
+        content: filtered,
         timestamp: Date.now(),
       });
     },
@@ -77,7 +81,7 @@ export function useCoachingChat() {
     (e?: FormEvent<HTMLFormElement>) => {
       e?.preventDefault();
       const trimmed = input.trim();
-      if (!trimmed || isLoading) return;
+      if (!trimmed || isLoading || !hasApiKey) return;
 
       // Add to session store
       const id = crypto.randomUUID();
@@ -91,7 +95,7 @@ export function useCoachingChat() {
       sendMessage({ text: trimmed });
       setInput('');
     },
-    [input, isLoading, sendMessage]
+    [input, isLoading, hasApiKey, sendMessage]
   );
 
   const handleInputChange = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -108,5 +112,6 @@ export function useCoachingChat() {
     isLoading,
     error: chatError,
     setInput,
+    hasApiKey,
   };
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
 import { StatusBar } from '@/components/status-bar';
 import { ModeSwitcher } from '@/features/modes/mode-switcher';
@@ -11,12 +11,29 @@ import { PersonalRecords } from '@/components/personal-records';
 import { WeeklySummary } from '@/components/weekly-summary';
 import { useCoachingChat } from '@/features/coaching/coaching-client';
 import { useAppStore } from '@/stores/app-store';
+import { useSessionStore } from '@/stores/session-store';
 
 export function DashboardChat() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, error, setInput } =
     useCoachingChat();
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
   const [showEngagement, setShowEngagement] = useState(false);
+  const pendingDrillRequest = useSessionStore((s) => s.pendingDrillRequest);
+
+  // Auto-trigger drill generation when requested from SnapshotCTA
+  useEffect(() => {
+    if (!pendingDrillRequest) return;
+    useSessionStore.getState().setPendingDrillRequest(false);
+    const snapshot = useSessionStore.getState().currentSnapshot;
+    const insight = snapshot?.keyInsight ?? 'Generate a drill based on my current session';
+    const drillPrompt = `Generate a drill for me: ${insight}`;
+    setInput(drillPrompt);
+    // Trigger submit on next tick after input is set
+    const timer = setTimeout(() => {
+      handleSubmit();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [pendingDrillRequest, handleSubmit, setInput]);
 
   return (
     <div className="relative h-dvh w-screen bg-background">
@@ -26,10 +43,7 @@ export function DashboardChat() {
         <ModeSwitcher />
       </div>
 
-      <div
-        className="h-full pt-10 grid transition-all duration-300"
-        style={{ gridTemplateColumns: '3fr 2fr' }}
-      >
+      <div className="h-full pt-10 grid grid-cols-1 lg:grid-cols-[3fr_2fr] transition-all duration-300">
         <div className="min-w-0 h-full relative">
           <VisualizationCanvas />
           <SnapshotCTA />

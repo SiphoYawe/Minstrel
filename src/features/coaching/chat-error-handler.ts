@@ -1,3 +1,4 @@
+import { useAppStore } from '@/stores/app-store';
 import type { ChatErrorInfo } from './coaching-types';
 
 const ERROR_MESSAGES: Record<string, ChatErrorInfo> = {
@@ -27,6 +28,7 @@ const ERROR_MESSAGES: Record<string, ChatErrorInfo> = {
 
 /**
  * Parse an error from the chat API into a user-friendly message.
+ * Also updates global API key status when an invalid key is detected.
  */
 export function parseChatError(error: Error): ChatErrorInfo {
   const message = error.message || '';
@@ -34,12 +36,16 @@ export function parseChatError(error: Error): ChatErrorInfo {
   // Try to extract error code from structured API response
   for (const code of Object.keys(ERROR_MESSAGES)) {
     if (message.includes(code)) {
+      if (code === 'INVALID_KEY') {
+        useAppStore.getState().setApiKeyStatus('invalid');
+      }
       return ERROR_MESSAGES[code];
     }
   }
 
   // Match by HTTP status patterns
   if (/401|403|invalid.*key|api.*key/i.test(message)) {
+    useAppStore.getState().setApiKeyStatus('invalid');
     return ERROR_MESSAGES.INVALID_KEY;
   }
   if (/429|rate.?limit|too many/i.test(message)) {

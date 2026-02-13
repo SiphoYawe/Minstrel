@@ -46,18 +46,18 @@ export default function MarketingPage() {
     <main className="flex flex-1 flex-col items-center">
       <div className="mx-auto w-full max-w-content">
         {/* Hero */}
-        <section className="flex flex-col items-center px-8 py-32 text-center lg:py-44">
-          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#7CB9E8]">
+        <section id="hero" className="flex flex-col items-center px-8 py-32 text-center lg:py-44">
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-primary">
             Practice Companion
           </p>
 
           <h1 className="mt-6 max-w-3xl text-5xl font-semibold leading-[1.08] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
             Your instrument
             <br />
-            <span className="text-[#7CB9E8]">hears back.</span>
+            <span className="text-primary">hears back.</span>
           </h1>
 
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#A3A3A3] sm:text-xl">
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
             AI-powered real-time MIDI analysis. Plug in, play, and let intelligence shape your
             growth.
           </p>
@@ -65,65 +65,75 @@ export default function MarketingPage() {
           <HeroCTA />
         </section>
 
-        <Separator className="bg-[#1A1A1A]" />
+        <Separator className="bg-surface-light" />
 
         {/* Features */}
-        <section className="px-8 py-20 lg:py-28">
+        <section id="features" aria-labelledby="features-heading" className="px-8 py-20 lg:py-28">
           <div className="mb-12">
-            <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#7CB9E8]">
+            <p
+              id="features-heading"
+              className="font-mono text-[11px] uppercase tracking-[0.25em] text-primary"
+            >
               Capabilities
             </p>
-            <div className="mt-2 h-px w-8 bg-[#7CB9E8]" />
+            <div className="mt-2 h-px w-8 bg-primary" />
           </div>
 
-          <div className="grid gap-px border border-[#1A1A1A] sm:grid-cols-3">
+          <div className="grid gap-px border border-surface-light sm:grid-cols-3">
             {features.map((feature) => (
               <div
                 key={feature.label}
-                className="border border-[#1A1A1A] bg-[#0F0F0F] p-8 transition-colors duration-150 hover:bg-[#141414]"
+                className="border border-surface-light bg-background p-8 transition-colors duration-150 hover:bg-card"
               >
                 <div className="flex items-center justify-between">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-[#7CB9E8]">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-primary">
                     {feature.label}
                   </p>
-                  <span className="font-mono text-[9px] tracking-wider text-[#333]">
+                  <span className="font-mono text-[9px] tracking-wider text-muted-foreground">
                     {feature.tag}
                   </span>
                 </div>
-                <p className="mt-4 text-sm leading-relaxed text-[#A3A3A3]">{feature.description}</p>
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
         </section>
 
-        <Separator className="bg-[#1A1A1A]" />
+        <Separator className="bg-surface-light" />
 
         {/* Modes */}
-        <section className="px-8 py-20 lg:py-28">
+        <section id="modes" aria-labelledby="modes-heading" className="px-8 py-20 lg:py-28">
           <div className="mb-12">
-            <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#7CB9E8]">
+            <p
+              id="modes-heading"
+              className="font-mono text-[11px] uppercase tracking-[0.25em] text-primary"
+            >
               Three Modes
             </p>
-            <div className="mt-2 h-px w-8 bg-[#7CB9E8]" />
+            <div className="mt-2 h-px w-8 bg-primary" />
           </div>
 
           <div className="grid gap-6 sm:grid-cols-3">
             {modes.map((mode) => (
               <div key={mode.key} className="group">
                 <div className="flex items-baseline gap-3">
-                  <span className="font-mono text-[32px] font-semibold leading-none text-[#7CB9E8]/20 transition-colors duration-150 group-hover:text-[#7CB9E8]/40">
+                  <span className="font-mono text-[32px] font-semibold leading-none text-primary/20 transition-colors duration-150 group-hover:text-primary/40">
                     {mode.key}
                   </span>
                   <h3 className="text-base font-medium text-foreground">{mode.name}</h3>
                 </div>
-                <p className="mt-3 text-sm leading-relaxed text-[#666]">{mode.description}</p>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  {mode.description}
+                </p>
               </div>
             ))}
           </div>
         </section>
 
         {/* Footer */}
-        <section className="border-t border-[#1A1A1A] px-8 py-16 text-center lg:py-20">
+        <section className="border-t border-surface-light px-8 py-16 text-center lg:py-20">
           <Image
             src="/minstrel-logo-white.svg"
             alt="Minstrel"
@@ -131,7 +141,7 @@ export default function MarketingPage() {
             height={40}
             className="mx-auto mb-4 h-8 w-auto opacity-20"
           />
-          <p className="font-mono text-[11px] tracking-wider text-[#333]">
+          <p className="font-mono text-[11px] tracking-wider text-muted-foreground">
             Your instrument. Your ears. Your pace.
           </p>
         </section>

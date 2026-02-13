@@ -163,7 +163,12 @@ export function buildReplayContext(
   events: StoredMidiEvent[],
   timestamp: number,
   snapshots: AnalysisSnapshot[],
-  sessionMeta: { key: string | null; tempo: number | null; genre: string | null },
+  sessionMeta: {
+    key: string | null;
+    tempo: number | null;
+    genre: string | null;
+    timingAccuracy?: number | null;
+  },
   windowMs: number = DEFAULT_REPLAY_WINDOW_MS
 ): ReplayContext {
   const windowStart = Math.max(0, timestamp - windowMs);
@@ -218,9 +223,8 @@ export function buildReplayContext(
       timestamp: s.createdAt,
     }));
 
-  // Compute timing accuracy for the window (ratio of on-beat notes)
-  const noteOnCount = windowEvents.filter((e) => e.type === 'note-on' && e.velocity > 0).length;
-  const timingAccuracy = noteOnCount > 0 ? Math.min(1, noteOnCount / Math.max(1, noteOnCount)) : 0;
+  // Read timing accuracy from session metadata (computed by analysis pipeline)
+  const timingAccuracy = sessionMeta.timingAccuracy != null ? sessionMeta.timingAccuracy / 100 : 0;
 
   // Detect chord at moment from active notes
   const notesAtMoment = Array.from(activeNotes.values());

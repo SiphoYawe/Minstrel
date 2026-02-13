@@ -143,13 +143,272 @@ const RNB_SOUL: GenreTerminology = {
   styleDescriptors: ['groove', 'laid-back', 'neo-soul', 'Motown', 'gospel-influenced'],
 };
 
+const FUNK: GenreTerminology = {
+  genre: 'Funk',
+  chordTerms: {
+    dominant: 'dominant 9th',
+    minor: 'minor 7th',
+    suspended: 'sus chord',
+    sharp9: 'sharp 9 chord',
+    effect: 'envelope filter',
+  },
+  scaleTerms: {
+    pentatonic: 'minor pentatonic',
+    mixolydian: 'Mixolydian',
+    dorian: 'Dorian',
+    blues: 'blues scale',
+  },
+  conceptTerms: {
+    rhythm: 'the one',
+    feel: 'pocket',
+    technique: 'ghost notes',
+    groove: 'sixteenth-note groove',
+    bass: 'slap bass',
+    guitar: 'chicken scratch',
+    strumming: 'muted strums',
+  },
+  commonProgressions: ['I7-IV7', 'i7 vamp', 'I9-IV9', 'one-chord vamp'],
+  styleDescriptors: ['tight pocket', 'syncopated', 'groove-heavy', 'percussive', 'staccato rhythm'],
+};
+
+const LATIN: GenreTerminology = {
+  genre: 'Latin',
+  chordTerms: {
+    major: 'major 7th',
+    minor: 'minor 9th',
+    dominant: 'dominant 7(b9)',
+    diminished: 'diminished passing chord',
+    montuno: 'montuno chord pattern',
+  },
+  scaleTerms: {
+    major: 'Lydian',
+    minor: 'Dorian',
+    altered: 'altered scale',
+    melodicMinor: 'melodic minor',
+    pentatonic: 'minor pentatonic',
+  },
+  conceptTerms: {
+    rhythm: 'clave',
+    bass: 'tumbao',
+    pattern: 'guajeo',
+    feel: 'son',
+    groove: 'cascara',
+    dance: 'guaguancó',
+    interaction: 'call and response',
+  },
+  commonProgressions: ['I-IV-V-I', 'i-iv-V-i', 'I-bII7-ii-V', 'Imaj7-IVmaj7-bVII7-Imaj7'],
+  styleDescriptors: ['bossa nova', 'salsa', 'rumba', 'gentle sway', 'syncopated', 'chromatic'],
+};
+
+const COUNTRY: GenreTerminology = {
+  genre: 'Country',
+  chordTerms: {
+    major: 'major chord',
+    minor: 'minor chord',
+    dominant: 'dominant 7th',
+    sus: 'suspended chord',
+    add: 'add9 chord',
+  },
+  scaleTerms: {
+    pentatonic: 'major pentatonic',
+    major: 'major scale',
+    mixolydian: 'Mixolydian',
+    blues: 'country blues scale',
+  },
+  conceptTerms: {
+    technique: "chicken pickin'",
+    rhythm: 'train beat',
+    style: 'telecaster twang',
+    form: 'Nashville number system',
+    bass: 'boom-chuck',
+    picking: 'flatpicking',
+    instrument: 'pedal steel',
+  },
+  commonProgressions: ['I-IV-V', 'I-V-vi-IV', 'I-IV-I-V', 'vi-IV-I-V'],
+  styleDescriptors: [
+    'twangy',
+    'honky-tonk',
+    'outlaw',
+    'Nashville',
+    'Bakersfield sound',
+    'Americana',
+  ],
+};
+
+const FOLK: GenreTerminology = {
+  genre: 'Folk',
+  chordTerms: {
+    major: 'open chord',
+    minor: 'minor chord',
+    sus: 'suspended chord',
+    add: 'add chord',
+    open: 'open tuning chord',
+  },
+  scaleTerms: {
+    major: 'Ionian',
+    minor: 'Aeolian',
+    dorian: 'Dorian',
+    mixolydian: 'Mixolydian',
+    pentatonic: 'pentatonic',
+    modal: 'modal scale',
+  },
+  conceptTerms: {
+    technique: 'fingerpicking',
+    rhythm: 'Travis picking',
+    form: 'verse-refrain',
+    style: 'drone',
+    harmony: 'open voicing',
+    tuning: 'DADGAD',
+    ornamentation: 'Celtic ornamentation',
+  },
+  commonProgressions: ['I-IV-V', 'I-V-vi-IV', 'i-VII-VI-V', 'I-ii-IV-V'],
+  styleDescriptors: ['acoustic', 'pastoral', 'modal', 'Celtic', 'Appalachian style'],
+};
+
+const REGGAE: GenreTerminology = {
+  genre: 'Reggae',
+  chordTerms: {
+    major: 'major chord',
+    minor: 'minor chord',
+    dominant: 'dominant 7th',
+    diminished: 'diminished',
+    organ: 'bubble organ',
+  },
+  scaleTerms: {
+    pentatonic: 'minor pentatonic',
+    major: 'major scale',
+    minor: 'natural minor',
+    blues: 'blues scale',
+  },
+  conceptTerms: {
+    rhythm: 'skank',
+    feel: 'one drop',
+    bass: 'steppers',
+    technique: 'offbeat',
+    style: 'riddim',
+    production: 'dub',
+    groove: 'rockers',
+  },
+  commonProgressions: ['I-IV', 'i-IV-V-i', 'I-V-vi-IV', 'vi-I-ii-V'],
+  styleDescriptors: ['offbeat-driven', 'laid-back', 'roots', 'dub', 'dancehall', 'steppers'],
+};
+
+const METAL: GenreTerminology = {
+  genre: 'Metal',
+  chordTerms: {
+    power: 'power chord',
+    diminished: 'diminished chord',
+    tritone: 'tritone',
+    minor: 'minor chord',
+    augmented: 'augmented chord',
+  },
+  scaleTerms: {
+    minor: 'natural minor',
+    pentatonic: 'minor pentatonic',
+    phrygian: 'Phrygian',
+    harmonicMinor: 'harmonic minor',
+    chromatic: 'chromatic runs',
+  },
+  conceptTerms: {
+    technique: 'palm mute',
+    rhythm: 'gallop picking',
+    speed: 'tremolo picking',
+    form: 'breakdown',
+    tuning: 'drop tuning',
+    drums: 'blast beat',
+    kick: 'double bass',
+  },
+  commonProgressions: ['i-bVI-bVII-i', 'i-bII-i', 'i-iv-bVI-V', 'power chord riffs'],
+  styleDescriptors: ['aggressive', 'heavy', 'shredding', 'thrash', 'djent'],
+};
+
+const ELECTRONIC: GenreTerminology = {
+  genre: 'Electronic',
+  chordTerms: {
+    pad: 'pad chord',
+    stab: 'chord stab',
+    minor: 'minor chord',
+    major: 'major chord',
+    suspended: 'suspended chord',
+  },
+  scaleTerms: {
+    minor: 'minor scale',
+    pentatonic: 'pentatonic',
+    phrygian: 'Phrygian',
+    dorian: 'Dorian',
+    wholeTone: 'whole tone',
+  },
+  conceptTerms: {
+    rhythm: '4-on-the-floor',
+    form: 'build-drop',
+    technique: 'arpeggiation',
+    bass: 'sub bass',
+    effect: 'sidechain',
+    sound: 'synthesis',
+    modulation: 'filter sweep',
+    sequencing: 'sequencer',
+    oscillator: 'LFO',
+    structure: 'breakdown',
+  },
+  commonProgressions: ['i-VI-III-VII', 'i-iv-VI-V', 'vi-IV-I-V', 'one-chord vamp'],
+  styleDescriptors: ['atmospheric', 'driving', 'hypnotic', 'euphoric', 'minimal'],
+};
+
+const GOSPEL: GenreTerminology = {
+  genre: 'Gospel',
+  chordTerms: {
+    shout: 'shout chord',
+    diminished: 'passing diminished',
+    tritoneSub: 'tritone substitution',
+    extended: 'extended chord',
+    major7: 'major 7th',
+    dominant: 'dominant 9th',
+  },
+  scaleTerms: {
+    major: 'major scale',
+    pentatonic: 'major pentatonic',
+    blues: 'gospel blues scale',
+    chromatic: 'chromatic passing tones',
+  },
+  conceptTerms: {
+    progression: 'worship progression',
+    interaction: 'call and response',
+    bass: 'walk-up bass',
+    vocal: 'melisma',
+    feel: 'shout',
+    harmony: 'choir voicing',
+  },
+  commonProgressions: ['I-IV-I-V', 'I-I7-IV-iv-I', 'I-vi-ii-V', 'IV-V-iii-vi'],
+  styleDescriptors: ['uplifting', 'jubilant', 'soulful', 'congregational', 'spirited'],
+};
+
 const GENERIC: GenreTerminology = {
   genre: 'Generic',
-  chordTerms: {},
-  scaleTerms: {},
-  conceptTerms: {},
-  commonProgressions: [],
-  styleDescriptors: [],
+  chordTerms: {
+    major: 'major chord',
+    minor: 'minor chord',
+    dominant: 'dominant 7th',
+    diminished: 'diminished chord',
+    augmented: 'augmented chord',
+    suspended: 'suspended chord',
+  },
+  scaleTerms: {
+    major: 'major scale',
+    minor: 'natural minor',
+    pentatonic: 'pentatonic scale',
+    chromatic: 'chromatic scale',
+    blues: 'blues scale',
+  },
+  conceptTerms: {
+    melody: 'melody',
+    harmony: 'harmony',
+    rhythm: 'rhythm',
+    dynamics: 'dynamics',
+    tempo: 'tempo',
+    form: 'song form',
+  },
+  commonProgressions: ['I-IV-V-I', 'I-V-vi-IV', 'ii-V-I', 'I-vi-IV-V'],
+  styleDescriptors: ['legato', 'staccato', 'forte', 'piano', 'crescendo'],
 };
 
 const GENRE_MAP: Record<string, GenreTerminology> = {
@@ -162,6 +421,27 @@ const GENRE_MAP: Record<string, GenreTerminology> = {
   'R&B/Soul': RNB_SOUL,
   'R&B': RNB_SOUL,
   Soul: RNB_SOUL,
+  Funk: FUNK,
+  Latin: LATIN,
+  'Latin/Bossa Nova': LATIN,
+  'Bossa Nova': LATIN,
+  Bossa: LATIN,
+  Country: COUNTRY,
+  Folk: FOLK,
+  Bluegrass: FOLK,
+  Americana: FOLK,
+  Reggae: REGGAE,
+  Dancehall: REGGAE,
+  Ska: REGGAE,
+  Metal: METAL,
+  'Heavy Metal': METAL,
+  Electronic: ELECTRONIC,
+  EDM: ELECTRONIC,
+  Dance: ELECTRONIC,
+  Techno: ELECTRONIC,
+  House: ELECTRONIC,
+  Gospel: GOSPEL,
+  'Southern Gospel': GOSPEL,
 };
 
 export function getTerminologyForGenre(genre: string | null): GenreTerminology {

@@ -4,6 +4,8 @@ import {
   GROWTH_REFRAMES,
   TRAJECTORY_TEMPLATES,
   validateGrowthMindset,
+  replaceProhibitedWords,
+  createGrowthMindsetTransform,
 } from './growth-mindset-rules';
 
 describe('constants', () => {
@@ -79,5 +81,172 @@ describe('validateGrowthMindset', () => {
       const result = validateGrowthMindset(`This is ${word} playing.`);
       expect(result.isCompliant).toBe(false);
     }
+  });
+});
+
+describe('replaceProhibitedWords', () => {
+  it('replaces all 10 prohibited words with growth reframes', () => {
+    for (const word of PROHIBITED_WORDS) {
+      const input = `That was ${word} playing.`;
+      const result = replaceProhibitedWords(input);
+      const expected = GROWTH_REFRAMES[word];
+      expect(result).toContain(expected);
+      expect(result).not.toContain(word);
+    }
+  });
+
+  it('does not modify "wrongful" (word boundary)', () => {
+    const input = 'That was a wrongful accusation.';
+    const result = replaceProhibitedWords(input);
+    expect(result).toBe('That was a wrongful accusation.');
+  });
+
+  it('does not modify "errors" (word boundary)', () => {
+    const input = 'Check the errors in the log.';
+    const result = replaceProhibitedWords(input);
+    expect(result).toBe('Check the errors in the log.');
+  });
+
+  it('does not modify "errorMessage" (compound word)', () => {
+    const input = 'The errorMessage field needs updating.';
+    const result = replaceProhibitedWords(input);
+    expect(result).toBe('The errorMessage field needs updating.');
+  });
+
+  it('does not modify "failures" (word boundary)', () => {
+    const input = 'Multiple failures occurred.';
+    const result = replaceProhibitedWords(input);
+    expect(result).toBe('Multiple failures occurred.');
+  });
+
+  it('replaces multiple different prohibited words in one string', () => {
+    const input = 'That was bad and wrong and terrible playing.';
+    const result = replaceProhibitedWords(input);
+    expect(result).toContain('developing');
+    expect(result).toContain('not yet there');
+    expect(result).toContain('early stage');
+    expect(result).not.toMatch(/\bbad\b/i);
+    expect(result).not.toMatch(/\bwrong\b/i);
+    expect(result).not.toMatch(/\bterrible\b/i);
+  });
+
+  it('replaces multiple occurrences of the same word', () => {
+    const input = 'That was wrong and also wrong.';
+    const result = replaceProhibitedWords(input);
+    expect(result).toBe('That was not yet there and also not yet there.');
+  });
+
+  it('preserves lowercase casing', () => {
+    const result = replaceProhibitedWords('That was wrong.');
+    expect(result).toBe('That was not yet there.');
+  });
+
+  it('preserves uppercase casing', () => {
+    const result = replaceProhibitedWords('That was WRONG.');
+    expect(result).toBe('That was NOT YET THERE.');
+  });
+
+  it('preserves title case (first letter uppercase)', () => {
+    const result = replaceProhibitedWords('Wrong note detected.');
+    expect(result).toBe('Not yet there note detected.');
+  });
+
+  it('preserves casing for "failed" -> "in progress"', () => {
+    expect(replaceProhibitedWords('failed')).toBe('in progress');
+    expect(replaceProhibitedWords('FAILED')).toBe('IN PROGRESS');
+    expect(replaceProhibitedWords('Failed')).toBe('In progress');
+  });
+
+  it('returns the same text when no prohibited words are present', () => {
+    const input = 'Great playing, keep it up! Your timing is improving.';
+    expect(replaceProhibitedWords(input)).toBe(input);
+  });
+
+  it('handles empty string', () => {
+    expect(replaceProhibitedWords('')).toBe('');
+  });
+
+  it('performance: processes 1000 chars under 5ms', () => {
+    const longText = 'Your timing is developing nicely. '.repeat(30); // ~1020 chars
+    const start = performance.now();
+    replaceProhibitedWords(longText);
+    const elapsed = performance.now() - start;
+    expect(elapsed).toBeLessThan(5);
+  });
+});
+
+describe('createGrowthMindsetTransform', () => {
+  async function runTransform(chunks: string[]): Promise<string> {
+    const transform = createGrowthMindsetTransform();
+    const writer = transform.writable.getWriter();
+    const reader = transform.readable.getReader();
+
+    const outputParts: string[] = [];
+
+    // Write all chunks
+    const writePromise = (async () => {
+      for (const chunk of chunks) {
+        await writer.write(chunk);
+      }
+      await writer.close();
+    })();
+
+    // Read all output
+    const readPromise = (async () => {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        outputParts.push(value);
+      }
+    })();
+
+    await Promise.all([writePromise, readPromise]);
+    return outputParts.join('');
+  }
+
+  it('replaces prohibited words in a single chunk', async () => {
+    const result = await runTransform(['That was wrong playing.']);
+    expect(result).toBe('That was not yet there playing.');
+  });
+
+  it('handles word split across chunk boundaries', async () => {
+    // "wrong" split as "wr" + "ong"
+    const result = await runTransform(['That was wr', 'ong playing.']);
+    expect(result).toBe('That was not yet there playing.');
+  });
+
+  it('handles multiple chunks with no prohibited words', async () => {
+    const result = await runTransform(['Hello ', 'world ', 'test.']);
+    expect(result).toBe('Hello world test.');
+  });
+
+  it('handles prohibited word at the very end', async () => {
+    const result = await runTransform(['That was ', 'bad']);
+    expect(result).toBe('That was developing');
+  });
+
+  it('handles empty chunks', async () => {
+    const result = await runTransform(['', 'Hello', '', ' world', '']);
+    expect(result).toBe('Hello world');
+  });
+
+  it('replaces multiple prohibited words across chunks', async () => {
+    const result = await runTransform(['That was bad ', 'and also wrong ', 'with poor timing.']);
+    expect(result).toContain('developing');
+    expect(result).toContain('not yet there');
+    expect(result).toContain('emerging');
+    expect(result).not.toMatch(/\bbad\b/);
+    expect(result).not.toMatch(/\bwrong\b/);
+    expect(result).not.toMatch(/\bpoor\b/);
+  });
+
+  it('preserves text that does not contain prohibited words', async () => {
+    const result = await runTransform([
+      'Your rhythm accuracy went from 65% to 73%. ',
+      'Keep pushing, the trajectory is clear.',
+    ]);
+    expect(result).toBe(
+      'Your rhythm accuracy went from 65% to 73%. Keep pushing, the trajectory is clear.'
+    );
   });
 });

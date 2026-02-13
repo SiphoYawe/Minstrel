@@ -19,8 +19,8 @@
     --muted-foreground: 0 0% 40%;
     --accent: 0 0% 12.2%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 67% 73%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 42 70% 70%;
+    --destructive-foreground: 0 0% 10%;
     --border: 0 0% 16.5%;
     --input: 0 0% 20%;
     --ring: 206 70% 70%;
@@ -48,7 +48,7 @@
     --accent-green: 144 35% 75%;
     --accent-warm: 42 70% 70%;
     --accent-success: 137 40% 65%;
-    --accent-error: 0 67% 73%;
+    --accent-error: 42 60% 65%;
   }
 
   * {
@@ -90,13 +90,46 @@
 /* Growth mindset color utilities — "Amber, Not Red" principle (UX9) */
 @layer utilities {
   .text-progress {
-    color: #d4a43c;
+    color: hsl(var(--accent-warm));
   }
   .text-achieved {
-    color: #7cb9e8;
+    color: hsl(var(--accent-blue));
   }
   .text-metric {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
-    color: #7cb9e8;
+    color: hsl(var(--accent-blue));
+  }
+}
+
+@layer utilities {
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 8px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(400%);
+    }
+  }
+  @keyframes pulse-dot {
+    0%,
+    80%,
+    100% {
+      opacity: 0.3;
+      transform: scale(0.8);
+    }
+    40% {
+      opacity: 1;
+      transform: scale(1.2);
+    }
   }
 }

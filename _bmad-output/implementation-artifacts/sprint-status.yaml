@@ -110,3 +110,47 @@ development_status:
   7-5-weekly-progress-summaries: ready-for-dev
   7-6-personal-records-tracking: ready-for-dev
   epic-7-retrospective: optional
+
+  # Epic 8: Critical Bug Fixes & Core Flow Repair
+  epic-8: done
+  8-1-fix-replay-timing-accuracy-bug: done
+  8-2-fix-snapshot-cta-drill-generation-flow: done
+  8-3-add-api-key-guard-to-coaching-chat: done
+  8-4-fix-auth-flow-bugs: done
+  8-5-replace-delete-account-with-honest-ux: done
+  8-6-wire-ai-provider-selection-from-saved-key: done
+  8-7-add-nextjs-middleware-auth-route-protection: done
+  epic-8-retrospective: optional
+
+  # Epic 9: Design System Remediation
+  epic-9: in-progress
+  9-1-change-destructive-error-colors-to-amber: done
+  9-2-replace-hardcoded-colors-with-design-tokens: ready-for-dev
+  9-3-refactor-raw-buttons-and-inline-styles: ready-for-dev
+  9-4-add-responsive-breakpoints-dashboard-replay: ready-for-dev
+  9-5-fix-accessibility-gaps: ready-for-dev
+  9-6-add-mobile-redirect-and-browser-incompatibility: ready-for-dev
+  epic-9-retrospective: optional
+
+  # Epic 10: Missing Screens & User Journeys
+  epic-10: backlog
+  10-1-first-run-onboarding-empty-state: ready-for-dev
+  10-2-session-summary-screen: ready-for-dev
+  10-3-return-session-welcome-experience: ready-for-dev
+  10-4-session-history-browser: ready-for-dev
+  10-5-achievement-gallery: ready-for-dev
+  10-6-keyboard-shortcuts-help-panel: ready-for-dev
+  10-7-warm-up-generation-flow: ready-for-dev
+  10-8-offline-mode-indicator: ready-for-dev
+  epic-10-retrospective: optional
+
+  # Epic 11: AI Coaching & Data Integrity Fixes
+  epic-11: in-progress
+  11-1-wire-growth-mindset-validation-streaming: done
+  11-2-add-genre-terminology-all-13-genres: done
+  11-3-wire-token-tracking-and-response-processor: ready-for-dev
+  11-4-context-length-management-rate-limit-retry: done
+  11-5-fix-xp-race-condition-and-streak-timezone: done
+  11-6-session-expiry-notification-api-key-validity: ready-for-dev
+  11-7-data-export-gdpr-compliance: ready-for-dev
+  epic-11-retrospective: optional

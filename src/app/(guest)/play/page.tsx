@@ -1,6 +1,8 @@
 'use client';
 
 import { TroubleshootingPanel } from '@/components/troubleshooting-panel';
+import { KeyboardShortcutsPanel } from '@/components/keyboard-shortcuts-panel';
+import { FirstRunPrompt } from '@/components/first-run-prompt';
 import { SilentCoach } from '@/features/modes/silent-coach';
 import { DashboardChat } from '@/features/modes/dashboard-chat';
 import { ReplayStudio } from '@/features/modes/replay-studio';
@@ -32,9 +34,12 @@ export default function GuestPlayPage() {
   return (
     <>
       {/* Mode-specific layout */}
-      {currentMode === 'silent-coach' && <SilentCoach />}
-      {currentMode === 'dashboard-chat' && <DashboardChat />}
-      {currentMode === 'replay-studio' && <ReplayStudio sessionId={activeSessionId} />}
+      <div className="relative">
+        <FirstRunPrompt />
+        {currentMode === 'silent-coach' && <SilentCoach />}
+        {currentMode === 'dashboard-chat' && <DashboardChat />}
+        {currentMode === 'replay-studio' && <ReplayStudio sessionId={activeSessionId} />}
+      </div>
 
       {/* Troubleshooting overlay (always available regardless of mode) */}
       {showTroubleshooting && (
@@ -46,6 +51,8 @@ export default function GuestPlayPage() {
           connectionStatus={connectionStatus}
         />
       )}
+
+      <KeyboardShortcutsPanel />
     </>
   );
 }

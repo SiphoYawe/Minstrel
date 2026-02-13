@@ -46,14 +46,14 @@ describe('DataCard', () => {
     render(<DataCard />);
     const el = screen.getByLabelText(/Timing accuracy: 85%/);
     expect(el).toBeInTheDocument();
-    expect(el.className).toContain('text-[#7CB9E8]');
+    expect(el.className).toContain('text-primary');
   });
 
   it('displays timing accuracy with amber color when low', () => {
     useSessionStore.setState({ timingAccuracy: 65 });
     render(<DataCard />);
     const el = screen.getByLabelText(/Timing accuracy: 65%/);
-    expect(el.className).toContain('text-[#D4A43C]');
+    expect(el.className).toContain('text-accent-warm');
   });
 
   it('displays recent chords', () => {

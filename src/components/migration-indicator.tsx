@@ -36,7 +36,7 @@ export function MigrationIndicator() {
                 ? 'inline-block h-1.5 w-1.5 bg-[#7CB9E8] animate-pulse'
                 : migrationStatus === 'complete'
                   ? 'inline-block h-1.5 w-1.5 bg-[#81C995]'
-                  : 'inline-block h-1.5 w-1.5 bg-[#E8C77B]'
+                  : 'inline-block h-1.5 w-1.5 bg-accent-warm'
             }
           />
 
@@ -49,7 +49,7 @@ export function MigrationIndicator() {
                   ? '#7CB9E8'
                   : migrationStatus === 'complete'
                     ? '#81C995'
-                    : '#E8C77B',
+                    : 'hsl(var(--accent-warm))',
             }}
           >
             {migrationStatus === 'migrating' && 'Syncing your practice history'}
@@ -71,7 +71,7 @@ export function MigrationIndicator() {
           {migrationStatus === 'partial-failure' && (
             <button
               type="button"
-              className="pointer-events-auto flex h-5 w-5 items-center justify-center text-[#666666] transition-colors duration-150 hover:text-[#E8C77B]"
+              className="pointer-events-auto flex h-5 w-5 items-center justify-center text-[#666666] transition-colors duration-150 hover:text-accent-warm"
               onClick={() => useAppStore.getState().setMigrationStatus('idle')}
               aria-label="Dismiss sync notification"
             >

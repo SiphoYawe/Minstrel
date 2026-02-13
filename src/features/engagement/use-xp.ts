@@ -47,6 +47,7 @@ export function useXp() {
    * Returns the breakdown for display.
    */
   async function awardSessionXp(input: SessionXpInput, sessionId: string): Promise<XpBreakdown> {
+    void sessionId; // Reserved for future per-session persistence
     const breakdown = calculateSessionXp(input);
     setLastBreakdown(breakdown);
 
@@ -58,7 +59,7 @@ export function useXp() {
       const currentAuth = useAppStore.getState().isAuthenticated;
       if (currentAuth && currentUser?.id) {
         try {
-          await awardXp(currentUser.id, breakdown, sessionId);
+          await awardXp(currentUser.id, breakdown);
         } catch {
           console.warn('[xp] Failed to persist XP to Supabase');
         }

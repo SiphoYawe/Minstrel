@@ -86,7 +86,7 @@ export function StatusBar() {
 
   return (
     <header
-      className="fixed inset-x-0 top-0 z-40 h-10 border-b border-[#2A2A2A] bg-[#0F0F0F]/80 backdrop-blur-sm"
+      className="fixed inset-x-0 top-0 z-40 h-10 border-b border-border bg-background/80 backdrop-blur-sm"
       role="status"
     >
       <div className="mx-auto flex h-full items-center justify-between px-4">
@@ -139,15 +139,15 @@ export function StatusBar() {
           aria-label="Session analysis"
         >
           {currentKey && (
-            <span className="font-mono text-caption tracking-[0.06em] text-[#7CB9E8]">
+            <span className="font-mono text-caption tracking-[0.06em] text-primary">
               {currentKey.root} {currentKey.mode}
             </span>
           )}
           {currentKey && currentTempo !== null && (
-            <span className="h-3 w-px bg-[#333333]" aria-hidden="true" />
+            <span className="h-3 w-px bg-surface-border" aria-hidden="true" />
           )}
           {currentTempo !== null && (
-            <span className="font-mono text-caption tracking-wider text-[#E0E0E0] tabular-nums">
+            <span className="font-mono text-caption tracking-wider text-foreground tabular-nums">
               {Math.round(currentTempo)} BPM
             </span>
           )}

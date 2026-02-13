@@ -42,9 +42,9 @@ function formatTimeAria(ms: number): string {
 }
 
 const MARKER_ICONS: Record<TimelineMarker['type'], { char: string; color: string }> = {
-  snapshot: { char: '◆', color: '#7CB9E8' },
-  drill: { char: '●', color: '#4ADE80' },
-  insight: { char: '★', color: '#D4A43C' },
+  snapshot: { char: '◆', color: 'hsl(var(--primary))' },
+  drill: { char: '●', color: 'hsl(var(--accent-success))' },
+  insight: { char: '★', color: 'hsl(var(--accent-warm))' },
 };
 
 // --- Component ---
@@ -177,14 +177,14 @@ export function TimelineScrubber({
 
   return (
     <div
-      className="shrink-0 border-t border-[#1A1A1A] bg-[#0F0F0F]"
+      className="shrink-0 border-t border-surface-light bg-background"
       role="region"
       aria-label="Playback timeline"
     >
       {/* Track area — the scrubber itself */}
       <div className="relative px-4 pt-3 pb-1">
         {/* Time labels flanking the track */}
-        <div className="flex justify-between mb-1 font-mono text-[10px] text-[#444] tabular-nums select-none">
+        <div className="flex justify-between mb-1 font-mono text-[10px] text-muted-foreground tabular-nums select-none">
           <span>0:00</span>
           <span>{formatTime(totalDuration)}</span>
         </div>
@@ -204,20 +204,20 @@ export function TimelineScrubber({
           onPointerUp={handlePointerUp}
           onKeyDown={handleKeyDown}
           className="relative h-6 cursor-pointer group
-            focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#7CB9E8] focus-visible:outline-offset-2"
+            focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
         >
           {/* Track background (unfilled) */}
-          <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1 bg-[#1A1A1A]" />
+          <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1 bg-surface-light" />
 
           {/* Track filled portion */}
           <div
-            className="absolute top-1/2 -translate-y-1/2 left-0 h-1 bg-[#7CB9E8]/20"
+            className="absolute top-1/2 -translate-y-1/2 left-0 h-1 bg-primary/20"
             style={{ width: `${progressPercent}%` }}
           />
 
           {/* Scrub head */}
           <div
-            className="absolute top-0 bottom-0 w-1 bg-[#7CB9E8]
+            className="absolute top-0 bottom-0 w-1 bg-primary
               transition-[box-shadow] duration-150
               group-hover:shadow-[0_0_6px_rgba(124,185,232,0.4)]"
             style={{ left: `calc(${progressPercent}% - 2px)` }}
@@ -226,7 +226,7 @@ export function TimelineScrubber({
 
           {/* Current time floating label */}
           <div
-            className="absolute -top-5 font-mono text-[10px] text-[#7CB9E8] tabular-nums
+            className="absolute -top-5 font-mono text-[10px] text-primary tabular-nums
               -translate-x-1/2 pointer-events-none select-none"
             style={{ left: `${progressPercent}%` }}
             aria-hidden="true"
@@ -266,8 +266,8 @@ export function TimelineScrubber({
                 {hoveredMarker === marker && (
                   <div
                     className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2
-                      px-2 py-1 bg-[#222] border border-[#333]
-                      font-mono text-[10px] text-[#ccc] whitespace-nowrap
+                      px-2 py-1 bg-card border border-surface-border
+                      font-mono text-[10px] text-foreground whitespace-nowrap
                       pointer-events-none z-20"
                     role="tooltip"
                   >
@@ -290,8 +290,8 @@ export function TimelineScrubber({
           onClick={onPlayPause}
           aria-label={playbackState === 'playing' ? 'Pause' : 'Play'}
           className="flex items-center justify-center w-8 h-8
-            text-[#7CB9E8] hover:text-white
-            border border-[#1A1A1A] hover:border-[#333]
+            text-primary hover:text-white
+            border border-surface-light hover:border-surface-border
             bg-transparent transition-colors duration-150"
         >
           {playbackState === 'playing' ? '⏸' : '▶'}
@@ -310,8 +310,8 @@ export function TimelineScrubber({
                 border transition-colors duration-150
                 ${
                   speed === s
-                    ? 'text-[#7CB9E8] border-[#7CB9E8]/30 bg-[#7CB9E8]/5'
-                    : 'text-[#555] border-[#1A1A1A] hover:text-[#999] hover:border-[#333]'
+                    ? 'text-primary border-primary/30 bg-primary/5'
+                    : 'text-muted-foreground border-surface-light hover:text-secondary hover:border-surface-border'
                 }
               `}
             >
@@ -324,9 +324,9 @@ export function TimelineScrubber({
         <div className="flex-1" />
 
         {/* Time display */}
-        <span className="text-[#999] tabular-nums tracking-tight">
+        <span className="text-secondary tabular-nums tracking-tight">
           {formatTime(position)}
-          <span className="text-[#444] mx-1">/</span>
+          <span className="text-muted-foreground mx-1">/</span>
           {formatTime(totalDuration)}
         </span>
       </div>

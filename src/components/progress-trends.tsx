@@ -35,9 +35,9 @@ const INNER_W = CHART_W - PAD_X * 2;
 const INNER_H = CHART_H - PAD_Y * 2;
 
 function trendColor(direction: TrendDirection): string {
-  if (direction === TrendDirection.Up) return '#4CAF50';
-  if (direction === TrendDirection.Down) return '#D4A843';
-  return '#808080';
+  if (direction === TrendDirection.Up) return 'hsl(var(--accent-success))';
+  if (direction === TrendDirection.Down) return 'hsl(var(--accent-warm))';
+  return 'hsl(var(--muted-foreground))';
 }
 
 function directionArrow(direction: TrendDirection): string {
@@ -122,7 +122,7 @@ function TrendChart({ trend, period }: { trend: TrendLine; period: TrendPeriod }
     <div className="flex flex-col">
       {/* Dimension header */}
       <div className="flex items-center justify-between mb-2 px-1">
-        <span className="text-xs font-medium uppercase tracking-[0.15em] text-[#606060]">
+        <span className="text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
           {meta.label}
         </span>
         <span className="font-mono text-[10px] tracking-wider" style={{ color }}>
@@ -133,7 +133,7 @@ function TrendChart({ trend, period }: { trend: TrendLine; period: TrendPeriod }
       {/* SVG chart */}
       <svg
         viewBox={`0 0 ${CHART_W} ${CHART_H}`}
-        className="w-full bg-[#141414] border border-[#1A1A1A]"
+        className="w-full bg-card border border-surface-light"
         style={{ height: '120px' }}
         role="img"
         aria-label={ariaLabel}
@@ -239,12 +239,14 @@ function TrendChart({ trend, period }: { trend: TrendLine; period: TrendPeriod }
       </svg>
 
       {/* Summary card */}
-      <div className="mt-2 bg-[#141414] border border-[#1A1A1A] px-3 py-2.5">
+      <div className="mt-2 bg-card border border-surface-light px-3 py-2.5">
         <div className="flex items-baseline gap-3">
           {/* Current value — dominant */}
           <span className="font-mono text-xl font-semibold text-white leading-none">
             {trend.currentValue}
-            <span className="text-xs font-normal text-[#606060] ml-0.5">{meta.shortUnit}</span>
+            <span className="text-xs font-normal text-muted-foreground ml-0.5">
+              {meta.shortUnit}
+            </span>
           </span>
 
           {/* Delta pill */}
@@ -254,14 +256,16 @@ function TrendChart({ trend, period }: { trend: TrendLine; period: TrendPeriod }
           </span>
 
           {/* Best in period — right-aligned */}
-          <span className="ml-auto font-mono text-[10px] text-[#505050] leading-none">
+          <span className="ml-auto font-mono text-[10px] text-muted-foreground leading-none">
             best: {trend.bestInPeriod}
             {meta.shortUnit}
           </span>
         </div>
 
         {/* Insight text */}
-        <p className="mt-1.5 text-xs text-[#808080] italic leading-snug">{trend.insightText}</p>
+        <p className="mt-1.5 text-xs text-muted-foreground italic leading-snug">
+          {trend.insightText}
+        </p>
       </div>
     </div>
   );
@@ -274,7 +278,7 @@ export function ProgressTrends() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <p className="font-mono text-xs tracking-widest uppercase text-[#808080]/60">
+        <p className="font-mono text-xs tracking-widest uppercase text-muted-foreground/60">
           Loading trends...
         </p>
       </div>
@@ -284,11 +288,11 @@ export function ProgressTrends() {
   if (!hasMinimumData) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3">
-        <div className="w-8 h-px bg-[#1A1A1A]" />
-        <p className="text-sm text-[#808080] text-center">
+        <div className="w-8 h-px bg-surface-light" />
+        <p className="text-sm text-muted-foreground text-center">
           Keep practicing. Trends appear after 3 sessions.
         </p>
-        <div className="w-8 h-px bg-[#1A1A1A]" />
+        <div className="w-8 h-px bg-surface-light" />
       </div>
     );
   }
@@ -296,7 +300,7 @@ export function ProgressTrends() {
   return (
     <div className="w-full">
       {/* Period selector — segmented control */}
-      <div className="flex items-center gap-0 border border-[#1A1A1A] w-fit mb-6">
+      <div className="flex items-center gap-0 border border-surface-light w-fit mb-6">
         {PERIODS.map(({ value, label }) => (
           <button
             key={value}
@@ -304,8 +308,8 @@ export function ProgressTrends() {
             aria-pressed={selectedPeriod === value}
             className={`px-4 py-1.5 font-mono text-xs tracking-wider transition-colors duration-150 ${
               selectedPeriod === value
-                ? 'bg-[#1A1A1A] text-white'
-                : 'bg-transparent text-[#808080] hover:text-[#A0A0A0]'
+                ? 'bg-surface-light text-white'
+                : 'bg-transparent text-muted-foreground hover:text-muted-foreground'
             }`}
           >
             {label}

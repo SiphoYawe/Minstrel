@@ -1,5 +1,164 @@
-import { describe, it, expect } from 'vitest';
-import { validateSignUp, validateSignIn } from './use-auth';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
+import { useAuth, validateSignUp, validateSignIn } from './use-auth';
+import { useAppStore } from '@/stores/app-store';
+
+// Mock next/navigation
+const mockPush = vi.fn();
+const mockRefresh = vi.fn();
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+    refresh: mockRefresh,
+  }),
+}));
+
+// Mock Supabase client
+const mockSignOut = vi.fn().mockResolvedValue({ error: null });
+const mockSignUp = vi.fn().mockResolvedValue({ data: { user: null }, error: null });
+const mockSignInWithPassword = vi.fn().mockResolvedValue({ error: null });
+
+vi.mock('@/lib/supabase/client', () => ({
+  createClient: () => ({
+    auth: {
+      signOut: mockSignOut,
+      signUp: mockSignUp,
+      signInWithPassword: mockSignInWithPassword,
+    },
+  }),
+}));
+
+// Mock analytics
+vi.mock('@/lib/analytics', () => ({
+  capture: vi.fn(),
+  reset: vi.fn(),
+}));
+
+describe('useAuth', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useAppStore.setState({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      hasApiKey: false,
+    });
+  });
+
+  describe('signOut', () => {
+    it('redirects to / after sign out', async () => {
+      const { result } = renderHook(() => useAuth());
+
+      await act(async () => {
+        await result.current.signOut();
+      });
+
+      expect(mockSignOut).toHaveBeenCalledTimes(1);
+      expect(mockPush).toHaveBeenCalledWith('/');
+      expect(mockRefresh).toHaveBeenCalled();
+    });
+
+    it('does NOT redirect to /login after sign out', async () => {
+      const { result } = renderHook(() => useAuth());
+
+      await act(async () => {
+        await result.current.signOut();
+      });
+
+      expect(mockPush).not.toHaveBeenCalledWith('/login');
+    });
+
+    it('clears the user from app store on sign out', async () => {
+      useAppStore.setState({
+        user: { id: 'u1', email: 'test@test.com', displayName: 'Test' },
+        isAuthenticated: true,
+      });
+
+      const { result } = renderHook(() => useAuth());
+
+      await act(async () => {
+        await result.current.signOut();
+      });
+
+      expect(useAppStore.getState().isAuthenticated).toBe(false);
+      expect(useAppStore.getState().user).toBeNull();
+    });
+  });
+
+  describe('signIn', () => {
+    it('redirects to /session by default after sign in', async () => {
+      const { result } = renderHook(() => useAuth());
+
+      await act(async () => {
+        const res = await result.current.signIn({
+          email: 'test@example.com',
+          password: 'password123',
+        });
+        expect(res.error).toBeNull();
+      });
+
+      expect(mockPush).toHaveBeenCalledWith('/session');
+    });
+
+    it('redirects to custom path when redirectTo is provided', async () => {
+      const { result } = renderHook(() => useAuth());
+
+      await act(async () => {
+        const res = await result.current.signIn(
+          { email: 'test@example.com', password: 'password123' },
+          '/settings'
+        );
+        expect(res.error).toBeNull();
+      });
+
+      expect(mockPush).toHaveBeenCalledWith('/settings');
+    });
+
+    it('returns validation error for invalid email', async () => {
+      const { result } = renderHook(() => useAuth());
+
+      await act(async () => {
+        const res = await result.current.signIn({
+          email: 'not-an-email',
+          password: 'password123',
+        });
+        expect(res.error).toBe('Please enter a valid email address.');
+      });
+
+      expect(mockSignInWithPassword).not.toHaveBeenCalled();
+    });
+
+    it('returns validation error for empty password', async () => {
+      const { result } = renderHook(() => useAuth());
+
+      await act(async () => {
+        const res = await result.current.signIn({
+          email: 'test@example.com',
+          password: '',
+        });
+        expect(res.error).toBe('Password is required.');
+      });
+
+      expect(mockSignInWithPassword).not.toHaveBeenCalled();
+    });
+
+    it('returns mapped error on sign-in failure', async () => {
+      mockSignInWithPassword.mockResolvedValueOnce({
+        error: { message: 'Invalid login credentials' },
+      });
+
+      const { result } = renderHook(() => useAuth());
+
+      await act(async () => {
+        const res = await result.current.signIn({
+          email: 'test@example.com',
+          password: 'wrongpassword',
+        });
+        expect(res.error).toContain('didn\u2019t match');
+      });
+    });
+  });
+});
 
 describe('validateSignUp', () => {
   const validData = {

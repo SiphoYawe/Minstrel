@@ -7,11 +7,14 @@ import { useAppStore } from '@/stores/app-store';
 const mockGetUser = vi.fn();
 const mockOnAuthStateChange = vi.fn();
 
+const mockSignOut = vi.fn().mockResolvedValue({ error: null });
+
 vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
     auth: {
       getUser: mockGetUser,
       onAuthStateChange: mockOnAuthStateChange,
+      signOut: mockSignOut,
     },
   }),
 }));

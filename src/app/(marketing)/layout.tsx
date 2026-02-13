@@ -7,7 +7,10 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Navigation */}
-      <nav className="fixed inset-x-0 top-0 z-50 h-14 border-b border-[#1A1A1A] bg-[#0F0F0F]/90 backdrop-blur-sm">
+      <nav
+        aria-label="Main navigation"
+        className="fixed inset-x-0 top-0 z-50 h-14 border-b border-[#1A1A1A] bg-[#0F0F0F]/90 backdrop-blur-sm"
+      >
         <div className="mx-auto flex h-full max-w-content items-center justify-between px-8">
           {/* Logo */}
           <Link

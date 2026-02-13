@@ -97,11 +97,11 @@ export function AchievementToast({ achievements, onDismiss }: AchievementToastPr
             }}
           >
             <div
-              className="flex items-start gap-3 bg-[#141414] border-l-2 border-l-[#4CAF50] border-r border-t border-b border-r-[#1A1A1A] border-t-[#1A1A1A] border-b-[#1A1A1A] px-3 py-2.5"
+              className="flex items-start gap-3 bg-card border-l-2 border-l-accent-success border-r border-t border-b border-r-surface-light border-t-surface-light border-b-surface-light px-3 py-2.5"
               role="alert"
             >
               {/* Icon — monospaced indicator box */}
-              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-[#0F0F0F] border border-[#1A1A1A] font-mono text-sm text-[#4CAF50]">
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-background border border-surface-light font-mono text-sm text-accent-success">
                 {getCategoryIcon(achievement.category, achievement.icon)}
               </div>
 
@@ -110,15 +110,15 @@ export function AchievementToast({ achievements, onDismiss }: AchievementToastPr
                 <p className="text-sm font-medium text-white leading-tight truncate">
                   {achievement.name}
                 </p>
-                <p className="text-xs text-[#808080] leading-snug mt-0.5">
+                <p className="text-xs text-muted-foreground leading-snug mt-0.5">
                   {achievement.description}
                 </p>
               </div>
 
               {/* Thin progress line that drains over DISMISS_MS */}
-              <div className="absolute bottom-0 left-0 right-0 h-px bg-[#1A1A1A]">
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-surface-light">
                 <div
-                  className="h-full bg-[#4CAF50]/40"
+                  className="h-full bg-accent-success/40"
                   style={{
                     width: isVisible && !isExiting ? '0%' : '100%',
                     transition:

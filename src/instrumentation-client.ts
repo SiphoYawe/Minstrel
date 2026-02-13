@@ -37,13 +37,18 @@ if (
   process.env.NEXT_PUBLIC_POSTHOG_KEY &&
   !process.env.NEXT_PUBLIC_POSTHOG_KEY.startsWith('your-')
 ) {
+  // In development, talk directly to PostHog servers (Turbopack rewrites
+  // to external URLs can fail). In production, use the /ingest reverse
+  // proxy to avoid ad blockers.
+  const isDev = process.env.NODE_ENV === 'development';
+  const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com';
+
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-    // Use reverse proxy to avoid ad blockers
-    api_host: '/ingest',
-    ui_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.posthog.com',
+    api_host: isDev ? posthogHost : '/ingest',
+    ui_host: 'https://eu.posthog.com',
     defaults: '2026-01-30',
     capture_exceptions: true,
     person_profiles: 'identified_only',
-    debug: process.env.NODE_ENV === 'development',
+    debug: isDev,
   });
 }

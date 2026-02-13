@@ -17,11 +17,12 @@ function getReplayBody(snapshots: AnalysisSnapshot[]) {
     key: state.replaySession?.key ?? null,
     tempo: state.replaySession?.tempo ?? null,
     genre: null,
+    timingAccuracy: state.timingAccuracy,
   });
   return {
     replayContext: context,
     mode: 'replay' as const,
-    providerId: 'openai',
+    providerId: useAppStore.getState().apiKeyProvider ?? 'openai',
   };
 }
 

@@ -1,21 +1,10 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+
 import { useAuth } from '@/features/auth';
 import { useAppStore } from '@/stores/app-store';
 import { ApiKeyPrompt } from '@/features/auth/api-key-prompt';
@@ -27,7 +16,6 @@ import type { TokenUsageSummary } from '@/features/coaching/token-usage';
 
 export default function SettingsPage() {
   const { user, isAuthenticated, isLoading, signOut } = useAuth();
-  const router = useRouter();
   const mountedRef = useRef(true);
 
   const [keyMetadata, setKeyMetadata] = useState<ApiKeyMetadata | null>(null);
@@ -38,6 +26,7 @@ export default function SettingsPage() {
   const [totalUsage, setTotalUsage] = useState<TokenUsageSummary | null>(null);
   const [recentUsage, setRecentUsage] = useState<TokenUsageSummary | null>(null);
   const [usageLoaded, setUsageLoaded] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const hasApiKey = useAppStore((s) => s.hasApiKey);
 
   useEffect(() => {
@@ -58,9 +47,11 @@ export default function SettingsPage() {
       } else if (result.data) {
         setKeyMetadata(result.data);
         useAppStore.getState().setHasApiKey(true);
+        useAppStore.getState().setApiKeyProvider(result.data.provider);
       } else {
         setKeyMetadata(null);
         useAppStore.getState().setHasApiKey(false);
+        useAppStore.getState().setApiKeyProvider(null);
       }
       setIsKeyLoading(false);
     });
@@ -102,6 +93,26 @@ export default function SettingsPage() {
     }
     setKeyMetadata(result.data);
     useAppStore.getState().setHasApiKey(true);
+    if (result.data) {
+      useAppStore.getState().setApiKeyProvider(result.data.provider);
+    }
+  }, []);
+
+  const handleExport = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      const res = await fetch('/api/user/export');
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `minstrel-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      if (mountedRef.current) setIsExporting(false);
+    }
   }, []);
 
   const handleDeleteKey = useCallback(async (provider: ApiKeyProvider) => {
@@ -116,6 +127,7 @@ export default function SettingsPage() {
     }
     setKeyMetadata(null);
     useAppStore.getState().setHasApiKey(false);
+    useAppStore.getState().setApiKeyProvider(null);
   }, []);
 
   if (isLoading) {
@@ -144,15 +156,10 @@ export default function SettingsPage() {
     );
   }
 
-  async function handleDeleteAccount() {
-    // Placeholder — full implementation in a future story with server action
-    console.warn('Account deletion requested. Server-side implementation pending.');
-    router.push('/');
-  }
-
   return (
     <div className="min-h-svh bg-background px-6 py-8">
       <div className="mx-auto w-full max-w-xl">
+        <h1 className="sr-only">Settings</h1>
         {/* Navigation */}
         <div className="flex items-center justify-between">
           <Link
@@ -210,7 +217,7 @@ export default function SettingsPage() {
             {isKeyLoading ? (
               <span className="font-mono text-caption text-muted-foreground">Loading...</span>
             ) : fetchError ? (
-              <p className="text-xs text-[#E8C77B]">Could not load API key info. {fetchError}</p>
+              <p className="text-xs text-accent-warm">Could not load API key info. {fetchError}</p>
             ) : (
               <ApiKeyPrompt
                 keyMetadata={keyMetadata}
@@ -268,38 +275,37 @@ export default function SettingsPage() {
           </Button>
 
           <div className="border-t border-border pt-6">
-            <h2 className="font-mono text-caption uppercase tracking-wider text-[#E8C77B]">
+            <h2 className="font-mono text-caption uppercase tracking-wider text-accent-warm">
               Danger Zone
             </h2>
-            <p className="mt-2 text-caption text-muted-foreground">
-              Permanently delete your account and all associated data.
-            </p>
 
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="mt-4 w-full">
-                  Delete Account
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete your account?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will permanently delete your account and all data — sessions, progress,
-                    drills, everything. This cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDeleteAccount}
-                    className="bg-destructive text-destructive-foreground hover:brightness-110"
-                  >
-                    Yes, delete my account
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <div className="mt-4">
+              <h3 className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                Export Data
+              </h3>
+              <p className="mt-1 text-caption text-muted-foreground">
+                Download all your practice sessions, progress metrics, and AI conversations as JSON.
+              </p>
+              <Button
+                variant="outline"
+                className="mt-3 w-full"
+                onClick={handleExport}
+                disabled={isExporting}
+              >
+                {isExporting ? 'Preparing export...' : 'Download My Data'}
+              </Button>
+            </div>
+
+            <p className="mt-6 text-caption text-muted-foreground">
+              Account deletion — coming in a future update. Contact{' '}
+              <a
+                href="mailto:support@minstrel.app"
+                className="text-primary transition-colors hover:brightness-110"
+              >
+                support@minstrel.app
+              </a>{' '}
+              for removal requests.
+            </p>
           </div>
         </section>
       </div>

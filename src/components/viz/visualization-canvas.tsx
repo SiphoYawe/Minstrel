@@ -37,6 +37,7 @@ export function VisualizationCanvas() {
   const snapshotAlphaRef = useRef(0);
   const snapshotTransitionRef = useRef<'none' | 'fade-in' | 'fade-out'>('none');
   const snapshotTransitionStartRef = useRef(0);
+  const timingAccuracyRef = useRef(100);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -101,6 +102,7 @@ export function VisualizationCanvas() {
       (tempo) => {
         tempoRef.current = tempo;
         dirtyRef.current = true;
+        updateCanvasAriaLabel();
       }
     );
     const unsubDeviations = useSessionStore.subscribe(
@@ -117,6 +119,7 @@ export function VisualizationCanvas() {
       (key) => {
         keyRef.current = key;
         dirtyRef.current = true;
+        updateCanvasAriaLabel();
       }
     );
     const unsubHarmonicFn = useSessionStore.subscribe(
@@ -133,6 +136,26 @@ export function VisualizationCanvas() {
         dirtyRef.current = true;
       }
     );
+
+    // --- Zustand vanilla subscription for timing accuracy ---
+    const unsubTimingAccuracy = useSessionStore.subscribe(
+      (state) => state.timingAccuracy,
+      (accuracy) => {
+        timingAccuracyRef.current = accuracy;
+        updateCanvasAriaLabel();
+      }
+    );
+
+    function updateCanvasAriaLabel() {
+      if (!canvas) return;
+      const key = keyRef.current;
+      const tempo = tempoRef.current;
+      const accuracy = timingAccuracyRef.current;
+      const label = key
+        ? `Playing in ${key.root} ${key.mode}, ${tempo ?? '--'} BPM, timing accuracy ${Math.round(accuracy)}%`
+        : 'Music visualization canvas';
+      canvas.setAttribute('aria-label', label);
+    }
 
     // --- Zustand vanilla subscription for snapshot display mode ---
     const unsubSnapshot = useSessionStore.subscribe(
@@ -246,6 +269,7 @@ export function VisualizationCanvas() {
       unsubHarmonicFn();
       unsubNoteAnalyses();
       unsubSnapshot();
+      unsubTimingAccuracy();
       resizeObserver.disconnect();
       ctxRef.current = null;
     };

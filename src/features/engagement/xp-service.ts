@@ -1,8 +1,13 @@
 /**
- * XP Service — Layer 4 Infrastructure (Story 7.2)
+ * XP Service — Layer 4 Infrastructure (Story 7.2, 11.5)
  *
  * Handles Supabase persistence of XP data.
  * Reads/writes the progress_metrics table with metric_type = 'xp'.
+ *
+ * Story 11.5: awardXp() uses an atomic Supabase RPC (increment_xp) to
+ * eliminate the read-modify-write race condition. The RPC performs
+ * INSERT ... ON CONFLICT with current_value = current_value + delta,
+ * ensuring concurrent calls never lose updates.
  */
 
 import { createClient } from '@/lib/supabase/client';
@@ -26,38 +31,24 @@ export async function fetchLifetimeXp(userId: string): Promise<number> {
 }
 
 /**
- * Award XP to a user: atomically increment lifetime total
- * and store the per-session breakdown in metadata.
+ * Award XP to a user using an atomic Supabase RPC.
+ *
+ * The `increment_xp` RPC performs an INSERT ... ON CONFLICT that atomically
+ * increments current_value by the delta, eliminating race conditions from
+ * concurrent read-modify-write cycles (e.g., session end + achievement unlock).
  */
-export async function awardXp(
-  userId: string,
-  breakdown: XpBreakdown,
-  sessionId: string
-): Promise<void> {
+export async function awardXp(userId: string, breakdown: XpBreakdown): Promise<void> {
+  if (breakdown.totalXp <= 0) return;
+
   const supabase = createClient();
-
-  // Fetch current XP
-  const current = await fetchLifetimeXp(userId);
-  const newTotal = current + breakdown.totalXp;
-
-  // Upsert the progress_metrics row
-  const { error } = await supabase.from('progress_metrics').upsert(
-    {
-      user_id: userId,
-      metric_type: 'xp',
-      current_value: newTotal,
-      best_value: newTotal, // XP only goes up
-      metadata: {
-        lastSessionId: sessionId,
-        lastBreakdown: breakdown,
-        lastAwardedAt: new Date().toISOString(),
-      },
-      last_qualified_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id,metric_type' }
-  );
+  const { error } = await supabase.rpc('increment_xp', {
+    p_user_id: userId,
+    p_delta: breakdown.totalXp,
+    p_metadata: breakdown,
+    p_last_qualified_at: new Date().toISOString(),
+  });
 
   if (error) {
-    throw new Error(`Failed to award XP: ${error.message}`);
+    console.error('[XP] Failed to award XP:', error.message);
   }
 }

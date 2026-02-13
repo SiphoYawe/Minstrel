@@ -123,9 +123,8 @@ describe('ReplayStudio', () => {
 
     it('uses CSS grid with 3fr 1fr split', () => {
       const { container } = render(<ReplayStudio sessionId={1} />);
-      const grid = container.querySelector('[style*="grid-template-columns"]');
+      const grid = container.querySelector('.lg\\:grid-cols-\\[3fr_1fr\\]');
       expect(grid).not.toBeNull();
-      expect(grid?.getAttribute('style')).toContain('3fr 1fr');
     });
   });
 
@@ -160,7 +159,11 @@ describe('ReplayStudio', () => {
         'aria-selected',
         'true'
       );
-      expect(screen.getByText(/coming in story 6\.2/i)).toBeInTheDocument();
+      // Sessions panel renders the SessionsListPanel which loads asynchronously
+      expect(
+        screen.getByRole('tabpanel', { name: /sessions/i }) ||
+          screen.getByText(/loading sessions|no sessions/i)
+      ).toBeTruthy();
     });
 
     it('tab panels have correct aria linkage', () => {

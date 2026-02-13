@@ -1,6 +1,7 @@
 'use client';
 
 import { StreakStatus, type StreakData } from '@/features/engagement/engagement-types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface StreakBadgeProps {
   streak: StreakData;
@@ -46,22 +47,28 @@ export function StreakBadge({ streak }: StreakBadgeProps) {
   const isMilestone = streak.streakStatus === StreakStatus.Milestone;
 
   return (
-    <div
-      className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-sans ${
-        isMilestone ? 'shadow-[0_0_8px_hsl(var(--accent-warm)/0.3)]' : ''
-      }`}
-      title={getTooltipText(streak)}
-      aria-label={`Practice streak: ${streak.currentStreak} days`}
-    >
-      <FlameIcon active={isActive || isAtRisk} />
-      <span className={isActive || isAtRisk ? 'text-foreground' : 'text-muted-foreground'}>
-        {streak.currentStreak > 0 ? `Day ${streak.currentStreak}` : 'No streak'}
-      </span>
-      {isMilestone && (
-        <span role="status" aria-live="polite" className="sr-only">
-          Milestone reached: Day {streak.currentStreak}
-        </span>
-      )}
-    </div>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-sans ${
+              isMilestone ? 'shadow-[0_0_8px_hsl(var(--accent-warm)/0.3)]' : ''
+            }`}
+            aria-label={`Practice streak: ${streak.currentStreak} days`}
+          >
+            <FlameIcon active={isActive || isAtRisk} />
+            <span className={isActive || isAtRisk ? 'text-foreground' : 'text-muted-foreground'}>
+              {streak.currentStreak > 0 ? `Day ${streak.currentStreak}` : 'No streak'}
+            </span>
+            {isMilestone && (
+              <span role="status" aria-live="polite" className="sr-only">
+                Milestone reached: Day {streak.currentStreak}
+              </span>
+            )}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>{getTooltipText(streak)}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

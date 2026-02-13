@@ -82,6 +82,8 @@ interface SessionState {
   microSessionStack: MicroSessionStack | null;
   // Cross-session continuity (Story 6.4)
   recentSessions: ContinuitySessionSummary[];
+  // Pending drill request (from snapshot CTA)
+  pendingDrillRequest: boolean;
   // Replay Studio state
   replaySession: GuestSession | null;
   replayEvents: StoredMidiEvent[];
@@ -89,6 +91,7 @@ interface SessionState {
   replayPosition: number;
   replayState: 'paused' | 'playing';
   replaySpeed: number;
+  tokenUsage: number;
 }
 
 interface SessionActions {
@@ -132,6 +135,8 @@ interface SessionActions {
   setCurrentWarmupExercise: (index: number) => void;
   setWarmupRoutine: (routine: WarmupRoutine | null) => void;
   setMicroSessionStack: (stack: MicroSessionStack | null) => void;
+  // Pending drill request
+  setPendingDrillRequest: (pending: boolean) => void;
   // Continuity actions
   setRecentSessions: (sessions: ContinuitySessionSummary[]) => void;
   // Replay actions
@@ -141,6 +146,7 @@ interface SessionActions {
   setReplayPosition: (position: number) => void;
   setReplayState: (state: 'paused' | 'playing') => void;
   setReplaySpeed: (speed: number) => void;
+  addTokenUsage: (tokens: number) => void;
   resetReplay: () => void;
   resetAnalysis: () => void;
 }
@@ -184,6 +190,7 @@ const initialState: SessionState = {
   currentWarmupExercise: 0,
   warmupRoutine: null,
   microSessionStack: null,
+  pendingDrillRequest: false,
   recentSessions: [],
   replaySession: null,
   replayEvents: [],
@@ -191,6 +198,7 @@ const initialState: SessionState = {
   replayPosition: 0,
   replayState: 'paused',
   replaySpeed: 1,
+  tokenUsage: 0,
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -373,7 +381,11 @@ export const useSessionStore = create<SessionStore>()(
 
     setMicroSessionStack: (stack) => set({ microSessionStack: stack }),
 
+    setPendingDrillRequest: (pending) => set({ pendingDrillRequest: pending }),
+
     setRecentSessions: (sessions) => set({ recentSessions: sessions }),
+
+    addTokenUsage: (tokens) => set((state) => ({ tokenUsage: state.tokenUsage + tokens })),
 
     setReplaySession: (session) => set({ replaySession: session }),
     setReplayEvents: (events) => set({ replayEvents: events }),

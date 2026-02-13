@@ -18,8 +18,8 @@ function formatAccuracy(accuracy: number): string {
 }
 
 function getAccuracyColor(accuracy: number): string {
-  if (accuracy >= 80) return 'text-[#7CB9E8]';
-  return 'text-[#D4A43C]';
+  if (accuracy >= 80) return 'text-primary';
+  return 'text-accent-warm';
 }
 
 export function DataCard() {
@@ -34,7 +34,7 @@ export function DataCard() {
 
   return (
     <div className="grid grid-cols-2 gap-2 p-3" role="region" aria-label="Session metrics">
-      <Card className="bg-[#141414] border-[#1A1A1A] p-3">
+      <Card className="bg-card border-surface-light p-3">
         <span className="block text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-1">
           Key
         </span>
@@ -46,7 +46,7 @@ export function DataCard() {
         </span>
       </Card>
 
-      <Card className="bg-[#141414] border-[#1A1A1A] p-3">
+      <Card className="bg-card border-surface-light p-3">
         <span className="block text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-1">
           Tempo
         </span>
@@ -58,7 +58,7 @@ export function DataCard() {
         </span>
       </Card>
 
-      <Card className="bg-[#141414] border-[#1A1A1A] p-3">
+      <Card className="bg-card border-surface-light p-3">
         <span className="block text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-1">
           Timing
         </span>
@@ -70,7 +70,7 @@ export function DataCard() {
         </span>
       </Card>
 
-      <Card className="bg-[#141414] border-[#1A1A1A] p-3">
+      <Card className="bg-card border-surface-light p-3">
         <span className="block text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-1">
           Chords
         </span>

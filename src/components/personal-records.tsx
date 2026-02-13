@@ -28,18 +28,18 @@ function RecordCard({ record, isNew }: { record: PersonalRecordWithHistory; isNe
 
   return (
     <div
-      className={`bg-[#141414] border border-[#1A1A1A] ${isNew ? 'border-l-2 border-l-[#4CAF50]' : ''}`}
+      className={`bg-card border border-surface-light ${isNew ? 'border-l-2 border-l-accent-success' : ''}`}
       aria-label={ariaLabel}
       role="region"
     >
       <div className="px-3 py-3">
         {/* Header row */}
         <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] uppercase tracking-[0.15em] text-[#606060]">
+          <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
             {record.label}
           </span>
           {isNew && (
-            <span className="font-mono text-[10px] uppercase tracking-wider text-[#4CAF50]">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-accent-success">
               NEW
             </span>
           )}
@@ -51,17 +51,17 @@ function RecordCard({ record, isNew }: { record: PersonalRecordWithHistory; isNe
             <span className="font-mono text-2xl font-semibold text-white leading-none">
               {record.currentValue}
             </span>
-            <span className="text-xs text-[#606060]">{record.unit}</span>
+            <span className="text-xs text-muted-foreground">{record.unit}</span>
           </div>
         ) : (
-          <span className="font-mono text-2xl text-[#808080] leading-none">&mdash;</span>
+          <span className="font-mono text-2xl text-muted-foreground leading-none">&mdash;</span>
         )}
 
         {/* History toggle */}
         {hasHistory && (
           <button
             onClick={() => setExpanded((prev) => !prev)}
-            className="mt-2 text-[10px] text-[#808080] hover:text-[#A0A0A0] transition-colors duration-150 tracking-wider uppercase font-mono"
+            className="mt-2 text-[10px] text-muted-foreground hover:text-foreground transition-colors duration-150 tracking-wider uppercase font-mono"
           >
             {expanded ? 'Hide history' : `History (${record.history.length})`}
           </button>
@@ -70,16 +70,16 @@ function RecordCard({ record, isNew }: { record: PersonalRecordWithHistory; isNe
 
       {/* Expanded history */}
       {expanded && hasHistory && (
-        <div className="border-t border-[#1A1A1A] px-3 py-2">
+        <div className="border-t border-surface-light px-3 py-2">
           {record.history.map((entry, i) => (
             <div
               key={i}
-              className="flex items-center justify-between py-1.5 border-b border-[#1A1A1A] last:border-b-0"
+              className="flex items-center justify-between py-1.5 border-b border-surface-light last:border-b-0"
             >
-              <span className="font-mono text-xs text-[#808080]">
-                {entry.value} <span className="text-[#606060]">{record.unit}</span>
+              <span className="font-mono text-xs text-muted-foreground">
+                {entry.value} <span className="text-muted-foreground">{record.unit}</span>
               </span>
-              <span className="text-[10px] text-[#606060]">{formatDate(entry.date)}</span>
+              <span className="text-[10px] text-muted-foreground">{formatDate(entry.date)}</span>
             </div>
           ))}
         </div>
@@ -94,7 +94,7 @@ export function PersonalRecords() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="font-mono text-xs tracking-widest uppercase text-[#808080]/60">
+        <p className="font-mono text-xs tracking-widest uppercase text-muted-foreground/60">
           Loading records...
         </p>
       </div>
@@ -127,9 +127,9 @@ export function NewRecordHighlight({ records }: { records: PersonalRecord[] }) {
       {records.map((record) => (
         <div
           key={record.recordType}
-          className="bg-[#141414] border border-[#1A1A1A] border-l-2 border-l-[#4CAF50] px-3 py-2"
+          className="bg-card border border-surface-light border-l-2 border-l-accent-success px-3 py-2"
         >
-          <p className="text-sm text-[#A0A0A0]">{formatNewRecord(record)}</p>
+          <p className="text-sm text-muted-foreground">{formatNewRecord(record)}</p>
         </div>
       ))}
     </div>

@@ -20,13 +20,21 @@ export function isSameCalendarDay(date1: Date, date2: Date, timezoneOffsetMinute
   );
 }
 
-export function calculateStreakUpdate(currentStreak: StreakData, sessionEndTime: Date): StreakData {
+export function calculateStreakUpdate(
+  currentStreak: StreakData,
+  sessionEndTime: Date,
+  timezoneOffsetMinutes = 0
+): StreakData {
   const now = sessionEndTime.getTime();
 
   // If already qualified today, no change
   if (
     currentStreak.lastQualifiedAt &&
-    isSameCalendarDay(new Date(currentStreak.lastQualifiedAt), sessionEndTime)
+    isSameCalendarDay(
+      new Date(currentStreak.lastQualifiedAt),
+      sessionEndTime,
+      timezoneOffsetMinutes
+    )
   ) {
     return { ...currentStreak };
   }
@@ -53,12 +61,17 @@ export function calculateStreakUpdate(currentStreak: StreakData, sessionEndTime:
     lastQualifiedAt: sessionEndTime.toISOString(),
     streakStatus: getStreakStatus(
       { ...currentStreak, currentStreak: newStreak, lastQualifiedAt: sessionEndTime.toISOString() },
-      sessionEndTime
+      sessionEndTime,
+      timezoneOffsetMinutes
     ),
   };
 }
 
-export function getStreakStatus(streak: StreakData, now: Date): StreakStatus {
+export function getStreakStatus(
+  streak: StreakData,
+  now: Date,
+  timezoneOffsetMinutes = 0
+): StreakStatus {
   if (streak.currentStreak === 0 || !streak.lastQualifiedAt) {
     return StreakStatus.Broken;
   }
@@ -76,7 +89,7 @@ export function getStreakStatus(streak: StreakData, now: Date): StreakStatus {
   }
 
   // Check at-risk: last session was yesterday (qualified, but hasn't played today)
-  if (!isSameCalendarDay(new Date(streak.lastQualifiedAt), now)) {
+  if (!isSameCalendarDay(new Date(streak.lastQualifiedAt), now, timezoneOffsetMinutes)) {
     return StreakStatus.AtRisk;
   }
 

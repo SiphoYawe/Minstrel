@@ -61,7 +61,7 @@ export function ModeSwitcher() {
       <nav
         role="tablist"
         aria-label="Session mode"
-        className="flex items-center gap-px bg-[#171717]/90 backdrop-blur-sm border border-[#2A2A2A]"
+        className="flex items-center gap-px bg-card/90 backdrop-blur-sm border border-border"
       >
         {MODE_ORDER.map((mode) => {
           const config = MODE_CONFIGS[mode];
@@ -78,21 +78,18 @@ export function ModeSwitcher() {
               className={`
                 relative px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.1em]
                 transition-all duration-150
-                focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7CB9E8]
-                ${isActive ? 'text-[#E0E0E0]' : 'text-[#666666] hover:text-[#999999]'}
+                focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary
+                ${isActive ? 'text-foreground' : 'text-muted-foreground hover:text-secondary'}
               `}
             >
               {/* Active indicator — bottom edge line */}
               {isActive && (
-                <span
-                  className="absolute inset-x-0 bottom-0 h-px bg-[#7CB9E8]"
-                  aria-hidden="true"
-                />
+                <span className="absolute inset-x-0 bottom-0 h-px bg-primary" aria-hidden="true" />
               )}
 
               {/* Shortcut number + label */}
               <span className="flex items-center gap-1.5">
-                <span className={`text-[10px] ${isActive ? 'text-[#7CB9E8]' : 'text-[#444444]'}`}>
+                <span className={`text-[10px] ${isActive ? 'text-primary' : 'text-text-tertiary'}`}>
                   {config.shortcut}
                 </span>
                 {config.label}

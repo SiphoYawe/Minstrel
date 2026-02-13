@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import { useAppStore } from '@/stores/app-store';
 import { mapSupabaseUser } from './use-auth';
@@ -23,9 +24,18 @@ function handleAuthenticated(userId: string): void {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const userInitiatedSignOut = useRef(false);
+
   useEffect(() => {
     const supabase = createClient();
     let authStateSettled = false;
+
+    // Intercept signOut to mark user-initiated sign-outs
+    const originalSignOut = supabase.auth.signOut.bind(supabase.auth);
+    supabase.auth.signOut = async (...args: Parameters<typeof originalSignOut>) => {
+      userInitiatedSignOut.current = true;
+      return originalSignOut(...args);
+    };
 
     // Listen for auth state changes — fires synchronously with INITIAL_SESSION
     const {
@@ -39,6 +49,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           handleAuthenticated(session.user.id);
         }
       } else {
+        // Detect session expiry: SIGNED_OUT event that wasn't user-initiated
+        if (event === 'SIGNED_OUT' && !userInitiatedSignOut.current) {
+          toast.warning(
+            'Your session expired. Please sign in again to continue using AI features.'
+          );
+        }
+        userInitiatedSignOut.current = false;
         useAppStore.getState().clearUser();
       }
       useAppStore.getState().setLoading(false);

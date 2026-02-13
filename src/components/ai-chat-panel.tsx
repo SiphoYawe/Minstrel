@@ -63,8 +63,9 @@ export function AIChatPanel({
   onSubmit,
   isLoading,
   error,
-  setInput,
+  setInput: _setInput,
 }: AIChatPanelProps) {
+  void _setInput;
   const hasApiKey = useAppStore((s) => s.hasApiKey);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -111,7 +112,7 @@ export function AIChatPanel({
         </p>
         <a
           href="/settings"
-          className="text-sm text-[#7CB9E8] underline underline-offset-2 hover:opacity-80"
+          className="text-sm text-primary underline underline-offset-2 hover:opacity-80"
         >
           Go to Settings
         </a>
@@ -120,7 +121,7 @@ export function AIChatPanel({
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#0F0F0F]">
+    <div className="flex flex-col h-full bg-background">
       <ScrollArea className="flex-1 min-h-0">
         <div
           className="flex flex-col gap-3 p-3"
@@ -138,8 +139,8 @@ export function AIChatPanel({
               key={msg.id}
               className={`max-w-[85%] px-3 py-2 text-sm ${
                 msg.role === 'user'
-                  ? 'self-end bg-[#1A1A1A] text-foreground font-sans'
-                  : 'self-start bg-[#141414] text-foreground font-mono text-xs'
+                  ? 'self-end bg-surface-light text-foreground font-sans'
+                  : 'self-start bg-card text-foreground font-mono text-xs'
               }`}
             >
               {msg.role === 'assistant' ? (
@@ -152,7 +153,7 @@ export function AIChatPanel({
             </div>
           ))}
           {error && (
-            <div className="self-center px-3 py-2 text-[#D4A43C] text-xs" role="alert">
+            <div className="self-center px-3 py-2 text-accent-warm text-xs" role="alert">
               {error.message}
               {error.actionUrl && (
                 <>
@@ -168,15 +169,15 @@ export function AIChatPanel({
             <div className="self-start px-3 py-2" aria-label="AI is thinking">
               <span className="inline-flex gap-1">
                 <span
-                  className="w-1.5 h-1.5 bg-[#7CB9E8] animate-pulse"
+                  className="w-1.5 h-1.5 bg-primary animate-pulse"
                   style={{ animationDelay: '0ms' }}
                 />
                 <span
-                  className="w-1.5 h-1.5 bg-[#7CB9E8] animate-pulse"
+                  className="w-1.5 h-1.5 bg-primary animate-pulse"
                   style={{ animationDelay: '150ms' }}
                 />
                 <span
-                  className="w-1.5 h-1.5 bg-[#7CB9E8] animate-pulse"
+                  className="w-1.5 h-1.5 bg-primary animate-pulse"
                   style={{ animationDelay: '300ms' }}
                 />
               </span>
@@ -186,7 +187,10 @@ export function AIChatPanel({
         </div>
       </ScrollArea>
 
-      <form onSubmit={handleSubmit} className="flex items-end gap-2 p-3 border-t border-[#1A1A1A]">
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-end gap-2 p-3 border-t border-surface-light"
+      >
         <textarea
           ref={textareaRef}
           value={input}
@@ -195,13 +199,13 @@ export function AIChatPanel({
           placeholder="Ask about your playing..."
           rows={1}
           disabled={isLoading}
-          className="flex-1 resize-none bg-[#141414] border border-[#2A2A2A] px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#7CB9E8] font-sans min-h-[36px]"
+          className="flex-1 resize-none bg-card border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-sans min-h-[36px]"
           aria-label="Chat message input"
         />
         <Button
           type="submit"
           disabled={isLoading || !input.trim()}
-          className="h-9 px-3 bg-[#7CB9E8] text-[#0F0F0F] hover:bg-[#6AA8D7] disabled:opacity-40 font-mono text-xs uppercase tracking-wider"
+          className="h-9 px-3 bg-primary text-background hover:brightness-90 disabled:opacity-40 font-mono text-xs uppercase tracking-wider"
           aria-label="Send message"
         >
           Send

@@ -39,9 +39,8 @@ describe('DashboardChat', () => {
 
   it('uses CSS grid layout with 3fr 2fr split', () => {
     const { container } = render(<DashboardChat />);
-    const grid = container.querySelector('[style*="grid-template-columns"]');
+    const grid = container.querySelector('.lg\\:grid-cols-\\[3fr_2fr\\]');
     expect(grid).not.toBeNull();
-    expect(grid?.getAttribute('style')).toContain('3fr 2fr');
   });
 
   it('renders status bar', () => {

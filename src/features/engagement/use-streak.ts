@@ -29,7 +29,8 @@ export function useStreak() {
     (async () => {
       const data = await fetchStreak(userId);
       if (!cancelled) {
-        data.streakStatus = getStreakStatus(data, new Date());
+        const timezoneOffsetMinutes = -new Date().getTimezoneOffset();
+        data.streakStatus = getStreakStatus(data, new Date(), timezoneOffsetMinutes);
         setStreak(data);
         setFetched(true);
       }
@@ -47,7 +48,8 @@ export function useStreak() {
     if (!userId) return;
     if (!isSessionMeaningful(activePlayDurationMs)) return;
 
-    const updated = calculateStreakUpdate(streakRef.current, new Date());
+    const timezoneOffsetMinutes = -new Date().getTimezoneOffset();
+    const updated = calculateStreakUpdate(streakRef.current, new Date(), timezoneOffsetMinutes);
     setStreak(updated);
     await updateStreak(userId, updated);
   }
