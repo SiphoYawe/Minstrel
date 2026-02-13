@@ -5,16 +5,23 @@ import { useMidiStore } from '@/stores/midi-store';
 import { useSessionStore } from '@/stores/session-store';
 import { detectNote } from './note-detector';
 import { analyzeChord, chordDisplayName, updateProgression } from './chord-analyzer';
+import { createTimingAnalysis } from './timing-analyzer';
 import type { DetectedNote } from './analysis-types';
-import { SIMULTANEITY_WINDOW_MS, SILENCE_THRESHOLD_MS } from '@/lib/constants';
+import {
+  SIMULTANEITY_WINDOW_MS,
+  SILENCE_THRESHOLD_MS,
+  TIMING_UPDATE_INTERVAL_MS,
+  TIMING_UPDATE_NOTE_COUNT,
+} from '@/lib/constants';
 
 /**
- * Subscribes to midiStore events, runs note detection and chord analysis,
- * and dispatches results to sessionStore.
+ * Subscribes to midiStore events, runs note detection, chord analysis,
+ * and timing analysis, then dispatches results to sessionStore.
  *
  * Uses separate tracking for:
  * - analysisCluster: notes in the current simultaneity window (for chord detection)
  * - heldNotes: notes currently held down (for display via sessionStore.currentNotes)
+ * - timingAnalysis: stateful timing manager for BPM/accuracy
  */
 export function useAnalysisPipeline() {
   const analysisClusterRef = useRef<DetectedNote[]>([]);
@@ -23,6 +30,10 @@ export function useAnalysisPipeline() {
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    const timingAnalysis = createTimingAnalysis();
+    let timingNoteCount = 0;
+    let lastTimingUpdate = 0;
+
     function flushCluster() {
       const cluster = analysisClusterRef.current;
       analysisClusterRef.current = [];
@@ -46,8 +57,27 @@ export function useAnalysisPipeline() {
       }
       silenceTimerRef.current = setTimeout(() => {
         useSessionStore.getState().setChordProgression(null);
+        timingAnalysis.reset();
+        useSessionStore.getState().setTimingData({
+          tempo: null,
+          accuracy: 100,
+          deviations: [],
+          tempoHistory: [],
+        });
         silenceTimerRef.current = null;
       }, SILENCE_THRESHOLD_MS);
+    }
+
+    function dispatchTimingUpdate(now: number) {
+      const store = useSessionStore.getState();
+      store.setTimingData({
+        tempo: timingAnalysis.getCurrentTempo(),
+        accuracy: timingAnalysis.getAccuracy(),
+        deviations: timingAnalysis.getDeviations(),
+        tempoHistory: timingAnalysis.getTempoHistory(),
+      });
+      lastTimingUpdate = now;
+      timingNoteCount = 0;
     }
 
     const unsubscribe = useMidiStore.subscribe(
@@ -73,6 +103,19 @@ export function useAnalysisPipeline() {
             flushCluster();
             clusterTimerRef.current = null;
           }, SIMULTANEITY_WINDOW_MS);
+
+          // Timing analysis: process each note-on timestamp
+          timingAnalysis.processNoteOn(event.timestamp);
+          timingNoteCount++;
+
+          // Throttled timing store update
+          const now = performance.now();
+          if (
+            timingNoteCount >= TIMING_UPDATE_NOTE_COUNT ||
+            now - lastTimingUpdate >= TIMING_UPDATE_INTERVAL_MS
+          ) {
+            dispatchTimingUpdate(now);
+          }
 
           // Reset silence timer
           resetSilenceTimer();
@@ -101,6 +144,7 @@ export function useAnalysisPipeline() {
       if (silenceTimerRef.current !== null) clearTimeout(silenceTimerRef.current);
       analysisClusterRef.current = [];
       heldNotes.clear();
+      timingAnalysis.reset();
       useSessionStore.getState().resetAnalysis();
     };
   }, []);

@@ -4,6 +4,8 @@ import type {
   DetectedNote,
   DetectedChord,
   ChordProgression,
+  TimingEvent,
+  TempoSegment,
 } from '@/features/analysis/analysis-types';
 
 interface SessionState {
@@ -11,12 +13,22 @@ interface SessionState {
   detectedChords: DetectedChord[];
   chordProgression: ChordProgression | null;
   currentChordLabel: string | null;
+  currentTempo: number | null;
+  timingAccuracy: number;
+  timingDeviations: TimingEvent[];
+  tempoHistory: TempoSegment[];
 }
 
 interface SessionActions {
   setCurrentNotes: (notes: DetectedNote[]) => void;
   addDetectedChord: (chord: DetectedChord, label: string) => void;
   setChordProgression: (progression: ChordProgression | null) => void;
+  setTimingData: (data: {
+    tempo: number | null;
+    accuracy: number;
+    deviations: TimingEvent[];
+    tempoHistory: TempoSegment[];
+  }) => void;
   resetAnalysis: () => void;
 }
 
@@ -27,6 +39,10 @@ const initialState: SessionState = {
   detectedChords: [],
   chordProgression: null,
   currentChordLabel: null,
+  currentTempo: null,
+  timingAccuracy: 100,
+  timingDeviations: [],
+  tempoHistory: [],
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -46,6 +62,14 @@ export const useSessionStore = create<SessionStore>()(
       }),
 
     setChordProgression: (progression) => set({ chordProgression: progression }),
+
+    setTimingData: (data) =>
+      set({
+        currentTempo: data.tempo,
+        timingAccuracy: data.accuracy,
+        timingDeviations: data.deviations,
+        tempoHistory: data.tempoHistory,
+      }),
 
     resetAnalysis: () => set(initialState),
   }))

@@ -6,6 +6,8 @@ import { useSessionStore } from '@/stores/session-store';
 import type { MidiEvent } from '@/features/midi/midi-types';
 import { renderNotes, createFadingNote } from './piano-roll-renderer';
 import type { FadingNote } from './piano-roll-renderer';
+import { renderTimingGrid } from './timing-grid-renderer';
+import type { TimingEvent } from '@/features/analysis/analysis-types';
 
 export function VisualizationCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -17,6 +19,8 @@ export function VisualizationCanvas() {
   const sizeRef = useRef({ w: 0, h: 0 });
   const dirtyRef = useRef(true); // Start dirty to render initial blank canvas
   const chordLabelRef = useRef<string | null>(null);
+  const tempoRef = useRef<number | null>(null);
+  const timingDeviationsRef = useRef<TimingEvent[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -75,6 +79,22 @@ export function VisualizationCanvas() {
       }
     );
 
+    // --- Zustand vanilla subscriptions for timing data from sessionStore ---
+    const unsubTempo = useSessionStore.subscribe(
+      (state) => state.currentTempo,
+      (tempo) => {
+        tempoRef.current = tempo;
+        dirtyRef.current = true;
+      }
+    );
+    const unsubDeviations = useSessionStore.subscribe(
+      (state) => state.timingDeviations,
+      (deviations) => {
+        timingDeviationsRef.current = deviations;
+        dirtyRef.current = true;
+      }
+    );
+
     // --- Render loop (60fps via requestAnimationFrame) ---
     function frame() {
       const c = ctxRef.current;
@@ -99,15 +119,20 @@ export function VisualizationCanvas() {
       const logicalH = sizeRef.current.h / dpr;
 
       if (logicalW > 0 && logicalH > 0) {
+        const now = performance.now();
+
         fadingNotesRef.current = renderNotes(
           c,
           activeNotesRef.current,
           fadingNotesRef.current,
           logicalW,
           logicalH,
-          performance.now(),
+          now,
           chordLabelRef.current
         );
+
+        // Render timing grid in bottom band (separate vertical region)
+        renderTimingGrid(c, logicalW, logicalH, tempoRef.current, timingDeviationsRef.current);
 
         // Keep rendering while fading notes remain
         if (fadingNotesRef.current.length > 0) {
@@ -123,6 +148,8 @@ export function VisualizationCanvas() {
       cancelAnimationFrame(rafRef.current);
       unsubMidi();
       unsubSession();
+      unsubTempo();
+      unsubDeviations();
       resizeObserver.disconnect();
       ctxRef.current = null;
     };

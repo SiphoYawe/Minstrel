@@ -44,3 +44,19 @@ export interface ChordProgression {
   startTimestamp: number;
   endTimestamp: number;
 }
+
+// --- Timing Analysis Types (Story 2.2) ---
+
+export interface TimingEvent {
+  noteTimestamp: number;
+  expectedBeatTimestamp: number;
+  deviationMs: number;
+  beatIndex: number;
+}
+
+export interface TempoSegment {
+  bpm: number;
+  startTimestamp: number;
+  endTimestamp: number;
+  noteCount: number;
+}
