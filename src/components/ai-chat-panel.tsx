@@ -23,6 +23,8 @@ import { TimingGraph } from '@/components/chat/timing-graph';
 import { PracticeTip } from '@/components/chat/practice-tip';
 import { DrillSuggestion } from '@/components/chat/drill-suggestion';
 import { StudioEngineerIcon } from '@/components/icons/studio-engineer-icon';
+import { EmptyState } from '@/components/empty-state';
+import { AiCoachingPreview } from '@/components/illustrations/ai-coaching-preview';
 import type { UIMessage } from 'ai';
 
 interface AIChatPanelProps {
@@ -153,16 +155,14 @@ export function AIChatPanel({
 
   if (!hasApiKey) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-        <p className="text-sm text-muted-foreground mb-2">
-          Connect your API key in Settings to unlock AI coaching
-        </p>
-        <a
-          href="/settings"
-          className="text-sm text-primary underline underline-offset-2 hover:opacity-80"
-        >
-          Go to Settings
-        </a>
+      <div className="flex items-center justify-center h-full">
+        <EmptyState
+          illustration={<AiCoachingPreview className="text-foreground" />}
+          title="Connect your API key to unlock AI coaching insights"
+          description="Get real-time feedback on your playing, chord suggestions, and personalized practice strategies."
+          ctaText="Configure API Key"
+          ctaHref="/settings"
+        />
       </div>
     );
   }

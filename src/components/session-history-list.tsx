@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { db, type GuestSession, type StoredMidiEvent } from '@/lib/dexie/db';
+import { EmptyState } from '@/components/empty-state';
+import { MockVisualization } from '@/components/illustrations/mock-visualization';
 
 const PAGE_SIZE = 20;
 
@@ -161,33 +163,13 @@ export function SessionHistoryList() {
 
   if (sessions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16">
-        <div className="mb-6 flex h-12 w-12 items-center justify-center border border-border bg-card">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="text-muted-foreground"
-          >
-            <path d="M9 18V5l12-2v13" />
-            <circle cx="6" cy="18" r="3" />
-            <circle cx="18" cy="16" r="3" />
-          </svg>
-        </div>
-        <p className="font-mono text-sm text-foreground">No sessions yet</p>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Start practicing to see your session history here.
-        </p>
-        <Link
-          href="/session"
-          className="mt-4 border border-border bg-card px-4 py-2 font-mono text-xs uppercase tracking-wider text-foreground transition-colors hover:bg-surface-light"
-        >
-          Start Practicing
-        </Link>
-      </div>
+      <EmptyState
+        illustration={<MockVisualization className="text-foreground" />}
+        title="Play your first note to see your music come alive"
+        description="Your session history will appear here — every phrase, every chord, mapped out and ready to review."
+        ctaText="Start Playing"
+        ctaHref="/session"
+      />
     );
   }
 

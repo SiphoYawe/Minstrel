@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useAppStore } from '@/stores/app-store';
 import {
   AchievementCategory,
@@ -241,7 +242,35 @@ export function AchievementGallery() {
         ))}
       </div>
 
-      {filteredItems.length === 0 && (
+      {filteredItems.length === 0 && unlockedCount === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="w-8 h-px bg-primary/30 mb-6" aria-hidden="true" />
+          <div className="mb-4 grid grid-cols-4 gap-2 opacity-40">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex h-10 w-10 items-center justify-center border border-border bg-surface-light"
+              >
+                <span className="text-muted-foreground text-lg">?</span>
+              </div>
+            ))}
+          </div>
+          <p className="font-mono text-sm text-foreground tracking-wide">
+            Your first achievement is just a session away
+          </p>
+          <p className="mt-2 max-w-xs text-xs text-muted-foreground leading-relaxed">
+            Play, practice, and explore — badges unlock as you progress.
+          </p>
+          <Link
+            href="/session"
+            className="mt-5 border border-primary bg-primary/10 px-5 py-2 font-mono text-xs uppercase tracking-wider text-primary transition-colors hover:bg-primary/20"
+          >
+            Start Playing
+          </Link>
+          <div className="w-8 h-px bg-primary/30 mt-6" aria-hidden="true" />
+        </div>
+      )}
+      {filteredItems.length === 0 && unlockedCount > 0 && (
         <p className="py-8 text-center text-xs text-muted-foreground">
           No achievements in this category.
         </p>
