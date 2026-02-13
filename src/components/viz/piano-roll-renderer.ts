@@ -5,10 +5,12 @@ const ACCENT_COLOR = { r: 124, g: 185, b: 232 }; // #7CB9E8
 const LABEL_COLOR = 'rgba(124, 185, 232, 0.7)';
 const CHORD_LABEL_COLOR = '#7CB9E8';
 const BASE_NOTE_WIDTH = 24;
-const BASE_NOTE_HEIGHT = 8;
+const BASE_NOTE_HEIGHT = 10; // increased ~30% from 8 for better visibility
 const NOTE_LABEL_OFFSET_X = 20;
-const NOTE_LABEL_FONT = '11px "JetBrains Mono", monospace';
+const NOTE_LABEL_FONT = '10px "JetBrains Mono", monospace';
 const CHORD_LABEL_FONT = '16px "Inter", sans-serif';
+const GLOW_PADDING = 4;
+const GLOW_ALPHA = 0.15;
 
 export interface FadingNote {
   note: number;
@@ -48,7 +50,7 @@ export function renderNotes(
     remainingFading.push(fn);
   }
 
-  // Render active notes with labels
+  // Render active notes with glow effect and labels
   const noteEntries = Object.values(activeNotes);
   for (const event of noteEntries) {
     const y = noteNumberToY(event.note, canvasHeight);
@@ -57,6 +59,16 @@ export function renderNotes(
     const w = BASE_NOTE_WIDTH * size;
     const h = BASE_NOTE_HEIGHT * size;
 
+    // Glow/bloom effect behind active note
+    ctx.fillStyle = `rgba(${ACCENT_COLOR.r}, ${ACCENT_COLOR.g}, ${ACCENT_COLOR.b}, ${GLOW_ALPHA})`;
+    ctx.fillRect(
+      centerX - w / 2 - GLOW_PADDING,
+      y - h / 2 - GLOW_PADDING,
+      w + GLOW_PADDING * 2,
+      h + GLOW_PADDING * 2
+    );
+
+    // Main note bar
     ctx.fillStyle = `rgba(${ACCENT_COLOR.r}, ${ACCENT_COLOR.g}, ${ACCENT_COLOR.b}, ${alpha})`;
     ctx.fillRect(centerX - w / 2, y - h / 2, w, h);
   }

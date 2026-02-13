@@ -3,8 +3,8 @@ import { noteNumberToY } from './canvas-utils';
 
 const CHORD_TONE_COLOR = 'rgba(180, 167, 214, 0.8)'; // #B4A7D6
 const PASSING_TONE_COLOR = 'rgba(180, 167, 214, 0.3)';
-const KEY_LABEL_FONT = '13px "Inter", sans-serif';
-const KEY_LABEL_COLOR = 'rgba(180, 167, 214, 0.6)';
+const KEY_LABEL_FONT = '20px "Inter", sans-serif';
+const KEY_LABEL_COLOR = 'rgba(180, 167, 214, 0.85)';
 const NUMERAL_LABEL_FONT = '14px "JetBrains Mono", monospace';
 const NUMERAL_LABEL_COLOR = 'rgba(180, 167, 214, 0.7)';
 const LABEL_BG_COLOR = 'rgba(15, 15, 15, 0.7)';
@@ -33,12 +33,12 @@ export function renderHarmonicOverlay(
     // Dark background for legibility
     const metrics = ctx.measureText(keyText);
     ctx.fillStyle = LABEL_BG_COLOR;
-    ctx.fillRect(8, 8, metrics.width + 8, 20);
+    ctx.fillRect(8, 8, metrics.width + 12, 28);
 
     ctx.fillStyle = KEY_LABEL_COLOR;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText(keyText, 12, 12);
+    ctx.fillText(keyText, 14, 12);
   }
 
   // Roman numeral label (below chord label at top center)
@@ -47,14 +47,14 @@ export function renderHarmonicOverlay(
 
     // Dark background for legibility
     const numeralMetrics = ctx.measureText(harmonicFunction.romanNumeral);
-    const numeralBgW = numeralMetrics.width + 8;
+    const numeralBgW = numeralMetrics.width + 10;
     ctx.fillStyle = LABEL_BG_COLOR;
-    ctx.fillRect(canvasWidth / 2 - numeralBgW / 2, 40, numeralBgW, 22);
+    ctx.fillRect(canvasWidth / 2 - numeralBgW / 2, 46, numeralBgW, 22);
 
     ctx.fillStyle = NUMERAL_LABEL_COLOR;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText(harmonicFunction.romanNumeral, canvasWidth / 2, 44);
+    ctx.fillText(harmonicFunction.romanNumeral, canvasWidth / 2, 49);
     ctx.textAlign = 'start';
   }
 

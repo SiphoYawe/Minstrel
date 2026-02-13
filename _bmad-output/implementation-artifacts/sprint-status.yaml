@@ -195,7 +195,7 @@ development_status:
 
   # Epic 16: AI Chat & Visualization Enrichment (P1/P2)
   epic-16: in-progress
-  16-1-increase-chord-and-note-visualization-sizing: ready-for-dev
+  16-1-increase-chord-and-note-visualization-sizing: done
   16-2-build-rich-ai-response-components: ready-for-dev
   16-3-fix-visual-hierarchy-and-typography: ready-for-dev
   16-4-add-studio-engineer-visual-persona: ready-for-dev
