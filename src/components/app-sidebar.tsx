@@ -4,20 +4,21 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAppStore } from '@/stores/app-store';
 import { createClient } from '@/lib/supabase/client';
 import { capture, reset } from '@/lib/analytics';
+import { Play, LayoutDashboard, Clock, Trophy, Settings, LogOut } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface NavItem {
   href: string;
   label: string;
-  /** Unicode icon character */
-  icon: string;
+  icon: LucideIcon;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/session', label: 'Session', icon: '\u25B6' },
-  { href: '/dashboard', label: 'Dashboard', icon: '\u25A6' },
-  { href: '/history', label: 'History', icon: '\u2630' },
-  { href: '/achievements', label: 'Achievements', icon: '\u2606' },
-  { href: '/settings', label: 'Settings', icon: '\u2699' },
+  { href: '/session', label: 'Session', icon: Play },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/history', label: 'History', icon: Clock },
+  { href: '/achievements', label: 'Achievements', icon: Trophy },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -89,9 +90,7 @@ export function AppSidebar() {
               aria-current={isActive ? 'page' : undefined}
               title={collapsed ? item.label : undefined}
             >
-              <span className="w-5 text-center text-sm shrink-0" aria-hidden="true">
-                {item.icon}
-              </span>
+              <item.icon className="w-4 h-4 shrink-0" aria-hidden="true" strokeWidth={1.5} />
               {!collapsed && <span className="truncate">{item.label}</span>}
             </a>
           );
@@ -116,9 +115,7 @@ export function AppSidebar() {
           "
           title={collapsed ? 'Sign Out' : undefined}
         >
-          <span className="w-5 text-center text-sm shrink-0" aria-hidden="true">
-            {'\u2192'}
-          </span>
+          <LogOut className="w-4 h-4 shrink-0" aria-hidden="true" strokeWidth={1.5} />
           {!collapsed && <span>Sign Out</span>}
         </button>
       </div>

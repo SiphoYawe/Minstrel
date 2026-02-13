@@ -4,14 +4,20 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/stores/app-store';
 import { useMidiStore } from '@/stores/midi-store';
+import { useSessionStore } from '@/stores/session-store';
 
 const AUTO_HIDE_MS = 30_000;
 
 export function CanvasLegend() {
   const legendDismissed = useAppStore((s) => s.legendDismissed);
   const setLegendDismissed = useAppStore((s) => s.setLegendDismissed);
+  const activeSessionId = useSessionStore((s) => s.activeSessionId);
+  const totalNotesPlayed = useSessionStore((s) => s.totalNotesPlayed);
   const [visible, setVisible] = useState(!legendDismissed);
   const [opacity, setOpacity] = useState(!legendDismissed ? 1 : 0);
+
+  // Hide legend when FirstRunPrompt is showing (no session, no notes played)
+  const firstRunVisible = !activeSessionId && totalNotesPlayed === 0;
 
   const hideLegend = useCallback(() => {
     setOpacity(0);
@@ -45,8 +51,8 @@ export function CanvasLegend() {
 
   return (
     <>
-      {/* Legend overlay */}
-      {visible && (
+      {/* Legend overlay — hidden when FirstRunPrompt is visible */}
+      {visible && !firstRunVisible && (
         <div
           className="absolute inset-0 pointer-events-none z-[var(--z-overlay)] flex items-center justify-center"
           style={{ opacity, transition: 'opacity 300ms ease-in-out' }}
@@ -109,7 +115,7 @@ export function CanvasLegend() {
       )}
 
       {/* Info button to re-show legend */}
-      {!visible && (
+      {!visible && !firstRunVisible && (
         <Button
           variant="ghost"
           onClick={showLegend}
