@@ -1,46 +1,53 @@
 import type { SessionContext } from './schemas';
+import type { DataSufficiency } from '@/features/coaching/context-builder';
 
 const STUDIO_ENGINEER_BASE = `You are the Studio Engineer — Minstrel's AI coaching companion for musicians.
 
 PERSONA RULES:
 - Be technical, precise, and data-driven. Reference specific data points from the session.
 - No filler phrases. No "Great job!", "Keep it up!", "Well done!" or similar.
+- No cheerleading: warmth comes from precision and specificity, not praise.
+- Every sentence must carry information. If it doesn't inform, remove it.
+- When the musician struggles, increase specificity (coach energy).
 - Use growth mindset language: say "not yet" instead of "wrong". Frame struggles as trajectory, not failure.
 - When referencing a weakness, frame it as an area of growth: "Your timing on beat 3 drifts 40ms late on F chord — that's your next edge to sharpen."
-- Only make claims supported by the session data provided. If data is insufficient, say so.
+- Only make claims supported by the session data provided. If data is insufficient, say so explicitly.
 - Be concise. Musicians are mid-practice and glancing at the screen.
 
-GENRE AWARENESS:
-- Constrain advice to the detected genre context. Use genre-appropriate terminology.
-- If genre is "Blues", reference blues phrasing, shuffle feel, call-and-response patterns.
-- If genre is "Jazz", reference voice leading, ii-V-I, chord extensions, swing feel.
-- If genre is "Classical", reference dynamics, phrasing, articulation, form structure.
-- If genre is "Rock/Pop", reference power chords, groove, rhythm patterns, song structure.
-- If no genre is detected, give general musicianship advice.`;
+MANDATORY LANGUAGE RULES:
+- NEVER use: "wrong", "bad", "failed", "mistake", "error", "poor", "terrible", "awful", "incorrect", "failure"
+- ALWAYS use trajectory language: "not yet", "in progress", "closing in", "developing"
+- When referencing struggles, ALWAYS include progress data: "Your timing went from X to Y"
+- Frame every area of improvement as forward motion, not deficit
+- If you must point out something that needs work, pair it with what IS working`;
 
 function formatSessionBlock(context: SessionContext): string {
-  const lines: string[] = ['SESSION DATA:'];
+  const lines: string[] = [
+    'SESSION DATA (reference these specific data points in your responses):',
+  ];
 
-  if (context.key) lines.push(`Key: ${context.key}`);
-  if (context.chords.length > 0) lines.push(`Chords: ${context.chords.join(', ')}`);
+  if (context.key) lines.push(`KEY: ${context.key}`);
+  if (context.chords.length > 0) lines.push(`CHORDS PLAYED: ${context.chords.join(', ')}`);
   const pct = Number.isFinite(context.timingAccuracy)
     ? (context.timingAccuracy * 100).toFixed(0)
     : '0';
-  lines.push(`Timing accuracy: ${pct}%`);
-  if (context.tempo) lines.push(`Tempo: ${context.tempo} BPM`);
-  if (context.genre) lines.push(`Genre: ${context.genre}`);
+  lines.push(`TIMING ACCURACY: ${pct}%`);
+  if (context.tempo) lines.push(`TEMPO: ${context.tempo} BPM`);
+  if (context.genre) lines.push(`GENRE: ${context.genre}`);
 
   if (context.tendencies) {
     const t = context.tendencies;
-    if (t.avoidedKeys.length > 0) lines.push(`Avoided keys: ${t.avoidedKeys.join(', ')}`);
+    if (t.avoidedKeys.length > 0) lines.push(`AVOIDED KEYS: ${t.avoidedKeys.join(', ')}`);
     if (t.avoidedChordTypes.length > 0)
-      lines.push(`Avoided chord types: ${t.avoidedChordTypes.join(', ')}`);
+      lines.push(`AVOIDED CHORD TYPES: ${t.avoidedChordTypes.join(', ')}`);
+    if (t.commonIntervals.length > 0)
+      lines.push(`COMMON INTERVALS: ${t.commonIntervals.join(', ')}`);
   }
 
   if (context.recentSnapshots.length > 0) {
     const total = context.recentSnapshots.length;
     const shown = context.recentSnapshots.slice(-3);
-    lines.push(`Recent insights (${total > 3 ? `latest 3 of ${total}` : `${total}`}):`);
+    lines.push(`RECENT SNAPSHOTS (${total > 3 ? `latest 3 of ${total}` : `${total}`}):`);
     for (const snap of shown) {
       lines.push(`  [${snap.insightCategory}] ${snap.keyInsight}`);
     }
@@ -49,14 +56,58 @@ function formatSessionBlock(context: SessionContext): string {
   return lines.join('\n');
 }
 
+function formatGenreSection(genre: string | null): string {
+  if (!genre) {
+    return 'GENRE CONTEXT: No genre detected yet. Use neutral music theory terminology.';
+  }
+
+  const genreInstructions: Record<string, string> = {
+    Blues:
+      'Use blues terminology: 12-bar, turnaround, shuffle feel, blue note, call and response, bend.',
+    Jazz: 'Use jazz terminology: ii-V-I, altered dominant, tritone substitution, voice leading, walking bass, comping, changes.',
+    Pop: 'Use pop/rock terminology: verse-chorus, hook, riff, power chord, pentatonic.',
+    Rock: 'Use rock terminology: power chord, pentatonic, riff, palm mute, drop tuning, groove.',
+    Classical:
+      'Use classical terminology: counterpoint, cadence, modulation, resolution, harmonic progression.',
+  };
+
+  const instructions = genreInstructions[genre] || `Genre: ${genre}. Use appropriate terminology.`;
+  return `GENRE CONTEXT: ${genre}\n${instructions}\nConstrain advice to ${genre} conventions. Do not suggest techniques from unrelated genres unless explicitly asked.`;
+}
+
+function formatSufficiencySection(sufficiency?: DataSufficiency): string {
+  if (!sufficiency) return '';
+
+  if (!sufficiency.hasSufficientData) {
+    return `DATA SUFFICIENCY: LIMITED\nAvailable: ${sufficiency.availableInsights.join(', ') || 'None yet'}\nMissing: ${sufficiency.missingInsights.join(', ')}\nIf asked about missing areas, explain what data is needed.`;
+  }
+
+  if (sufficiency.missingInsights.length > 0) {
+    return `DATA SUFFICIENCY: PARTIAL\nAvailable: ${sufficiency.availableInsights.join(', ')}\nNot yet available: ${sufficiency.missingInsights.join(', ')}`;
+  }
+
+  return '';
+}
+
 /**
  * Build the system prompt for the chat endpoint.
  */
-export function buildChatSystemPrompt(context: SessionContext): string {
+export function buildChatSystemPrompt(
+  context: SessionContext,
+  sufficiency?: DataSufficiency
+): string {
   return [
     STUDIO_ENGINEER_BASE,
     '',
+    formatGenreSection(context.genre ?? null),
+    '',
     formatSessionBlock(context),
+    '',
+    formatSufficiencySection(sufficiency),
+    '',
+    "CRITICAL: Only reference data points present in the SESSION DATA above. If the user asks about something not covered by the data, say explicitly that you don't have enough information for that assessment yet.",
+    'When referencing data, be precise: cite specific numbers, chord names, timestamps, and improvement deltas.',
+    'If data sufficiency is limited, acknowledge it: "I only have [N] notes to work with so far. Here\'s what I can see..."',
     '',
     'CHAT INSTRUCTIONS:',
     "- Answer the musician's question using the session data above.",
@@ -71,6 +122,8 @@ export function buildChatSystemPrompt(context: SessionContext): string {
 export function buildDrillSystemPrompt(context: SessionContext): string {
   return [
     STUDIO_ENGINEER_BASE,
+    '',
+    formatGenreSection(context.genre ?? null),
     '',
     formatSessionBlock(context),
     '',
@@ -89,6 +142,8 @@ export function buildDrillSystemPrompt(context: SessionContext): string {
 export function buildAnalysisSystemPrompt(context: SessionContext): string {
   return [
     STUDIO_ENGINEER_BASE,
+    '',
+    formatGenreSection(context.genre ?? null),
     '',
     formatSessionBlock(context),
     '',

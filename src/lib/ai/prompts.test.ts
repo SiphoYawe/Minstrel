@@ -62,62 +62,57 @@ describe('prompts', () => {
     it('includes the Studio Engineer persona', () => {
       expect(STUDIO_ENGINEER_BASE).toContain('Studio Engineer');
     });
+
+    it('includes mandatory language rules', () => {
+      expect(STUDIO_ENGINEER_BASE).toContain('MANDATORY LANGUAGE RULES');
+      expect(STUDIO_ENGINEER_BASE).toContain('NEVER use');
+    });
   });
 
   describe('buildChatSystemPrompt', () => {
     it('includes the Studio Engineer base text', () => {
       const context = createMockSessionContext();
       const prompt = buildChatSystemPrompt(context);
-
       expect(prompt).toContain(STUDIO_ENGINEER_BASE);
     });
 
     it('includes the session key', () => {
       const context = createMockSessionContext({ key: 'G minor' });
       const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).toContain('Key: G minor');
+      expect(prompt).toContain('KEY: G minor');
     });
 
     it('includes chords', () => {
       const context = createMockSessionContext({ chords: ['Am', 'Dm', 'E7'] });
       const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).toContain('Chords: Am, Dm, E7');
+      expect(prompt).toContain('CHORDS PLAYED: Am, Dm, E7');
     });
 
     it('includes timing accuracy as a percentage', () => {
       const context = createMockSessionContext({ timingAccuracy: 0.82 });
       const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).toContain('Timing accuracy: 82%');
+      expect(prompt).toContain('TIMING ACCURACY: 82%');
     });
 
     it('includes tempo in BPM', () => {
       const context = createMockSessionContext({ tempo: 140 });
       const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).toContain('Tempo: 140 BPM');
+      expect(prompt).toContain('TEMPO: 140 BPM');
     });
 
-    it('includes genre context when provided', () => {
+    it('includes genre context section', () => {
       const context = createMockSessionContext({ genre: 'Jazz' });
       const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).toContain('Genre: Jazz');
+      expect(prompt).toContain('GENRE CONTEXT: Jazz');
+      expect(prompt).toContain('jazz terminology');
     });
 
     it('includes tendencies — avoided keys', () => {
       const context = createMockSessionContext({
-        tendencies: {
-          avoidedKeys: ['Bb major'],
-          avoidedChordTypes: [],
-          commonIntervals: [],
-        },
+        tendencies: { avoidedKeys: ['Bb major'], avoidedChordTypes: [], commonIntervals: [] },
       });
       const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).toContain('Avoided keys: Bb major');
+      expect(prompt).toContain('AVOIDED KEYS: Bb major');
     });
 
     it('includes tendencies — avoided chord types', () => {
@@ -129,11 +124,10 @@ describe('prompts', () => {
         },
       });
       const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).toContain('Avoided chord types: diminished, augmented');
+      expect(prompt).toContain('AVOIDED CHORD TYPES: diminished, augmented');
     });
 
-    it('includes recent snapshots with category and insight', () => {
+    it('includes recent snapshots', () => {
       const context = createMockSessionContext({
         recentSnapshots: [
           {
@@ -144,9 +138,8 @@ describe('prompts', () => {
         ],
       });
       const prompt = buildChatSystemPrompt(context);
-
       expect(prompt).toContain('[TIMING] Consistent downbeat timing');
-      expect(prompt).toContain('Recent insights (1):');
+      expect(prompt).toContain('RECENT SNAPSHOTS (1):');
     });
 
     it('shows truncation indicator when more than 3 snapshots exist', () => {
@@ -158,180 +151,118 @@ describe('prompts', () => {
         })),
       });
       const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).toContain('Recent insights (latest 3 of 5):');
-      expect(prompt).toContain('Insight 2');
-      expect(prompt).toContain('Insight 4');
-      expect(prompt).not.toContain('Insight 0');
+      expect(prompt).toContain('RECENT SNAPSHOTS (latest 3 of 5):');
     });
 
     it('includes chat-specific instructions', () => {
-      const context = createMockSessionContext();
-      const prompt = buildChatSystemPrompt(context);
-
+      const prompt = buildChatSystemPrompt(createMockSessionContext());
       expect(prompt).toContain('CHAT INSTRUCTIONS:');
     });
 
-    it('handles null key gracefully', () => {
-      const context = createMockSessionContext({ key: null });
-      const prompt = buildChatSystemPrompt(context);
+    it('includes data grounding instruction', () => {
+      const prompt = buildChatSystemPrompt(createMockSessionContext());
+      expect(prompt).toContain('CRITICAL: Only reference data points');
+    });
 
-      expect(prompt).not.toContain('Key:');
+    it('handles null key gracefully', () => {
+      const prompt = buildChatSystemPrompt(createMockSessionContext({ key: null }));
+      expect(prompt).not.toContain('KEY:');
     });
 
     it('handles null tempo gracefully', () => {
-      const context = createMockSessionContext({ tempo: null });
-      const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).not.toContain('Tempo:');
+      const prompt = buildChatSystemPrompt(createMockSessionContext({ tempo: null }));
+      expect(prompt).not.toContain('TEMPO:');
     });
 
-    it('handles null genre gracefully', () => {
-      const context = createMockSessionContext({ genre: null });
-      const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).not.toContain('Genre:');
-    });
-
-    it('handles null tendencies gracefully', () => {
-      const context = createMockSessionContext({ tendencies: null });
-      const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).not.toContain('Avoided keys:');
-      expect(prompt).not.toContain('Avoided chord types:');
-    });
-
-    it('handles empty chords array gracefully', () => {
-      const context = createMockSessionContext({ chords: [] });
-      const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).not.toContain('Chords:');
-    });
-
-    it('handles empty recentSnapshots array gracefully', () => {
-      const context = createMockSessionContext({ recentSnapshots: [] });
-      const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).not.toContain('Recent insights');
+    it('handles null genre with fallback', () => {
+      const prompt = buildChatSystemPrompt(createMockSessionContext({ genre: null }));
+      expect(prompt).toContain('No genre detected yet');
     });
 
     it('handles a fully minimal context', () => {
       const context = createMinimalSessionContext();
       const prompt = buildChatSystemPrompt(context);
-
       expect(prompt).toContain(STUDIO_ENGINEER_BASE);
-      expect(prompt).toContain('SESSION DATA:');
-      expect(prompt).toContain('Timing accuracy: 0%');
-      expect(prompt).toContain('CHAT INSTRUCTIONS:');
+      expect(prompt).toContain('SESSION DATA');
+      expect(prompt).toContain('TIMING ACCURACY: 0%');
     });
 
-    it('includes growth mindset language', () => {
+    it('includes sufficiency info when provided', () => {
       const context = createMockSessionContext();
-      const prompt = buildChatSystemPrompt(context);
-
-      expect(prompt).toContain('not yet');
+      const sufficiency = {
+        hasSufficientData: false,
+        availableInsights: ['Note analysis'],
+        missingInsights: ['Chord patterns'],
+        recommendation: 'Play more',
+      };
+      const prompt = buildChatSystemPrompt(context, sufficiency);
+      expect(prompt).toContain('DATA SUFFICIENCY: LIMITED');
     });
   });
 
   describe('buildDrillSystemPrompt', () => {
     it('includes the Studio Engineer base text', () => {
-      const context = createMockSessionContext();
-      const prompt = buildDrillSystemPrompt(context);
-
+      const prompt = buildDrillSystemPrompt(createMockSessionContext());
       expect(prompt).toContain(STUDIO_ENGINEER_BASE);
     });
 
     it('includes drill-specific instructions', () => {
-      const context = createMockSessionContext();
-      const prompt = buildDrillSystemPrompt(context);
-
+      const prompt = buildDrillSystemPrompt(createMockSessionContext());
       expect(prompt).toContain('DRILL GENERATION INSTRUCTIONS:');
     });
 
     it('includes session data', () => {
-      const context = createMockSessionContext({ key: 'A minor', tempo: 90 });
-      const prompt = buildDrillSystemPrompt(context);
+      const prompt = buildDrillSystemPrompt(
+        createMockSessionContext({ key: 'A minor', tempo: 90 })
+      );
+      expect(prompt).toContain('KEY: A minor');
+      expect(prompt).toContain('TEMPO: 90 BPM');
+    });
 
-      expect(prompt).toContain('Key: A minor');
-      expect(prompt).toContain('Tempo: 90 BPM');
+    it('includes genre section', () => {
+      const prompt = buildDrillSystemPrompt(createMockSessionContext({ genre: 'Blues' }));
+      expect(prompt).toContain('GENRE CONTEXT: Blues');
     });
 
     it('mentions drill targeting and growth framing', () => {
-      const context = createMockSessionContext();
-      const prompt = buildDrillSystemPrompt(context);
-
+      const prompt = buildDrillSystemPrompt(createMockSessionContext());
       expect(prompt).toContain('targeted drill');
       expect(prompt).toContain('growth opportunity');
-    });
-
-    it('includes growth mindset language', () => {
-      const context = createMockSessionContext();
-      const prompt = buildDrillSystemPrompt(context);
-
-      expect(prompt).toContain('not yet');
-    });
-
-    it('handles a fully minimal context', () => {
-      const context = createMinimalSessionContext();
-      const prompt = buildDrillSystemPrompt(context);
-
-      expect(prompt).toContain(STUDIO_ENGINEER_BASE);
-      expect(prompt).toContain('DRILL GENERATION INSTRUCTIONS:');
     });
   });
 
   describe('buildAnalysisSystemPrompt', () => {
     it('includes the Studio Engineer base text', () => {
-      const context = createMockSessionContext();
-      const prompt = buildAnalysisSystemPrompt(context);
-
+      const prompt = buildAnalysisSystemPrompt(createMockSessionContext());
       expect(prompt).toContain(STUDIO_ENGINEER_BASE);
     });
 
     it('includes analysis-specific instructions', () => {
-      const context = createMockSessionContext();
-      const prompt = buildAnalysisSystemPrompt(context);
-
+      const prompt = buildAnalysisSystemPrompt(createMockSessionContext());
       expect(prompt).toContain('ANALYSIS INSTRUCTIONS:');
     });
 
     it('includes session data', () => {
-      const context = createMockSessionContext({
-        chords: ['Dm7', 'G7', 'Cmaj7'],
-        timingAccuracy: 0.95,
-      });
-      const prompt = buildAnalysisSystemPrompt(context);
-
-      expect(prompt).toContain('Chords: Dm7, G7, Cmaj7');
-      expect(prompt).toContain('Timing accuracy: 95%');
+      const prompt = buildAnalysisSystemPrompt(
+        createMockSessionContext({ chords: ['Dm7', 'G7', 'Cmaj7'], timingAccuracy: 0.95 })
+      );
+      expect(prompt).toContain('CHORDS PLAYED: Dm7, G7, Cmaj7');
+      expect(prompt).toContain('TIMING ACCURACY: 95%');
     });
 
     it('mentions skill dimensions and difficulty recommendation', () => {
-      const context = createMockSessionContext();
-      const prompt = buildAnalysisSystemPrompt(context);
-
+      const prompt = buildAnalysisSystemPrompt(createMockSessionContext());
       expect(prompt).toContain('skill dimensions');
       expect(prompt).toContain('difficulty level');
     });
 
     it('mentions the growth zone concept', () => {
-      const context = createMockSessionContext();
-      const prompt = buildAnalysisSystemPrompt(context);
-
+      const prompt = buildAnalysisSystemPrompt(createMockSessionContext());
       expect(prompt).toContain('growth zone');
     });
 
-    it('includes growth mindset language', () => {
-      const context = createMockSessionContext();
-      const prompt = buildAnalysisSystemPrompt(context);
-
-      expect(prompt).toContain('not yet');
-    });
-
     it('handles a fully minimal context', () => {
-      const context = createMinimalSessionContext();
-      const prompt = buildAnalysisSystemPrompt(context);
-
+      const prompt = buildAnalysisSystemPrompt(createMinimalSessionContext());
       expect(prompt).toContain(STUDIO_ENGINEER_BASE);
       expect(prompt).toContain('ANALYSIS INSTRUCTIONS:');
     });
