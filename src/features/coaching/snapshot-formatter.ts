@@ -2,6 +2,7 @@ import type { InstantSnapshot } from '@/features/analysis/analysis-types';
 
 /**
  * Format snapshot data into structured prompt text for AI context.
+ * Story 14.5: Include multi-insight array and chord frequencies.
  */
 export function formatSnapshotsForPrompt(
   snapshots: InstantSnapshot[],
@@ -23,9 +24,25 @@ export function formatSnapshotsForPrompt(
     const keyLabel = snap.key ? `${snap.key.root} ${snap.key.mode}` : 'Unknown';
     const tempo = snap.averageTempo ? `${Math.round(snap.averageTempo)} BPM` : 'N/A';
 
+    // Use enriched insights when available, fall back to keyInsight
+    const insightTexts =
+      snap.insights && snap.insights.length > 0
+        ? snap.insights.map((i) => i.text)
+        : [snap.keyInsight];
+
     lines.push(
-      `[${relTime}] Key: ${keyLabel}, Timing: ${Math.round(snap.timingAccuracy)}%, Tempo: ${tempo}, Insight: "${snap.keyInsight}"`
+      `[${relTime}] Key: ${keyLabel}, Timing: ${Math.round(snap.timingAccuracy)}%, Tempo: ${tempo}${snap.isLimitedData ? ' (limited data)' : ''}`
     );
+
+    for (const text of insightTexts) {
+      lines.push(`  Insight: "${text}"`);
+    }
+
+    // Include chord frequencies
+    if (snap.chordFrequencies && snap.chordFrequencies.length > 0) {
+      const freqStr = snap.chordFrequencies.map((cf) => `${cf.label}(×${cf.count})`).join(', ');
+      lines.push(`  Top chords: ${freqStr}`);
+    }
   }
 
   // Add trajectory summary if multiple snapshots

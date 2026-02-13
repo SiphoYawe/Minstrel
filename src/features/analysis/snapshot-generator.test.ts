@@ -1,5 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { generateSnapshot, generateKeyInsight, applyGrowthMindset } from './snapshot-generator';
+import {
+  generateSnapshot,
+  generateKeyInsight,
+  generateInsights,
+  applyGrowthMindset,
+  computeChordFrequencies,
+} from './snapshot-generator';
 import type { SnapshotInput } from './snapshot-generator';
 import type {
   DetectedChord,
@@ -17,7 +23,7 @@ function chord(root: string, quality: DetectedChord['quality'], ts: number): Det
   return { root, quality, notes: [note(60, ts)], timestamp: ts };
 }
 
-function fullInput(): SnapshotInput {
+function fullInput(totalNotes = 50): SnapshotInput {
   return {
     currentKey: { root: 'C', mode: 'major', confidence: 0.9 },
     detectedChords: [
@@ -77,6 +83,7 @@ function fullInput(): SnapshotInput {
       avoidedIntervals: [],
     } as AvoidancePatterns,
     sessionType: null,
+    totalNotesPlayed: totalNotes,
   };
 }
 
@@ -99,6 +106,35 @@ describe('applyGrowthMindset', () => {
   });
 });
 
+describe('computeChordFrequencies', () => {
+  it('returns empty array for no chords', () => {
+    expect(computeChordFrequencies([])).toEqual([]);
+  });
+
+  it('returns top 3 chord frequencies by count', () => {
+    const chords = [
+      chord('C', 'Major', 0),
+      chord('C', 'Major', 100),
+      chord('C', 'Major', 200),
+      chord('F', 'Major', 300),
+      chord('F', 'Major', 400),
+      chord('G', 'Major', 500),
+      chord('Am', 'Minor', 600),
+    ];
+    const result = computeChordFrequencies(chords);
+    expect(result).toHaveLength(3);
+    expect(result[0]).toEqual({ label: 'C', count: 3 });
+    expect(result[1]).toEqual({ label: 'F', count: 2 });
+    // Third is either G or Amm (both 1 count)
+    expect(result[2].count).toBe(1);
+  });
+
+  it('respects limit parameter', () => {
+    const chords = [chord('C', 'Major', 0), chord('F', 'Major', 100), chord('G', 'Major', 200)];
+    expect(computeChordFrequencies(chords, 2)).toHaveLength(2);
+  });
+});
+
 describe('generateSnapshot', () => {
   it('produces snapshot with all fields populated from complete data', () => {
     vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid-1234' });
@@ -114,6 +150,23 @@ describe('generateSnapshot', () => {
     expect(snapshot.genrePatterns).toEqual(input.detectedGenres);
     expect(snapshot.timestamp).toBeGreaterThan(0);
     expect(snapshot.insightCategory).toBeDefined();
+    // New enriched fields
+    expect(snapshot.insights).toBeInstanceOf(Array);
+    expect(snapshot.insights.length).toBeGreaterThanOrEqual(1);
+    expect(snapshot.insights.length).toBeLessThanOrEqual(3);
+    expect(snapshot.chordFrequencies).toBeInstanceOf(Array);
+    expect(snapshot.isLimitedData).toBe(false);
+    vi.unstubAllGlobals();
+  });
+
+  it('marks limited data when fewer than 20 notes', () => {
+    vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid-limited' });
+    const input = fullInput(10);
+    const snapshot = generateSnapshot(input);
+
+    expect(snapshot.isLimitedData).toBe(true);
+    expect(snapshot.insights).toHaveLength(1);
+    expect(snapshot.insights[0].text).toContain('10 notes');
     vi.unstubAllGlobals();
   });
 
@@ -132,6 +185,7 @@ describe('generateSnapshot', () => {
     expect(snapshot.averageTempo).toBeNull();
     expect(snapshot.chordsUsed).toEqual([]);
     expect(snapshot.keyInsight.length).toBeGreaterThan(0);
+    expect(snapshot.chordFrequencies).toEqual([]);
     vi.unstubAllGlobals();
   });
 
@@ -145,7 +199,7 @@ describe('generateSnapshot', () => {
     vi.unstubAllGlobals();
   });
 
-  it('applies growth mindset language to insight text', () => {
+  it('applies growth mindset language to all insight texts', () => {
     const banned = ['wrong', 'failed', 'bad', 'error'];
     vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid-mindset' });
     const input = fullInput();
@@ -153,12 +207,85 @@ describe('generateSnapshot', () => {
 
     for (const word of banned) {
       expect(snapshot.keyInsight.toLowerCase()).not.toContain(word);
+      for (const insight of snapshot.insights) {
+        expect(insight.text.toLowerCase()).not.toContain(word);
+      }
+    }
+    vi.unstubAllGlobals();
+  });
+
+  it('includes chord frequencies in snapshot', () => {
+    vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid-freq' });
+    const input = fullInput();
+    const snapshot = generateSnapshot(input);
+
+    expect(snapshot.chordFrequencies.length).toBeGreaterThan(0);
+    expect(snapshot.chordFrequencies[0]).toHaveProperty('label');
+    expect(snapshot.chordFrequencies[0]).toHaveProperty('count');
+    vi.unstubAllGlobals();
+  });
+
+  it('has insights with confidence values', () => {
+    vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid-conf' });
+    const input = fullInput();
+    const snapshot = generateSnapshot(input);
+
+    for (const insight of snapshot.insights) {
+      expect(insight.confidence).toBeGreaterThanOrEqual(0);
+      expect(insight.confidence).toBeLessThanOrEqual(1);
     }
     vi.unstubAllGlobals();
   });
 });
 
-describe('generateKeyInsight', () => {
+describe('generateInsights', () => {
+  it('returns limited data insight when under 20 notes', () => {
+    const input = fullInput(5);
+    const insights = generateInsights(input);
+    expect(insights).toHaveLength(1);
+    expect(insights[0].category).toBe('GENERAL');
+    expect(insights[0].text).toContain('5 notes');
+    expect(insights[0].confidence).toBeLessThan(0.5);
+  });
+
+  it('returns 2-3 distinct insights for complete data', () => {
+    const input = fullInput();
+    const insights = generateInsights(input);
+    expect(insights.length).toBeGreaterThanOrEqual(2);
+    expect(insights.length).toBeLessThanOrEqual(3);
+  });
+
+  it('includes insights from different categories', () => {
+    const input = fullInput();
+    const insights = generateInsights(input);
+    const categories = new Set(insights.map((i) => i.category));
+    expect(categories.size).toBeGreaterThanOrEqual(2);
+  });
+
+  it('all insights have confidence values', () => {
+    const input = fullInput();
+    const insights = generateInsights(input);
+    for (const insight of insights) {
+      expect(typeof insight.confidence).toBe('number');
+      expect(insight.confidence).toBeGreaterThanOrEqual(0);
+      expect(insight.confidence).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('marks low-confidence key detection', () => {
+    const input = fullInput();
+    input.timingAccuracy = 97; // Skip timing insight
+    input.currentKey = { root: 'D', mode: 'minor', confidence: 0.3 };
+    input.avoidancePatterns = null;
+
+    const insights = generateInsights(input);
+    const harmonicInsight = insights.find((i) => i.category === 'HARMONIC');
+    expect(harmonicInsight).toBeDefined();
+    expect(harmonicInsight!.text).toContain('low confidence');
+  });
+});
+
+describe('generateKeyInsight (backward compat)', () => {
   it('prioritizes timing insight when accuracy is below 95%', () => {
     const input = fullInput();
     input.timingAccuracy = 78;
@@ -284,7 +411,6 @@ describe('generateKeyInsight', () => {
     input.avoidancePatterns = null;
 
     const { category } = generateKeyInsight(input);
-    // Should fall through to GENERAL, not freeform-specific
     expect(category).toBe('GENERAL');
   });
 
@@ -298,6 +424,7 @@ describe('generateKeyInsight', () => {
       playingTendencies: null,
       avoidancePatterns: null,
       sessionType: null,
+      totalNotesPlayed: 50,
     };
 
     const { insight, category } = generateKeyInsight(input);
@@ -312,7 +439,6 @@ describe('generateKeyInsight', () => {
 
     const { insight } = generateKeyInsight(input);
 
-    // Should contain either a percentage, BPM, or chord name
     const hasSpecificData =
       /\d+%/.test(insight) || /\d+ms/.test(insight) || /\d+ BPM/.test(insight);
     expect(hasSpecificData).toBe(true);
@@ -321,7 +447,6 @@ describe('generateKeyInsight', () => {
   it('no insight text contains banned growth mindset words', () => {
     const banned = ['wrong', 'failed', 'bad', 'error'];
 
-    // Test multiple input configurations
     const configs = [fullInput()];
     configs[0].timingAccuracy = 50;
 

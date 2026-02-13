@@ -6,6 +6,8 @@ import type {
   AvoidancePatterns,
   InstantSnapshot,
   InsightCategory,
+  SnapshotInsight,
+  ChordFrequency,
 } from './analysis-types';
 import type { SessionType } from '@/features/session/session-types';
 
@@ -18,9 +20,15 @@ export interface SnapshotInput {
   playingTendencies: PlayingTendencies | null;
   avoidancePatterns: AvoidancePatterns | null;
   sessionType: SessionType | null;
+  totalNotesPlayed?: number;
 }
 
 const BANNED_WORDS = ['wrong', 'failed', 'bad', 'error'];
+const MIN_NOTES_FOR_DETAILED_SNAPSHOT = 20;
+const MAX_CHORD_FREQUENCIES = 3;
+const MAX_INSIGHTS = 3;
+const LOW_CONFIDENCE_THRESHOLD = 0.5;
+const MAX_TRANSITION_GAP_MS = 5000;
 
 /**
  * Applies growth mindset language to a string.
@@ -49,11 +57,44 @@ export function applyGrowthMindset(text: string): string {
 }
 
 /**
+ * Computes chord progression frequency analysis.
+ * Returns the top N most common chord labels with counts.
+ */
+export function computeChordFrequencies(
+  chords: DetectedChord[],
+  limit: number = MAX_CHORD_FREQUENCIES
+): ChordFrequency[] {
+  const counts: Record<string, number> = {};
+  for (const chord of chords) {
+    const label = `${chord.root}${chord.quality === 'Major' ? '' : chord.quality === 'Minor' ? 'm' : chord.quality}`;
+    counts[label] = (counts[label] || 0) + 1;
+  }
+  return Object.entries(counts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, limit)
+    .map(([label, count]) => ({ label, count }));
+}
+
+/**
  * Generates an instant snapshot from current analysis state.
  * Pure function — no side effects, no framework dependencies.
+ *
+ * Story 14.5: Enriched with multi-insight array, chord frequencies,
+ * limited data indicator, and confidence markers.
  */
 export function generateSnapshot(input: SnapshotInput): InstantSnapshot {
-  const { insight, category } = generateKeyInsight(input);
+  const noteCount = input.totalNotesPlayed ?? input.detectedChords.length;
+  const isLimitedData = noteCount < MIN_NOTES_FOR_DETAILED_SNAPSHOT;
+
+  const insights = generateInsights(input);
+  const chordFrequencies = computeChordFrequencies(input.detectedChords);
+
+  // Primary insight for backward compatibility
+  const primary = insights[0] ?? {
+    text: 'Keep playing to build your profile',
+    category: 'GENERAL' as InsightCategory,
+    confidence: 0.3,
+  };
 
   return {
     id: crypto.randomUUID(),
@@ -61,45 +102,110 @@ export function generateSnapshot(input: SnapshotInput): InstantSnapshot {
     chordsUsed: input.detectedChords.slice(-20),
     timingAccuracy: input.timingAccuracy,
     averageTempo: input.currentTempo,
-    keyInsight: applyGrowthMindset(insight),
-    insightCategory: category,
+    keyInsight: applyGrowthMindset(primary.text),
+    insightCategory: primary.category,
+    insights: insights.map((i) => ({
+      ...i,
+      text: applyGrowthMindset(i.text),
+    })),
+    chordFrequencies,
+    isLimitedData,
     genrePatterns: [...input.detectedGenres],
     timestamp: Date.now(),
   };
 }
 
 /**
+ * Generates 2-3 distinct insights from available data.
+ * Collects one insight per category (no duplicates), priority-ranked.
+ */
+export function generateInsights(input: SnapshotInput): SnapshotInsight[] {
+  const noteCount = input.totalNotesPlayed ?? input.detectedChords.length;
+  const isLimited = noteCount < MIN_NOTES_FOR_DETAILED_SNAPSHOT;
+
+  if (isLimited) {
+    return [
+      {
+        category: 'GENERAL',
+        text: `Session captured ${noteCount} notes — keep playing for deeper analysis`,
+        confidence: 0.3,
+      },
+    ];
+  }
+
+  const collected: SnapshotInsight[] = [];
+  const usedCategories = new Set<InsightCategory>();
+
+  // Collect all candidate insights, priority-ordered
+  const candidates = [
+    generateTimingInsight(input),
+    generateHarmonicInsight(input),
+    generateTendencyInsight(input),
+    generateFreeformInsight(input),
+    generateGeneralInsight(input),
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    if (usedCategories.has(candidate.category) && collected.length >= 2) continue;
+    usedCategories.add(candidate.category);
+    collected.push(candidate);
+    if (collected.length >= MAX_INSIGHTS) break;
+  }
+
+  // Ensure at least one insight
+  if (collected.length === 0) {
+    collected.push({
+      category: 'GENERAL',
+      text: 'Solid session — keep building on that foundation',
+      confidence: 0.5,
+    });
+  }
+
+  return collected;
+}
+
+/**
  * Selects the highest-impact insight from available data.
  * Priority: timing > harmonic > tendency > general
+ * @deprecated Use generateInsights() for multi-insight support.
  */
 export function generateKeyInsight(input: SnapshotInput): {
   insight: string;
   category: InsightCategory;
 } {
-  // 1. Timing weakness (most actionable)
-  const timingInsight = generateTimingInsight(input);
-  if (timingInsight) return timingInsight;
-
-  // 2. Harmonic observation
-  const harmonicInsight = generateHarmonicInsight(input);
-  if (harmonicInsight) return harmonicInsight;
-
-  // 3. Tendency observation
-  const tendencyInsight = generateTendencyInsight(input);
-  if (tendencyInsight) return tendencyInsight;
-
-  // 4. Freeform exploration observation
-  const freeformInsight = generateFreeformInsight(input);
-  if (freeformInsight) return freeformInsight;
-
-  // 5. General encouragement (fallback)
-  return generateGeneralInsight(input);
+  const insights = generateInsights(input);
+  const primary = insights[0];
+  return { insight: primary.text, category: primary.category };
 }
 
-function generateTimingInsight(
-  input: SnapshotInput
-): { insight: string; category: InsightCategory } | null {
+function computeInsightConfidence(input: SnapshotInput, category: InsightCategory): number {
+  const noteCount = input.totalNotesPlayed ?? input.detectedChords.length;
+  const baseConfidence = Math.min(1, noteCount / 100);
+
+  switch (category) {
+    case 'TIMING':
+      return baseConfidence * (input.currentTempo !== null ? 0.9 : 0.6);
+    case 'HARMONIC':
+      return (
+        baseConfidence *
+        (input.currentKey
+          ? input.currentKey.confidence > LOW_CONFIDENCE_THRESHOLD
+            ? 0.9
+            : 0.5
+          : 0.3)
+      );
+    case 'TENDENCY':
+      return baseConfidence * (input.avoidancePatterns ? 0.8 : 0.3);
+    case 'GENERAL':
+      return baseConfidence * 0.5;
+  }
+}
+
+function generateTimingInsight(input: SnapshotInput): SnapshotInsight | null {
   if (input.timingAccuracy >= 95) return null;
+
+  const confidence = computeInsightConfidence(input, 'TIMING');
 
   // Check for chord transition timing patterns (requires tempo context)
   if (input.currentTempo !== null) {
@@ -110,7 +216,7 @@ function generateTimingInsight(
       let slowestPair = ['', ''];
       for (let i = 1; i < chords.length; i++) {
         const gap = chords[i].timestamp - chords[i - 1].timestamp;
-        if (gap > slowestTransition && gap < 5000) {
+        if (gap > slowestTransition && gap < MAX_TRANSITION_GAP_MS) {
           slowestTransition = gap;
           slowestPair = [
             chords[i - 1].root + chords[i - 1].quality.charAt(0).toLowerCase(),
@@ -121,8 +227,9 @@ function generateTimingInsight(
 
       if (slowestTransition > 0 && slowestPair[0] && slowestPair[1]) {
         return {
-          insight: `Your ${slowestPair[0]} to ${slowestPair[1]} transition averages ${Math.round(slowestTransition)}ms — smoothing this would improve your flow`,
           category: 'TIMING',
+          text: `Your ${slowestPair[0]} to ${slowestPair[1]} transition averages ${Math.round(slowestTransition)}ms — smoothing this would improve your flow`,
+          confidence,
         };
       }
     }
@@ -130,25 +237,35 @@ function generateTimingInsight(
 
   // Generic timing insight with accuracy (works even without tempo)
   return {
-    insight: `Timing consistency: getting there — ${Math.round(input.timingAccuracy)}% and climbing`,
     category: 'TIMING',
+    text: `Timing consistency: getting there — ${Math.round(input.timingAccuracy)}% and climbing`,
+    confidence,
   };
 }
 
-function generateHarmonicInsight(
-  input: SnapshotInput
-): { insight: string; category: InsightCategory } | null {
+function generateHarmonicInsight(input: SnapshotInput): SnapshotInsight | null {
   if (!input.currentKey) return null;
 
+  const confidence = computeInsightConfidence(input, 'HARMONIC');
   const keyName = `${input.currentKey.root} ${input.currentKey.mode}`;
+
+  // Mark low-confidence keys
+  if (input.currentKey.confidence < LOW_CONFIDENCE_THRESHOLD) {
+    return {
+      category: 'HARMONIC',
+      text: `Key detection suggests ${keyName} (low confidence) — more playing will clarify`,
+      confidence: confidence * 0.5,
+    };
+  }
 
   // Check chord diversity
   const uniqueRoots = new Set(input.detectedChords.map((c) => c.root));
   if (uniqueRoots.size <= 2 && input.detectedChords.length >= 4) {
     const relativeKey = input.currentKey.mode === 'major' ? 'relative minor' : 'relative major';
     return {
-      insight: `You stayed in ${keyName} the entire session — try exploring the ${relativeKey}`,
       category: 'HARMONIC',
+      text: `You stayed in ${keyName} the entire session — try exploring the ${relativeKey}`,
+      confidence,
     };
   }
 
@@ -158,25 +275,27 @@ function generateHarmonicInsight(
     const currentType = input.detectedChords[0].quality;
     const suggestion = currentType === 'Major' ? 'minor or seventh' : 'major or suspended';
     return {
-      insight: `Strong command of ${currentType} chords — adding ${suggestion} chords could expand your palette`,
       category: 'HARMONIC',
+      text: `Strong command of ${currentType} chords — adding ${suggestion} chords could expand your palette`,
+      confidence,
     };
   }
 
   return null;
 }
 
-function generateTendencyInsight(
-  input: SnapshotInput
-): { insight: string; category: InsightCategory } | null {
+function generateTendencyInsight(input: SnapshotInput): SnapshotInsight | null {
   if (!input.avoidancePatterns) return null;
+
+  const confidence = computeInsightConfidence(input, 'TENDENCY');
 
   // Avoided keys
   if (input.avoidancePatterns.avoidedKeys.length >= 5) {
     const avoidedSample = input.avoidancePatterns.avoidedKeys.slice(0, 3).join(', ');
     return {
-      insight: `You favor natural keys — exploring ${avoidedSample} could open new sonic territory`,
       category: 'TENDENCY',
+      text: `You favor natural keys — exploring ${avoidedSample} could open new sonic territory`,
+      confidence,
     };
   }
 
@@ -184,34 +303,37 @@ function generateTendencyInsight(
   if (input.avoidancePatterns.avoidedChordTypes.length >= 3) {
     const avoidedType = input.avoidancePatterns.avoidedChordTypes[0];
     return {
-      insight: `You haven't explored ${avoidedType} chords yet — they could add depth to your playing`,
       category: 'TENDENCY',
+      text: `You haven't explored ${avoidedType} chords yet — they could add depth to your playing`,
+      confidence,
     };
   }
 
   // Avoided intervals
   if (input.avoidancePatterns.avoidedIntervals.length >= 6) {
     return {
-      insight: `Your melodic movement stays close — wider intervals could add expression`,
       category: 'TENDENCY',
+      text: `Your melodic movement stays close — wider intervals could add expression`,
+      confidence,
     };
   }
 
   return null;
 }
 
-function generateFreeformInsight(
-  input: SnapshotInput
-): { insight: string; category: InsightCategory } | null {
+function generateFreeformInsight(input: SnapshotInput): SnapshotInsight | null {
   if (!input.sessionType || input.sessionType !== 'freeform') return null;
+
+  const confidence = computeInsightConfidence(input, 'GENERAL');
 
   // Count unique keys explored
   const uniqueKeys = new Set(input.detectedChords.map((c) => c.root));
 
   if (uniqueKeys.size >= 4) {
     return {
-      insight: `You explored ${uniqueKeys.size} different keys this session — your range is growing`,
       category: 'GENERAL',
+      text: `You explored ${uniqueKeys.size} different keys this session — your range is growing`,
+      confidence,
     };
   }
 
@@ -221,8 +343,9 @@ function generateFreeformInsight(
     const activeBins = histogram.filter((count) => count > 0).length;
     if (activeBins >= 3) {
       return {
-        insight: `Your playing spanned multiple tempo zones — you're comfortable across speeds`,
         category: 'GENERAL',
+        text: `Your playing spanned multiple tempo zones — you're comfortable across speeds`,
+        confidence,
       };
     }
   }
@@ -230,18 +353,17 @@ function generateFreeformInsight(
   // Genre tendency
   if (input.detectedGenres.length > 0) {
     return {
-      insight: `Strong tendency toward ${input.detectedGenres[0].genre} patterns — your musical identity is developing`,
       category: 'GENERAL',
+      text: `Strong tendency toward ${input.detectedGenres[0].genre} patterns — your musical identity is developing`,
+      confidence,
     };
   }
 
   return null;
 }
 
-function generateGeneralInsight(input: SnapshotInput): {
-  insight: string;
-  category: InsightCategory;
-} {
+function generateGeneralInsight(input: SnapshotInput): SnapshotInsight {
+  const confidence = computeInsightConfidence(input, 'GENERAL');
   const keyStr = input.currentKey
     ? `${input.currentKey.root} ${input.currentKey.mode}`
     : 'your chosen key';
@@ -251,8 +373,8 @@ function generateGeneralInsight(input: SnapshotInput): {
     input.detectedGenres.length > 0 ? ` with ${input.detectedGenres[0].genre} flavor` : '';
 
   return {
-    insight:
-      `Solid session in ${keyStr} ${tempoStr}${genreStr} — keep building on that foundation`.trim(),
     category: 'GENERAL',
+    text: `Solid session in ${keyStr} ${tempoStr}${genreStr} — keep building on that foundation`.trim(),
+    confidence,
   };
 }

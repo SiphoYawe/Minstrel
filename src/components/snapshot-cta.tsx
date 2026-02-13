@@ -16,7 +16,12 @@ export function SnapshotCTA() {
       className="absolute bottom-16 left-1/2 z-10 -translate-x-1/2 flex gap-3 animate-[fadeUp_300ms_ease-out]"
       aria-live="polite"
     >
-      <span className="sr-only">Snapshot ready: {currentSnapshot.keyInsight}</span>
+      <span className="sr-only">
+        Snapshot ready:{' '}
+        {currentSnapshot.insights?.length > 0
+          ? currentSnapshot.insights.map((i) => i.text).join('. ')
+          : currentSnapshot.keyInsight}
+      </span>
       <Button
         variant="outline"
         size="sm"

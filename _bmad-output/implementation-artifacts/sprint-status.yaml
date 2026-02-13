@@ -179,7 +179,7 @@ development_status:
   14-2-build-skill-profile-radar-visualization: done
   14-3-fix-datacard-session-sync: done
   14-4-fix-bpm-detection-accuracy: done
-  14-5-fix-snapshot-accuracy-and-enrich-content: ready-for-dev
+  14-5-fix-snapshot-accuracy-and-enrich-content: done
   14-6-fix-key-detection-confidence: ready-for-dev
   14-7-fix-session-history-completeness: ready-for-dev
   epic-14-retrospective: optional

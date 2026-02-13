@@ -139,9 +139,20 @@ export interface AvoidancePatterns {
   avoidedIntervals: number[];
 }
 
-// --- Snapshot Types (Story 2.5) ---
+// --- Snapshot Types (Story 2.5 + Story 14.5 enrichment) ---
 
 export type InsightCategory = 'TIMING' | 'HARMONIC' | 'TENDENCY' | 'GENERAL';
+
+export interface SnapshotInsight {
+  category: InsightCategory;
+  text: string;
+  confidence: number; // 0-1
+}
+
+export interface ChordFrequency {
+  label: string;
+  count: number;
+}
 
 export interface InstantSnapshot {
   id: string;
@@ -149,8 +160,12 @@ export interface InstantSnapshot {
   chordsUsed: DetectedChord[];
   timingAccuracy: number;
   averageTempo: number | null;
+  /** @deprecated Use insights array instead. Kept for backward compatibility. */
   keyInsight: string;
   insightCategory: InsightCategory;
+  insights: SnapshotInsight[];
+  chordFrequencies: ChordFrequency[];
+  isLimitedData: boolean;
   genrePatterns: GenrePattern[];
   timestamp: number;
 }

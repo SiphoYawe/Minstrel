@@ -51,7 +51,18 @@ export function SessionSummary({
     sessionStartTimestamp ? Date.now() - sessionStartTimestamp : 0
   );
 
-  const latestInsight = snapshots.length > 0 ? snapshots[snapshots.length - 1].keyInsight : null;
+  const latestSnapshot = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
+  const latestInsights = latestSnapshot?.insights?.length
+    ? latestSnapshot.insights
+    : latestSnapshot?.keyInsight
+      ? [
+          {
+            text: latestSnapshot.keyInsight,
+            category: latestSnapshot.insightCategory,
+            confidence: 1,
+          },
+        ]
+      : null;
 
   // Calculate XP breakdown for this session
   const xpBreakdown = useMemo(() => {
@@ -143,10 +154,14 @@ export function SessionSummary({
           </div>
         )}
 
-        {/* Latest coaching insight */}
-        {latestInsight && (
-          <div className="border-l-2 border-l-primary bg-card px-4 py-3 mb-6">
-            <p className="text-sm text-muted-foreground">{latestInsight}</p>
+        {/* Latest coaching insights */}
+        {latestInsights && latestInsights.length > 0 && (
+          <div className="border-l-2 border-l-primary bg-card px-4 py-3 mb-6 space-y-2">
+            {latestInsights.map((insight, idx) => (
+              <p key={idx} className="text-sm text-muted-foreground">
+                {insight.text}
+              </p>
+            ))}
           </div>
         )}
 

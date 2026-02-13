@@ -186,6 +186,7 @@ export function useAnalysisPipeline() {
             playingTendencies: store.playingTendencies,
             avoidancePatterns: store.avoidancePatterns,
             sessionType: store.sessionType,
+            totalNotesPlayed: store.totalNotesPlayed,
           });
           store.setCurrentSnapshot(snapshot);
           store.addSnapshot(snapshot);

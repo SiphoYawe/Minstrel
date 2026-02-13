@@ -18,6 +18,8 @@ export type {
   RhythmProfile,
   TempoRange,
   InsightCategory,
+  SnapshotInsight,
+  ChordFrequency,
   InstantSnapshot,
   AnalysisAccumulator,
 } from './analysis-types';
@@ -42,5 +44,11 @@ export {
 } from './harmonic-analyzer';
 export { detectGenrePatterns } from './genre-detector';
 export { trackTendencies, detectAvoidance } from './tendency-tracker';
-export { generateSnapshot, generateKeyInsight, applyGrowthMindset } from './snapshot-generator';
+export {
+  generateSnapshot,
+  generateKeyInsight,
+  generateInsights,
+  applyGrowthMindset,
+  computeChordFrequencies,
+} from './snapshot-generator';
 export type { SnapshotInput } from './snapshot-generator';

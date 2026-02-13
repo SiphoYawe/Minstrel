@@ -40,7 +40,8 @@ export function buildSessionContext(): SessionContext {
       : null;
 
   const recentSnapshots = state.snapshots.slice(-3).map((snap) => ({
-    keyInsight: snap.keyInsight,
+    keyInsight:
+      snap.insights?.length > 0 ? snap.insights.map((i) => i.text).join(' | ') : snap.keyInsight,
     insightCategory: snap.insightCategory,
     timestamp: snap.timestamp,
   }));
