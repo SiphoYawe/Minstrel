@@ -68,3 +68,63 @@ export interface SessionXpInput {
 export interface PersonalRecordForXp {
   recordType: string;
 }
+
+// --- Achievement Types (Story 7.3) ---
+
+export enum AchievementCategory {
+  Genre = 'Genre',
+  Technique = 'Technique',
+  Consistency = 'Consistency',
+  PersonalRecord = 'PersonalRecord',
+}
+
+/** Context passed to achievement trigger conditions for evaluation. */
+export interface TriggerContext {
+  // Streak data (Story 7.1)
+  currentStreak: number;
+  bestStreak: number;
+  // XP data (Story 7.2)
+  lifetimeXp: number;
+  // Session stats
+  sessionDurationMs: number;
+  totalNotesPlayed: number;
+  timingAccuracy: number; // 0-1
+  // Drill data
+  drillsCompleted: number;
+  drillsPassed: number;
+  consecutivePerfectReps: number;
+  // Genre exposure
+  detectedGenres: string[];
+  chordsDetected: string[];
+  // Personal records (Story 7.6 — optional until implemented)
+  newRecordTypes?: string[];
+  // Lifetime aggregates
+  lifetimeSessions: number;
+  lifetimeNotesPlayed: number;
+  // Chord transition speed (ms)
+  fastestChordTransitionMs?: number;
+}
+
+export interface AchievementDefinition {
+  achievementId: string;
+  name: string;
+  description: string;
+  category: AchievementCategory;
+  icon: string; // emoji or icon name
+  triggerCondition: (ctx: TriggerContext) => boolean;
+}
+
+export interface UnlockedAchievement {
+  achievementId: string;
+  userId: string;
+  unlockedAt: string; // ISO timestamp
+  sessionId: string | null;
+}
+
+export type AchievementRegistry = Map<string, AchievementDefinition>;
+
+export interface AchievementDisplayItem {
+  definition: AchievementDefinition;
+  unlocked: boolean;
+  unlockedAt: string | null;
+}

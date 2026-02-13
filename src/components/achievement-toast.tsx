@@ -1,0 +1,142 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+
+export interface AchievementToastItem {
+  achievementId: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+}
+
+interface AchievementToastProps {
+  achievements: AchievementToastItem[];
+  onDismiss: () => void;
+}
+
+const DISMISS_MS = 4000;
+const STAGGER_MS = 300;
+
+const CATEGORY_ICONS: Record<string, string> = {
+  Genre: '♪',
+  Technique: '◎',
+  Consistency: '▰',
+  PersonalRecord: '↑',
+};
+
+function getCategoryIcon(category: string, icon: string): string {
+  return CATEGORY_ICONS[category] ?? icon.charAt(0).toUpperCase();
+}
+
+export function AchievementToast({ achievements, onDismiss }: AchievementToastProps) {
+  const [visibleSet, setVisibleSet] = useState<Set<string>>(new Set());
+  const [exitingSet, setExitingSet] = useState<Set<string>>(new Set());
+  const dismissedCount = useRef(0);
+  const totalCount = achievements.length;
+
+  // Stagger in each achievement
+  useEffect(() => {
+    if (achievements.length === 0) return;
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    achievements.forEach((achievement, index) => {
+      const showTimer = setTimeout(() => {
+        setVisibleSet((prev) => new Set([...prev, achievement.achievementId]));
+      }, index * STAGGER_MS);
+      timers.push(showTimer);
+
+      // Start exit animation before dismiss
+      const exitTimer = setTimeout(
+        () => {
+          setExitingSet((prev) => new Set([...prev, achievement.achievementId]));
+        },
+        index * STAGGER_MS + DISMISS_MS - 300
+      );
+      timers.push(exitTimer);
+
+      // Actually remove after exit animation completes
+      const dismissTimer = setTimeout(
+        () => {
+          dismissedCount.current += 1;
+          if (dismissedCount.current >= totalCount) {
+            onDismiss();
+          }
+        },
+        index * STAGGER_MS + DISMISS_MS
+      );
+      timers.push(dismissTimer);
+    });
+
+    return () => {
+      timers.forEach(clearTimeout);
+    };
+  }, [achievements, totalCount, onDismiss]);
+
+  if (achievements.length === 0) return null;
+
+  return (
+    <div
+      aria-live="polite"
+      role="status"
+      className="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"
+      style={{ maxWidth: '340px' }}
+    >
+      {achievements.map((achievement) => {
+        const isVisible = visibleSet.has(achievement.achievementId);
+        const isExiting = exitingSet.has(achievement.achievementId);
+
+        return (
+          <div
+            key={achievement.achievementId}
+            className="pointer-events-auto transition-all duration-300 ease-out"
+            style={{
+              transform: isVisible && !isExiting ? 'translateX(0)' : 'translateX(120%)',
+              opacity: isVisible && !isExiting ? 1 : 0,
+            }}
+          >
+            <div
+              className="flex items-start gap-3 bg-[#141414] border-l-2 border-l-[#4CAF50] border-r border-t border-b border-r-[#1A1A1A] border-t-[#1A1A1A] border-b-[#1A1A1A] px-3 py-2.5"
+              role="alert"
+            >
+              {/* Icon — monospaced indicator box */}
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-[#0F0F0F] border border-[#1A1A1A] font-mono text-sm text-[#4CAF50]">
+                {getCategoryIcon(achievement.category, achievement.icon)}
+              </div>
+
+              {/* Content */}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-white leading-tight truncate">
+                  {achievement.name}
+                </p>
+                <p className="text-xs text-[#808080] leading-snug mt-0.5">
+                  {achievement.description}
+                </p>
+              </div>
+
+              {/* Thin progress line that drains over DISMISS_MS */}
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-[#1A1A1A]">
+                <div
+                  className="h-full bg-[#4CAF50]/40"
+                  style={{
+                    width: isVisible && !isExiting ? '0%' : '100%',
+                    transition:
+                      isVisible && !isExiting ? `width ${DISMISS_MS - 600}ms linear` : 'none',
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Screen reader summary */}
+      <span className="sr-only">
+        {achievements.length === 1
+          ? `Achievement unlocked: ${achievements[0].name}`
+          : `${achievements.length} achievements unlocked: ${achievements.map((a) => a.name).join(', ')}`}
+      </span>
+    </div>
+  );
+}
