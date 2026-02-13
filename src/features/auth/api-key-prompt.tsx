@@ -154,9 +154,21 @@ export function ApiKeyPrompt({
       : `${providerName}: ...${keyMetadata.lastFour}`;
 
     const statusConfig = {
-      active: { label: 'Active', color: 'hsl(var(--accent-success))', bg: 'hsl(var(--accent-success) / 0.15)' },
-      validating: { label: 'Validating', color: 'hsl(var(--primary))', bg: 'hsl(var(--primary) / 0.15)' },
-      invalid: { label: 'Invalid', color: 'hsl(var(--accent-warm))', bg: 'hsl(var(--accent-warm) / 0.15)' },
+      active: {
+        label: 'Active',
+        color: 'hsl(var(--accent-success))',
+        bg: 'hsl(var(--accent-success) / 0.15)',
+      },
+      validating: {
+        label: 'Validating',
+        color: 'hsl(var(--primary))',
+        bg: 'hsl(var(--primary) / 0.15)',
+      },
+      invalid: {
+        label: 'Invalid',
+        color: 'hsl(var(--accent-warm))',
+        bg: 'hsl(var(--accent-warm) / 0.15)',
+      },
     }[keyMetadata.status];
 
     return (

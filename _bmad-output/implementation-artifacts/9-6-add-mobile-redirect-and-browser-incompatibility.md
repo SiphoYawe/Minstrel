@@ -24,6 +24,7 @@ So that I understand why the app is not working and know what to do.
 
 - [ ] 1. Create browser check utility (AC: 3, 5)
   - [ ] 1.1 Create `src/lib/browser-check.ts` with the following exports:
+
     ```ts
     export function isMidiSupported(): boolean {
       return typeof navigator !== 'undefined' && 'requestMIDIAccess' in navigator;
@@ -31,7 +32,8 @@ So that I understand why the app is not working and know what to do.
 
     export function isMobileDevice(): boolean {
       if (typeof navigator === 'undefined') return false;
-      const hasTouchOnly = navigator.maxTouchPoints > 0 && !window.matchMedia('(pointer: fine)').matches;
+      const hasTouchOnly =
+        navigator.maxTouchPoints > 0 && !window.matchMedia('(pointer: fine)').matches;
       const isNarrow = window.innerWidth < 768;
       return hasTouchOnly && isNarrow;
     }
@@ -47,6 +49,7 @@ So that I understand why the app is not working and know what to do.
       return { compatible: true };
     }
     ```
+
   - [ ] 1.2 Add unit tests in `src/lib/browser-check.test.ts`
 
 - [ ] 2. Create browser incompatible component (AC: 1, 2)
@@ -61,6 +64,7 @@ So that I understand why the app is not working and know what to do.
 
 - [ ] 3. Create BrowserGate wrapper component (AC: 3, 4)
   - [ ] 3.1 Create `src/components/browser-gate.tsx` — a client component that wraps session page content:
+
     ```tsx
     'use client';
     import { useState, useEffect } from 'react';
@@ -80,6 +84,7 @@ So that I understand why the app is not working and know what to do.
       return <>{children}</>;
     }
     ```
+
   - [ ] 3.2 The component renders `null` during SSR to avoid hydration mismatches (browser APIs not available on server)
 
 - [ ] 4. Integrate BrowserGate at session/play routes (AC: 4)
@@ -87,11 +92,7 @@ So that I understand why the app is not working and know what to do.
     ```tsx
     import { BrowserGate } from '@/components/browser-gate';
     // ...
-    return (
-      <BrowserGate>
-        {/* existing content */}
-      </BrowserGate>
-    );
+    return <BrowserGate>{/* existing content */}</BrowserGate>;
     ```
   - [ ] 4.2 Wrap the content of `src/app/(guest)/play/page.tsx` with `<BrowserGate>` similarly
   - [ ] 4.3 Do NOT add `BrowserGate` to: `src/app/(marketing)/page.tsx`, login, signup, settings, or replay pages

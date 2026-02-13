@@ -5,9 +5,7 @@ import { OfflineMessage } from './offline-message';
 describe('OfflineMessage', () => {
   it('renders the default message', () => {
     render(<OfflineMessage />);
-    expect(
-      screen.getByText('AI features require an internet connection')
-    ).toBeInTheDocument();
+    expect(screen.getByText('AI features require an internet connection')).toBeInTheDocument();
   });
 
   it('renders a custom message', () => {

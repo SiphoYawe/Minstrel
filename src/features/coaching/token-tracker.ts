@@ -130,9 +130,7 @@ export async function trackTokenUsage(
 /**
  * Get a summary of token usage for a user, aggregated across all interactions.
  */
-export async function getTokenUsageSummary(
-  userId: string
-): Promise<TokenUsageSummaryResult> {
+export async function getTokenUsageSummary(userId: string): Promise<TokenUsageSummaryResult> {
   const supabase = createClient();
 
   const { data, error } = await supabase

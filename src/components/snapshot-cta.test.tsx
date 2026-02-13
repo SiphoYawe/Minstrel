@@ -94,7 +94,9 @@ describe('SnapshotCTA', () => {
   it('has aria-live="polite" region for accessibility', () => {
     useSessionStore.setState({ currentSnapshot: fakeSnapshot });
     render(<SnapshotCTA />);
-    const liveRegion = screen.getByRole('button', { name: /view dashboard/i }).closest('[aria-live]');
+    const liveRegion = screen
+      .getByRole('button', { name: /view dashboard/i })
+      .closest('[aria-live]');
     expect(liveRegion).toHaveAttribute('aria-live', 'polite');
   });
 

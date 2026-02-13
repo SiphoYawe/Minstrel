@@ -110,9 +110,7 @@ describe('SessionSummary', () => {
 
   it('renders Continue Practicing button when callback provided', () => {
     const onContinue = vi.fn();
-    render(
-      <SessionSummary onDismiss={defaultOnDismiss} onContinuePracticing={onContinue} />
-    );
+    render(<SessionSummary onDismiss={defaultOnDismiss} onContinuePracticing={onContinue} />);
     const btn = screen.getByText('Continue Practicing');
     expect(btn).toBeInTheDocument();
     fireEvent.click(btn);

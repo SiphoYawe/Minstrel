@@ -183,9 +183,7 @@ export default function SettingsPage() {
 
         {/* Page header */}
         <div className="mt-6 mb-10">
-          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-primary">
-            Settings
-          </p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-primary">Settings</p>
           <div className="mt-2 h-px w-12 bg-primary" />
         </div>
 
@@ -277,9 +275,9 @@ export default function SettingsPage() {
           </h2>
           <p className="mt-3 text-caption leading-relaxed text-muted-foreground">
             Export all your Minstrel data including practice sessions, progress metrics, AI
-            conversations, achievements, and locally stored MIDI events. Your API keys are
-            included as metadata only (provider and last four characters) &mdash; encrypted
-            keys are never exported.
+            conversations, achievements, and locally stored MIDI events. Your API keys are included
+            as metadata only (provider and last four characters) &mdash; encrypted keys are never
+            exported.
           </p>
           <Button
             variant="outline"
@@ -289,9 +287,7 @@ export default function SettingsPage() {
           >
             {isExporting ? 'Preparing export...' : 'Export My Data'}
           </Button>
-          {exportError && (
-            <p className="mt-2 text-xs text-accent-warm">{exportError}</p>
-          )}
+          {exportError && <p className="mt-2 text-xs text-accent-warm">{exportError}</p>}
         </section>
 
         {/* Actions */}

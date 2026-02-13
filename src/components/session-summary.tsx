@@ -51,8 +51,7 @@ export function SessionSummary({
     sessionStartTimestamp ? Date.now() - sessionStartTimestamp : 0
   );
 
-  const latestInsight =
-    snapshots.length > 0 ? snapshots[snapshots.length - 1].keyInsight : null;
+  const latestInsight = snapshots.length > 0 ? snapshots[snapshots.length - 1].keyInsight : null;
 
   // Calculate XP breakdown for this session
   const xpBreakdown = useMemo(() => {
@@ -68,9 +67,7 @@ export function SessionSummary({
     });
   }, [sessionDuration, timingAccuracy, drillRepHistory]);
 
-  const keyDisplay = currentKey
-    ? `${currentKey.root} ${currentKey.mode}`
-    : '--';
+  const keyDisplay = currentKey ? `${currentKey.root} ${currentKey.mode}` : '--';
 
   return (
     <div
@@ -112,17 +109,13 @@ export function SessionSummary({
             <span className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
               Notes
             </span>
-            <span className="block font-mono text-lg text-foreground">
-              {totalNotesPlayed}
-            </span>
+            <span className="block font-mono text-lg text-foreground">{totalNotesPlayed}</span>
           </div>
           <div className="border border-border bg-card p-3">
             <span className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
               Key
             </span>
-            <span className="block font-mono text-sm text-foreground">
-              {keyDisplay}
-            </span>
+            <span className="block font-mono text-sm text-foreground">{keyDisplay}</span>
           </div>
           <div className="border border-border bg-card p-3">
             <span className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
@@ -143,9 +136,7 @@ export function SessionSummary({
             <span className="block text-[10px] uppercase tracking-wider text-primary mb-1">
               XP Earned
             </span>
-            <span className="block font-mono text-lg text-primary">
-              +{xpBreakdown.totalXp} XP
-            </span>
+            <span className="block font-mono text-lg text-primary">+{xpBreakdown.totalXp} XP</span>
             <span className="block text-[10px] text-muted-foreground mt-1">
               {formatXpBreakdown(xpBreakdown)}
             </span>

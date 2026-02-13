@@ -22,11 +22,7 @@ export function OfflineIndicator() {
       role="alert"
       aria-live="polite"
     >
-      <p
-        className={`font-mono text-xs ${
-          !isOnline ? 'text-accent-warm' : 'text-accent-success'
-        }`}
-      >
+      <p className={`font-mono text-xs ${!isOnline ? 'text-accent-warm' : 'text-accent-success'}`}>
         {!isOnline
           ? "You're offline. MIDI analysis works. AI features will resume when connected."
           : 'Back online'}

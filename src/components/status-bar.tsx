@@ -168,11 +168,7 @@ export function StatusBar() {
 
           {/* Offline / Back-online indicator */}
           {!isOnline && (
-            <span
-              className="flex items-center gap-1.5"
-              role="status"
-              aria-live="polite"
-            >
+            <span className="flex items-center gap-1.5" role="status" aria-live="polite">
               <span className="inline-block h-2 w-2 bg-accent-warm" aria-hidden="true" />
               <span className="font-mono text-caption uppercase tracking-[0.08em] text-accent-warm">
                 Offline
@@ -180,11 +176,7 @@ export function StatusBar() {
             </span>
           )}
           {isOnline && wasOffline && (
-            <span
-              className="flex items-center gap-1.5"
-              role="status"
-              aria-live="polite"
-            >
+            <span className="flex items-center gap-1.5" role="status" aria-live="polite">
               <span className="inline-block h-2 w-2 bg-accent-success" aria-hidden="true" />
               <span className="font-mono text-caption uppercase tracking-[0.08em] text-accent-success">
                 Back online

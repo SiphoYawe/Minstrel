@@ -6,9 +6,7 @@ import { useSessionStore } from '@/stores/session-store';
 import { useAppStore } from '@/stores/app-store';
 import type { ContinuitySessionSummary } from '@/features/session/session-types';
 
-function makeSession(
-  overrides: Partial<ContinuitySessionSummary> = {}
-): ContinuitySessionSummary {
+function makeSession(overrides: Partial<ContinuitySessionSummary> = {}): ContinuitySessionSummary {
   return {
     id: 1,
     date: new Date(Date.now() - 1000 * 60 * 60).toISOString(), // 1 hour ago
@@ -66,9 +64,7 @@ describe('ReturnSessionBanner', () => {
     });
     render(<ReturnSessionBanner />);
     expect(screen.getByTestId('long-absence-message')).toBeInTheDocument();
-    expect(
-      screen.getByText(/It's been a while — glad you're back!/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/It's been a while — glad you're back!/)).toBeInTheDocument();
   });
 
   it('shows normal message when absent for <3 days', () => {
@@ -102,9 +98,7 @@ describe('ReturnSessionBanner', () => {
 
   it('renders "Continue Where I Left Off" button', () => {
     render(<ReturnSessionBanner />);
-    expect(
-      screen.getByText('Continue Where I Left Off')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Continue Where I Left Off')).toBeInTheDocument();
   });
 
   it('renders "Start Fresh" button', () => {

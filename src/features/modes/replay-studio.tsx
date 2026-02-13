@@ -305,7 +305,9 @@ function InsightsPanel({
               className={`block text-sm text-foreground truncate ${metric.mono ? 'font-mono' : ''}`}
             >
               {metric.value}
-              {metric.unit && <span className="text-[10px] text-muted-foreground ml-1">{metric.unit}</span>}
+              {metric.unit && (
+                <span className="text-[10px] text-muted-foreground ml-1">{metric.unit}</span>
+              )}
             </span>
           </div>
         ))}

@@ -87,10 +87,7 @@ describe('awardXp', () => {
     // Should not throw
     await expect(awardXp('user-123', breakdown)).resolves.toBeUndefined();
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      '[XP] Failed to award XP:',
-      'Database unavailable'
-    );
+    expect(consoleSpy).toHaveBeenCalledWith('[XP] Failed to award XP:', 'Database unavailable');
     consoleSpy.mockRestore();
   });
 

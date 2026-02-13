@@ -50,9 +50,10 @@ export function VisualizationCanvas() {
     ctxRef.current = ctx;
 
     // --- Prefers-reduced-motion detection ---
-    const motionMql = typeof window.matchMedia === 'function'
-      ? window.matchMedia('(prefers-reduced-motion: reduce)')
-      : null;
+    const motionMql =
+      typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)')
+        : null;
     if (motionMql) {
       prefersReducedMotionRef.current = motionMql.matches;
     }
@@ -324,12 +325,7 @@ export function VisualizationCanvas() {
           background: 'var(--background)',
         }}
       />
-      <span
-        ref={statusRef}
-        role="status"
-        aria-live="polite"
-        className="sr-only"
-      >
+      <span ref={statusRef} role="status" aria-live="polite" className="sr-only">
         Waiting for input.
       </span>
     </>

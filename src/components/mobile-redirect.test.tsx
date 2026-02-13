@@ -114,9 +114,7 @@ describe('MobileRedirect', () => {
         configurable: true,
       });
       render(<MobileRedirect />);
-      expect(
-        screen.getByText(/your browser doesn't support midi/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/your browser doesn't support midi/i)).toBeInTheDocument();
     });
 
     it('does not show MIDI banner when MIDI is supported', () => {

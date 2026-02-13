@@ -95,15 +95,11 @@ export function FirstRunPrompt() {
           </svg>
         </div>
 
-        <h2 className="text-base text-foreground mb-2">
-          Welcome to Minstrel.
-        </h2>
+        <h2 className="text-base text-foreground mb-2">Welcome to Minstrel.</h2>
         <p className="font-mono text-sm text-primary mb-3">
           Connect your MIDI instrument and play something
         </p>
-        <p className="text-xs text-muted-foreground mb-6">
-          I&apos;ll start listening.
-        </p>
+        <p className="text-xs text-muted-foreground mb-6">I&apos;ll start listening.</p>
 
         {/* Status line with connection indicator */}
         <div className="inline-flex items-center gap-2 border border-border bg-card px-4 py-2">
@@ -117,9 +113,7 @@ export function FirstRunPrompt() {
                     ? 'hsl(var(--accent-warm))'
                     : 'hsl(var(--muted-foreground))',
               animation:
-                connectionStatus === 'connecting'
-                  ? 'pulse-dot 1.5s ease-in-out infinite'
-                  : 'none',
+                connectionStatus === 'connecting' ? 'pulse-dot 1.5s ease-in-out infinite' : 'none',
             }}
           />
           <span className="text-xs text-muted-foreground">
@@ -133,10 +127,7 @@ export function FirstRunPrompt() {
 
         {/* Subtle downward arrow pointing to status bar / MIDI area */}
         {connectionStatus !== 'unsupported' && (
-          <div
-            className="mt-6 flex justify-center"
-            aria-hidden="true"
-          >
+          <div className="mt-6 flex justify-center" aria-hidden="true">
             <svg
               width="16"
               height="24"

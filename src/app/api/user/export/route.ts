@@ -29,10 +29,7 @@ export async function GET() {
     supabase.from('sessions').select('*').eq('user_id', user.id),
     supabase.from('progress_metrics').select('*').eq('user_id', user.id),
     supabase.from('ai_conversations').select('*').eq('user_id', user.id),
-    supabase
-      .from('user_api_keys')
-      .select('provider, created_at, last_four')
-      .eq('user_id', user.id),
+    supabase.from('user_api_keys').select('provider, created_at, last_four').eq('user_id', user.id),
     supabase.from('achievements').select('*').eq('user_id', user.id),
   ]);
 

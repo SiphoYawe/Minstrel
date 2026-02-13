@@ -18,9 +18,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
   },
   {
     label: 'Session',
-    shortcuts: [
-      { keys: ['Space'], description: 'Start / Stop session' },
-    ],
+    shortcuts: [{ keys: ['Space'], description: 'Start / Stop session' }],
   },
   {
     label: 'General',

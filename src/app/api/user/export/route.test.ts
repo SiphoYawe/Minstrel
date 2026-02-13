@@ -91,7 +91,9 @@ describe('GET /api/user/export', () => {
     expect(contentType).toBe('application/json');
 
     const disposition = response.headers.get('Content-Disposition');
-    expect(disposition).toMatch(/attachment; filename="minstrel-data-export-\d{4}-\d{2}-\d{2}\.json"/);
+    expect(disposition).toMatch(
+      /attachment; filename="minstrel-data-export-\d{4}-\d{2}-\d{2}\.json"/
+    );
 
     const body = JSON.parse(await response.text());
     expect(body.userId).toBe('user-123');

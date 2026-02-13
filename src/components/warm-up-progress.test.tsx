@@ -64,9 +64,7 @@ describe('WarmUpProgress', () => {
 
     render(<WarmUpProgress />);
 
-    expect(
-      screen.getByLabelText('Warm-up exercise 2 of 3')
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Warm-up exercise 2 of 3')).toBeInTheDocument();
     expect(screen.getByText('Chord transitions')).toBeInTheDocument();
   });
 

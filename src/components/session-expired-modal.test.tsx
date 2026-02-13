@@ -45,9 +45,7 @@ describe('SessionExpiredModal', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Log In' }));
 
-    expect(mockPush).toHaveBeenCalledWith(
-      expect.stringMatching(/^\/login\?redirectTo=/)
-    );
+    expect(mockPush).toHaveBeenCalledWith(expect.stringMatching(/^\/login\?redirectTo=/));
   });
 
   it('clears sessionExpired state on button click', () => {

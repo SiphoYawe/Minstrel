@@ -125,12 +125,8 @@ describe('AchievementGallery', () => {
 
     await screen.findAllByRole('listitem');
 
-    expect(
-      screen.getByLabelText('First Jazz Voicing - Earned')
-    ).toBeInTheDocument();
-    expect(
-      screen.getByLabelText('Perfect Timing 10x - Not yet earned')
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('First Jazz Voicing - Earned')).toBeInTheDocument();
+    expect(screen.getByLabelText('Perfect Timing 10x - Not yet earned')).toBeInTheDocument();
   });
 
   it('shows achievement descriptions', async () => {
@@ -139,7 +135,9 @@ describe('AchievementGallery', () => {
     await screen.findAllByRole('listitem');
 
     expect(screen.getByText('Played your first dominant 7th chord.')).toBeInTheDocument();
-    expect(screen.getByText('10 consecutive notes within beat grid tolerance.')).toBeInTheDocument();
+    expect(
+      screen.getByText('10 consecutive notes within beat grid tolerance.')
+    ).toBeInTheDocument();
   });
 });
 

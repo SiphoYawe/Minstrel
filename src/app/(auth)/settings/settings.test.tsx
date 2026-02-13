@@ -80,15 +80,15 @@ describe('SettingsPage — Danger Zone (Story 8.5)', () => {
   it('does not render any button with variant="destructive"', () => {
     const { container } = render(<SettingsPage />);
     // shadcn destructive buttons include "destructive" in their class name
-    const destructiveButtons = container.querySelectorAll('button.destructive, button[class*="destructive"]');
+    const destructiveButtons = container.querySelectorAll(
+      'button.destructive, button[class*="destructive"]'
+    );
     expect(destructiveButtons).toHaveLength(0);
   });
 
   it('renders honest copy about account deletion', () => {
     render(<SettingsPage />);
-    expect(
-      screen.getByText(/Account deletion — coming in a future update/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Account deletion — coming in a future update/i)).toBeInTheDocument();
     expect(screen.getByText(/for removal requests/i)).toBeInTheDocument();
   });
 });

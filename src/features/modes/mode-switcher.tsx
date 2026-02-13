@@ -99,7 +99,10 @@ export function ModeSwitcher() {
                 <span className={`text-[10px] ${isActive ? 'text-primary' : 'text-text-tertiary'}`}>
                   {config.shortcut}
                 </span>
-                <span aria-label={config.label}><span className="hidden sm:inline">{RESPONSIVE_LABELS[mode][0]}</span>{RESPONSIVE_LABELS[mode][1]}</span>
+                <span aria-label={config.label}>
+                  <span className="hidden sm:inline">{RESPONSIVE_LABELS[mode][0]}</span>
+                  {RESPONSIVE_LABELS[mode][1]}
+                </span>
               </span>
             </button>
           );

@@ -84,7 +84,9 @@ So that I can use all features effectively.
     ```tsx
     const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
     reducedMotionRef.current = mql.matches;
-    const handleChange = (e: MediaQueryListEvent) => { reducedMotionRef.current = e.matches; };
+    const handleChange = (e: MediaQueryListEvent) => {
+      reducedMotionRef.current = e.matches;
+    };
     mql.addEventListener('change', handleChange);
     ```
   - [ ] 7.3 Pass `reducedMotionRef.current` to `renderNotes` — when true, skip fading note animations (instant appear/disappear instead of gradual fade)

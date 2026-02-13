@@ -7,7 +7,10 @@ import {
   type AchievementDisplayItem,
 } from '@/features/engagement/engagement-types';
 import { fetchAchievementDisplay } from '@/features/engagement/achievement-service';
-import { achievementRegistry, ACHIEVEMENT_COUNT } from '@/features/engagement/achievement-definitions';
+import {
+  achievementRegistry,
+  ACHIEVEMENT_COUNT,
+} from '@/features/engagement/achievement-definitions';
 
 type FilterCategory = 'all' | AchievementCategory;
 
@@ -142,7 +145,11 @@ export function AchievementGallery() {
       </div>
 
       {/* Category filter */}
-      <div className="mb-6 flex flex-wrap items-center gap-2" role="group" aria-label="Filter achievements">
+      <div
+        className="mb-6 flex flex-wrap items-center gap-2"
+        role="group"
+        aria-label="Filter achievements"
+      >
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Filter:</span>
         {(
           [
@@ -178,9 +185,7 @@ export function AchievementGallery() {
           <div
             key={item.definition.achievementId}
             className={`border p-4 transition-colors ${
-              item.unlocked
-                ? 'border-primary/20 bg-card'
-                : 'border-border bg-background opacity-50'
+              item.unlocked ? 'border-primary/20 bg-card' : 'border-border bg-background opacity-50'
             }`}
             role="listitem"
             aria-label={`${item.definition.name}${item.unlocked ? ' - Earned' : ' - Not yet earned'}`}

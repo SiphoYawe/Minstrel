@@ -54,7 +54,7 @@ So that my progress data is reliable.
   1. Read current XP via `fetchLifetimeXp()` (line 46)
   2. Calculate `newTotal = current + breakdown.totalXp` (line 47)
   3. Upsert the new total (lines 49-63)
-  This is a classic read-modify-write race: if two calls run concurrently, both read the same `current` value and one update overwrites the other. The retry loop (lines 44-80) only catches `23505` (unique violation) and `40001` (serialization failure) errors, not the case where both upserts succeed but one overwrites the other.
+     This is a classic read-modify-write race: if two calls run concurrently, both read the same `current` value and one update overwrites the other. The retry loop (lines 44-80) only catches `23505` (unique violation) and `40001` (serialization failure) errors, not the case where both upserts succeed but one overwrites the other.
 - **Streak Timezone**: Upon code review, `src/features/engagement/use-streak.ts` already passes `timezoneOffsetMinutes` at lines 32 and 52, and `streak-tracker.ts` already uses it in `isSameCalendarDay()` at line 12. The timezone handling appears to be correctly implemented. This task should verify and add edge case tests.
 - **Supabase RPC**: The migration file should use `CREATE OR REPLACE FUNCTION increment_xp(...)` with `SECURITY DEFINER` for RLS bypass, or ensure the function runs with the user's permissions.
 - The `fetchLifetimeXp()` function at line 17-28 is still useful for displaying XP elsewhere — do NOT remove it, only remove its call from within `awardXp()`.

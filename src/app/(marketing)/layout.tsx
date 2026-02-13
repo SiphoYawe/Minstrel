@@ -43,7 +43,9 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       </nav>
 
       {/* Content with top padding for fixed nav */}
-      <main id="main-content" className="flex flex-1 flex-col pt-14">{children}</main>
+      <main id="main-content" className="flex flex-1 flex-col pt-14">
+        {children}
+      </main>
     </div>
   );
 }

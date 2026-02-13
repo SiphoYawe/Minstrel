@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { getTerminologyForGenre, getGenreTerminologyHints, GenreTerminology } from './genre-terminology';
+import {
+  getTerminologyForGenre,
+  getGenreTerminologyHints,
+  GenreTerminology,
+} from './genre-terminology';
 
 function expectPopulatedTerminology(t: GenreTerminology) {
   expect(Object.keys(t.chordTerms).length).toBeGreaterThanOrEqual(3);
@@ -179,9 +183,19 @@ describe('getTerminologyForGenre', () => {
 
   describe('all 13 genres resolve to non-generic terminology', () => {
     const genres = [
-      'Jazz', 'Blues', 'Pop/Rock', 'Classical', 'R&B/Soul',
-      'Funk', 'Latin', 'Country', 'Electronic', 'Gospel',
-      'Metal', 'Folk', 'Reggae',
+      'Jazz',
+      'Blues',
+      'Pop/Rock',
+      'Classical',
+      'R&B/Soul',
+      'Funk',
+      'Latin',
+      'Country',
+      'Electronic',
+      'Gospel',
+      'Metal',
+      'Folk',
+      'Reggae',
     ];
 
     for (const genre of genres) {

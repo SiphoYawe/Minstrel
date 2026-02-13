@@ -46,10 +46,7 @@ export interface ReturnSessionBannerProps {
  * Auto-dismisses on MIDI input via Zustand vanilla subscribe on latestEvent.
  * Includes "Start Fresh" and "Continue Where I Left Off" buttons.
  */
-export function ReturnSessionBanner({
-  onStartFresh,
-  onContinue,
-}: ReturnSessionBannerProps = {}) {
+export function ReturnSessionBanner({ onStartFresh, onContinue }: ReturnSessionBannerProps = {}) {
   const [dismissed, setDismissed] = useState(false);
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
   const recentSessions = useSessionStore((s) => s.recentSessions);
@@ -74,10 +71,7 @@ export function ReturnSessionBanner({
 
   const lastSession = recentSessions.length > 0 ? recentSessions[0] : null;
 
-  const absenceDays = useMemo(
-    () => (lastSession ? daysSince(lastSession.date) : 0),
-    [lastSession]
-  );
+  const absenceDays = useMemo(() => (lastSession ? daysSince(lastSession.date) : 0), [lastSession]);
   const isLongAbsence = absenceDays >= LONG_ABSENCE_DAYS;
 
   // Don't show for guests, if dismissed, if playing, or if no recent sessions
@@ -122,17 +116,9 @@ export function ReturnSessionBanner({
           <p className="text-xs text-muted-foreground mt-1">
             Last session: {formatSessionDate(lastSessionTimestamp)}
             {lastSession.detectedKey && (
-              <span className="font-mono text-foreground">
-                {' '}
-                / {lastSession.detectedKey}
-              </span>
+              <span className="font-mono text-foreground"> / {lastSession.detectedKey}</span>
             )}
-            {lastSession.durationMs > 0 && (
-              <span>
-                {' '}
-                / {formatDuration(lastSession.durationMs)}
-              </span>
-            )}
+            {lastSession.durationMs > 0 && <span> / {formatDuration(lastSession.durationMs)}</span>}
           </p>
 
           {/* Key insight from last session */}
@@ -143,9 +129,7 @@ export function ReturnSessionBanner({
           )}
         </div>
 
-        <p className="text-xs text-muted-foreground mb-3">
-          Pick up where you left off?
-        </p>
+        <p className="text-xs text-muted-foreground mb-3">Pick up where you left off?</p>
 
         {/* Action buttons */}
         <div className="flex gap-2">

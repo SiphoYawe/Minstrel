@@ -41,10 +41,7 @@ export function SessionExpiredModal() {
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
           Your session has expired. Please log in again to continue.
         </p>
-        <Button
-          className="mt-6 w-full"
-          onClick={handleLogin}
-        >
+        <Button className="mt-6 w-full" onClick={handleLogin}>
           Log In
         </Button>
       </div>

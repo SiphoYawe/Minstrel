@@ -110,16 +110,12 @@ describe('WarmUpPrompt', () => {
       ],
     });
     render(<WarmUpPrompt onStartWarmUp={onStartWarmUp} onSkip={onSkip} />);
-    expect(
-      screen.getByText(/It's been a while/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/It's been a while/)).toBeInTheDocument();
   });
 
   it('does not show long-absence message when away < 3 days', () => {
     // recentSessions[0].date is 2 days ago (from beforeEach)
     render(<WarmUpPrompt onStartWarmUp={onStartWarmUp} onSkip={onSkip} />);
-    expect(
-      screen.queryByText(/It's been a while/)
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/It's been a while/)).not.toBeInTheDocument();
   });
 });

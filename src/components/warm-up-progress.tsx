@@ -24,14 +24,8 @@ export function WarmUpProgress() {
     >
       <span className="inline-block h-2 w-2 bg-accent-warm animate-pulse" aria-hidden="true" />
       <span className="text-caption text-foreground">
-        Exercise{' '}
-        <span className="font-mono tabular-nums">
-          {currentExercise + 1}
-        </span>{' '}
-        of{' '}
-        <span className="font-mono tabular-nums">
-          {total}
-        </span>
+        Exercise <span className="font-mono tabular-nums">{currentExercise + 1}</span> of{' '}
+        <span className="font-mono tabular-nums">{total}</span>
       </span>
       {currentTitle && (
         <>
