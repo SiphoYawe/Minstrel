@@ -130,4 +130,16 @@ describe('AIChatPanel', () => {
     await user.type(input, 'a');
     expect(onInputChange).toHaveBeenCalled();
   });
+
+  it('textarea has max-height of 200px and overflow-y auto', () => {
+    renderPanel();
+    const textarea = screen.getByLabelText('Chat message input');
+    expect(textarea.style.maxHeight).toBe('200px');
+    expect(textarea.className).toContain('overflow-y-auto');
+  });
+
+  it('does not show scroll indicator when content fits', () => {
+    renderPanel();
+    expect(screen.queryByTestId('scroll-indicator')).not.toBeInTheDocument();
+  });
 });

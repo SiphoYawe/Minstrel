@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
 import { StatusBar } from '@/components/status-bar';
 import { SnapshotCTA } from '@/components/snapshot-cta';
 import { DataCard } from '@/components/data-card';
 import { AIChatPanel } from '@/components/ai-chat-panel';
 import { DrillPanel } from '@/components/drill-panel';
+import { DrillRequestCard } from '@/components/drill-request-card';
 import { DrillController } from '@/components/drill-controller';
 import { PersonalRecords } from '@/components/personal-records';
 import { WeeklySummary } from '@/components/weekly-summary';
@@ -14,6 +15,7 @@ import { useCoachingChat } from '@/features/coaching/coaching-client';
 import { useDrillGeneration } from '@/hooks/use-drill-generation';
 import { useDrillSession } from '@/hooks/use-drill-session';
 import { useAppStore } from '@/stores/app-store';
+import { useSessionStore } from '@/stores/session-store';
 
 export function DashboardChat() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, error, setInput } =
@@ -22,8 +24,33 @@ export function DashboardChat() {
   const drillSession = useDrillSession(drillGen.drill);
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
   const [showEngagement, setShowEngagement] = useState(false);
+  const [pendingDrillRequest, setPendingDrillRequest] = useState<{
+    weakness: string;
+    focusArea: string;
+  } | null>(null);
 
   const isDrillSessionActive = drillSession.phase !== null;
+
+  const handleRequestDrill = useCallback(() => {
+    const snapshot = useSessionStore.getState().currentSnapshot;
+    const weakness = snapshot?.keyInsight ?? 'General practice session';
+    const focusArea =
+      snapshot?.insights && snapshot.insights.length > 0
+        ? snapshot.insights[0].text
+        : 'Targeted drill based on your current session';
+    setPendingDrillRequest({ weakness, focusArea });
+  }, []);
+
+  const handleConfirmDrill = useCallback(() => {
+    if (pendingDrillRequest) {
+      drillGen.generate(pendingDrillRequest.weakness);
+      setPendingDrillRequest(null);
+    }
+  }, [pendingDrillRequest, drillGen]);
+
+  const handleCancelDrillRequest = useCallback(() => {
+    setPendingDrillRequest(null);
+  }, []);
 
   return (
     <div className="relative h-dvh w-full bg-background">
@@ -33,7 +60,7 @@ export function DashboardChat() {
         <div className="min-w-0 min-h-[400px] lg:min-h-0 h-full relative">
           <VisualizationCanvas />
           <SnapshotCTA
-            onGenerateDrill={() => drillGen.generate()}
+            onGenerateDrill={handleRequestDrill}
             isDrillGenerating={drillGen.isGenerating}
           />
         </div>
@@ -43,6 +70,25 @@ export function DashboardChat() {
             <DataCard />
           </div>
           <div className="h-px bg-border shrink-0" />
+
+          {/* Drill request confirmation card */}
+          {pendingDrillRequest &&
+            !isDrillSessionActive &&
+            !drillGen.isGenerating &&
+            !drillGen.drill && (
+              <>
+                <div className="shrink-0 p-3">
+                  <DrillRequestCard
+                    weakness={pendingDrillRequest.weakness}
+                    focusArea={pendingDrillRequest.focusArea}
+                    onGenerate={handleConfirmDrill}
+                    onCancel={handleCancelDrillRequest}
+                    isGenerating={false}
+                  />
+                </div>
+                <div className="h-px bg-border shrink-0" />
+              </>
+            )}
 
           {/* Active drill session: show DrillController */}
           {isDrillSessionActive && drillGen.drill && (

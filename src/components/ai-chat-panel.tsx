@@ -2,6 +2,7 @@
 
 import {
   useRef,
+  useState,
   useEffect,
   useMemo,
   type FormEvent,
@@ -90,11 +91,16 @@ export function AIChatPanel({
     }
   }
 
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const TEXTAREA_MAX_HEIGHT = 200;
+
   function handleTextareaChange(e: ChangeEvent<HTMLTextAreaElement>) {
     onInputChange(e);
     const el = e.target;
     el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+    const clamped = Math.min(el.scrollHeight, TEXTAREA_MAX_HEIGHT);
+    el.style.height = `${clamped}px`;
+    setIsOverflowing(el.scrollHeight > TEXTAREA_MAX_HEIGHT);
   }
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -202,17 +208,27 @@ export function AIChatPanel({
         onSubmit={handleSubmit}
         className="flex items-end gap-2 p-3 border-t border-surface-light"
       >
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={handleTextareaChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Ask about your playing..."
-          rows={1}
-          disabled={isLoading}
-          className="flex-1 resize-none bg-card border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-sans min-h-[36px]"
-          aria-label="Chat message input"
-        />
+        <div className="flex-1 relative">
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={handleTextareaChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask about your playing..."
+            rows={1}
+            disabled={isLoading}
+            className="w-full resize-none bg-card border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-sans min-h-[36px] overflow-y-auto"
+            style={{ maxHeight: `${TEXTAREA_MAX_HEIGHT}px` }}
+            aria-label="Chat message input"
+          />
+          {isOverflowing && (
+            <div
+              className="absolute bottom-0 left-px right-px h-5 bg-gradient-to-t from-card to-transparent pointer-events-none"
+              aria-hidden="true"
+              data-testid="scroll-indicator"
+            />
+          )}
+        </div>
         <Button
           type="submit"
           disabled={isLoading || !input.trim()}
