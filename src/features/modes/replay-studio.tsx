@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
 import { StatusBar } from '@/components/status-bar';
 import { ModeSwitcher } from '@/features/modes/mode-switcher';
@@ -8,6 +9,7 @@ import { TimelineScrubber } from '@/components/timeline-scrubber';
 import type { TimelineMarker } from '@/components/timeline-scrubber';
 import { useReplaySession } from '@/features/session/use-replay-session';
 import { useSessionStore } from '@/stores/session-store';
+import { useReplayChat } from '@/features/coaching/use-replay-chat';
 import { togglePlayback, setPlaybackSpeed } from '@/features/session/replay-engine';
 
 function formatDate(timestamp: number): string {
@@ -27,13 +29,21 @@ function formatDuration(seconds: number | null): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+function formatPositionMmSs(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
 // --- Tab type ---
 
-type TabId = 'insights' | 'sessions';
+type TabId = 'insights' | 'sessions' | 'chat';
 
 const TABS: Array<{ id: TabId; label: string }> = [
   { id: 'insights', label: 'Insights' },
   { id: 'sessions', label: 'Sessions' },
+  { id: 'chat', label: 'Chat' },
 ];
 
 // --- Main Component ---
@@ -192,13 +202,14 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
             </div>
 
             {/* Tab panels */}
-            <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="flex-1 min-h-0 overflow-hidden">
               {/* Insights panel */}
               <div
                 role="tabpanel"
                 id="panel-insights"
                 aria-labelledby="tab-insights"
                 hidden={activeTab !== 'insights'}
+                className="h-full overflow-y-auto"
               >
                 {activeTab === 'insights' && (
                   <InsightsPanel session={replaySession} eventCount={noteCount} />
@@ -211,6 +222,7 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
                 id="panel-sessions"
                 aria-labelledby="tab-sessions"
                 hidden={activeTab !== 'sessions'}
+                className="h-full overflow-y-auto"
               >
                 {activeTab === 'sessions' && (
                   <div className="p-4">
@@ -219,6 +231,17 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
                     </p>
                   </div>
                 )}
+              </div>
+
+              {/* Chat panel */}
+              <div
+                role="tabpanel"
+                id="panel-chat"
+                aria-labelledby="tab-chat"
+                hidden={activeTab !== 'chat'}
+                className="h-full"
+              >
+                {activeTab === 'chat' && <ChatPanel />}
               </div>
             </div>
           </div>
@@ -302,6 +325,194 @@ function InsightsPanel({
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// --- Chat Panel ---
+
+function ChatPanel() {
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    error: chatError,
+    hasApiKey,
+    currentTimestamp,
+  } = useReplayChat();
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom on new messages or loading state change
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [messages, isLoading]);
+
+  // Handle Enter key in textarea
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit();
+      }
+    },
+    [handleSubmit]
+  );
+
+  // --- No API key: graceful degradation ---
+  if (!hasApiKey) {
+    return (
+      <div className="flex flex-col h-full" role="region" aria-label="Replay chat">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center max-w-[220px]">
+            <div
+              className="inline-block w-8 h-8 mb-3 border border-[#1A1A1A] bg-[#141414]
+                flex items-center justify-center text-[#555] text-sm"
+              aria-hidden="true"
+            >
+              ⌘
+            </div>
+            <p className="text-xs text-[#666] leading-relaxed mb-3">
+              Connect your API key in Settings to ask questions about your playing.
+            </p>
+            <Link
+              href="/settings"
+              className="inline-block text-[11px] font-mono uppercase tracking-[0.1em]
+                text-[#7CB9E8] hover:text-white
+                border border-[#7CB9E8]/20 hover:border-[#7CB9E8]/50
+                px-3 py-1.5 transition-colors duration-150"
+            >
+              Settings
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-full" role="region" aria-label="Replay chat">
+      {/* Message area */}
+      <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-2">
+        {messages.length === 0 && !isLoading && (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-[11px] text-[#444] font-mono text-center leading-relaxed max-w-[200px]">
+              Ask about what happened at any moment in your session
+            </p>
+          </div>
+        )}
+
+        {messages.map((message) => {
+          const textContent = message.parts
+            .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+            .map((p) => p.text)
+            .join('');
+
+          if (!textContent) return null;
+
+          const isUser = message.role === 'user';
+
+          return (
+            <div key={message.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+              <div
+                className={`
+                  max-w-[85%] px-3 py-2 text-xs leading-relaxed
+                  ${
+                    isUser
+                      ? 'bg-[#1A1A1A] text-[#ccc] border border-[#252525]'
+                      : 'bg-[#141414] text-[#999] border border-[#1A1A1A]'
+                  }
+                `}
+              >
+                {textContent}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Typing indicator */}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-[#141414] border border-[#1A1A1A] px-3 py-2 flex items-center gap-1">
+              <span
+                className="block w-1 h-1 bg-[#7CB9E8]/60 animate-[pulse-dot_1.4s_ease-in-out_infinite]"
+                aria-hidden="true"
+              />
+              <span
+                className="block w-1 h-1 bg-[#7CB9E8]/60 animate-[pulse-dot_1.4s_ease-in-out_0.2s_infinite]"
+                style={{ animationDelay: '0.2s' }}
+                aria-hidden="true"
+              />
+              <span
+                className="block w-1 h-1 bg-[#7CB9E8]/60 animate-[pulse-dot_1.4s_ease-in-out_0.4s_infinite]"
+                style={{ animationDelay: '0.4s' }}
+                aria-hidden="true"
+              />
+              <span className="sr-only">AI is responding</span>
+            </div>
+          </div>
+        )}
+
+        {/* Error display */}
+        {chatError && (
+          <div className="px-3 py-2 bg-[#141414] border border-[#D4A43C]/20 text-[11px] text-[#D4A43C]">
+            {chatError.message}
+          </div>
+        )}
+      </div>
+
+      {/* Input area */}
+      <div className="shrink-0 border-t border-[#1A1A1A] bg-[#0A0A0A]">
+        {/* Timestamp context indicator */}
+        <div className="px-3 pt-2 pb-1">
+          <span className="font-mono text-[10px] text-[#555] tracking-wide">
+            Asking about moment at{' '}
+            <span className="text-[#7CB9E8]/70">{formatPositionMmSs(currentTimestamp)}</span>
+          </span>
+        </div>
+
+        {/* Input + send */}
+        <form onSubmit={handleSubmit} className="flex items-end gap-2 px-3 pb-3">
+          <textarea
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder="What happened here?"
+            rows={1}
+            aria-label="Ask about this moment"
+            className="flex-1 resize-none bg-[#141414] border border-[#1A1A1A]
+              text-xs text-[#ccc] placeholder:text-[#444]
+              px-3 py-2 font-mono
+              focus:outline-none focus:border-[#7CB9E8]/30
+              transition-colors duration-150"
+          />
+          <button
+            type="submit"
+            disabled={!input.trim() || isLoading}
+            aria-label="Send message"
+            className="shrink-0 w-8 h-8 flex items-center justify-center
+              border border-[#1A1A1A] bg-[#141414]
+              text-[#7CB9E8] text-xs
+              hover:border-[#7CB9E8]/30 hover:bg-[#7CB9E8]/5
+              disabled:opacity-30 disabled:cursor-not-allowed
+              transition-all duration-150"
+          >
+            ↑
+          </button>
+        </form>
+      </div>
+
+      <style>{`
+        @keyframes pulse-dot {
+          0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+          40% { opacity: 1; transform: scale(1.2); }
+        }
+      `}</style>
     </div>
   );
 }

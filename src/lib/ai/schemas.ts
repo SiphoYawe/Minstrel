@@ -31,6 +31,33 @@ export const SessionContextSchema = z.object({
 
 export type SessionContext = z.infer<typeof SessionContextSchema>;
 
+// --- Replay Context (timestamp-specific AI context for Replay Studio) ---
+
+export const ReplayContextSchema = z.object({
+  timestampFormatted: z.string().describe('Human-readable timestamp, e.g. "2:34"'),
+  timestampMs: z.number().min(0).describe('Position in milliseconds'),
+  notesAtMoment: z.array(z.string()).describe('Note names active at the timestamp'),
+  chordAtMoment: z.string().nullable().describe('Detected chord at the timestamp'),
+  timingAccuracy: z.number().min(0).max(1).describe('Timing accuracy for surrounding passage'),
+  tempo: z.number().nullable().describe('Detected tempo at that point'),
+  chordProgression: z.array(z.string()).describe('Recent chord labels leading up to this moment'),
+  nearbySnapshots: z
+    .array(
+      z.object({
+        keyInsight: z.string(),
+        insightCategory: z.string(),
+        timestamp: z.number(),
+      })
+    )
+    .max(10)
+    .describe('Analysis snapshots within the time window'),
+  key: z.string().nullable().describe('Detected key center'),
+  genre: z.string().nullable().describe('Detected genre'),
+  windowMs: z.number().positive().describe('Context window size in ms'),
+});
+
+export type ReplayContext = z.infer<typeof ReplayContextSchema>;
+
 // --- Chat API request ---
 
 export const ChatRequestSchema = z.object({
@@ -42,7 +69,9 @@ export const ChatRequestSchema = z.object({
       })
     )
     .max(200),
-  sessionContext: SessionContextSchema,
+  sessionContext: SessionContextSchema.optional(),
+  replayContext: ReplayContextSchema.optional(),
+  mode: z.enum(['live', 'replay']).default('live'),
   providerId: z.enum(['openai', 'anthropic']),
 });
 

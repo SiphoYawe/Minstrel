@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@/test-utils/render';
 import { ReplayStudio } from './replay-studio';
 import { useSessionStore } from '@/stores/session-store';
+import { useAppStore } from '@/stores/app-store';
 import { createMockSession } from '@/test-utils/session-fixtures';
 
 // Mock the hook to avoid Dexie side effects
@@ -22,6 +23,24 @@ vi.mock('@/features/session/replay-engine', () => ({
   }),
 }));
 
+// Mock replay chat hook
+const mockSendMessage = vi.fn();
+vi.mock('@/features/coaching/use-replay-chat', () => ({
+  useReplayChat: vi.fn(() => ({
+    messages: [],
+    input: '',
+    handleInputChange: vi.fn(),
+    handleSubmit: vi.fn(),
+    isLoading: false,
+    error: null,
+    setInput: vi.fn(),
+    hasApiKey: useAppStore.getState().hasApiKey,
+    currentTimestamp: useSessionStore.getState().replayPosition,
+    setMessages: vi.fn(),
+    sendMessage: mockSendMessage,
+  })),
+}));
+
 describe('ReplayStudio', () => {
   beforeEach(() => {
     useSessionStore.setState({
@@ -33,6 +52,7 @@ describe('ReplayStudio', () => {
       replayState: 'paused',
       replaySpeed: 1,
     });
+    useAppStore.setState({ hasApiKey: true });
   });
 
   describe('loading state', () => {
@@ -118,12 +138,13 @@ describe('ReplayStudio', () => {
       });
     });
 
-    it('renders tablist with Insights and Sessions tabs', () => {
+    it('renders tablist with Insights, Sessions, and Chat tabs', () => {
       render(<ReplayStudio sessionId={1} />);
       const tablist = screen.getByRole('tablist', { name: 'Replay details' });
       expect(tablist).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /insights/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /sessions/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /chat/i })).toBeInTheDocument();
     });
 
     it('Insights tab is active by default', () => {
@@ -288,6 +309,77 @@ describe('ReplayStudio', () => {
       const slider = screen.getByRole('slider', { name: /session timeline/i });
       fireEvent.keyDown(slider, { key: 'ArrowRight' });
       expect(useSessionStore.getState().replayPosition).toBe(61_000); // 60000 + 1000
+    });
+  });
+
+  describe('chat tab', () => {
+    beforeEach(() => {
+      useSessionStore.setState({
+        replayStatus: 'success',
+        replaySession: createMockSession({ id: 1, key: 'C major', tempo: 120, duration: 300 }),
+        replayEvents: [],
+        replayPosition: 90_000,
+      });
+      useAppStore.setState({ hasApiKey: true });
+    });
+
+    it('switches to Chat tab on click', () => {
+      render(<ReplayStudio sessionId={1} />);
+      fireEvent.click(screen.getByRole('tab', { name: /chat/i }));
+      expect(screen.getByRole('tab', { name: /chat/i })).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('renders the replay chat region when Chat tab is active', () => {
+      render(<ReplayStudio sessionId={1} />);
+      fireEvent.click(screen.getByRole('tab', { name: /chat/i }));
+      expect(screen.getByRole('region', { name: 'Replay chat' })).toBeInTheDocument();
+    });
+
+    it('chat tab panel has correct aria linkage', () => {
+      render(<ReplayStudio sessionId={1} />);
+      const chatTab = screen.getByRole('tab', { name: /chat/i });
+      expect(chatTab).toHaveAttribute('aria-controls', 'panel-chat');
+      expect(chatTab).toHaveAttribute('id', 'tab-chat');
+    });
+
+    it('shows graceful degradation when no API key', () => {
+      useAppStore.setState({ hasApiKey: false });
+      render(<ReplayStudio sessionId={1} />);
+      fireEvent.click(screen.getByRole('tab', { name: /chat/i }));
+      expect(screen.getByText(/connect your api key in settings/i)).toBeInTheDocument();
+    });
+
+    it('shows Settings link in degradation state', () => {
+      useAppStore.setState({ hasApiKey: false });
+      render(<ReplayStudio sessionId={1} />);
+      fireEvent.click(screen.getByRole('tab', { name: /chat/i }));
+      const settingsLink = screen.getByRole('link', { name: /settings/i });
+      expect(settingsLink).toBeInTheDocument();
+      expect(settingsLink).toHaveAttribute('href', '/settings');
+    });
+
+    it('shows empty state message when no messages', () => {
+      render(<ReplayStudio sessionId={1} />);
+      fireEvent.click(screen.getByRole('tab', { name: /chat/i }));
+      expect(screen.getByText(/ask about what happened/i)).toBeInTheDocument();
+    });
+
+    it('shows timestamp context indicator', () => {
+      render(<ReplayStudio sessionId={1} />);
+      fireEvent.click(screen.getByRole('tab', { name: /chat/i }));
+      expect(screen.getByText(/asking about moment at/i)).toBeInTheDocument();
+    });
+
+    it('renders chat input with correct label', () => {
+      render(<ReplayStudio sessionId={1} />);
+      fireEvent.click(screen.getByRole('tab', { name: /chat/i }));
+      expect(screen.getByRole('textbox', { name: /ask about this moment/i })).toBeInTheDocument();
+    });
+
+    it('renders send button', () => {
+      render(<ReplayStudio sessionId={1} />);
+      fireEvent.click(screen.getByRole('tab', { name: /chat/i }));
+      expect(screen.getByRole('button', { name: /send message/i })).toBeInTheDocument();
     });
   });
 });

@@ -1,7 +1,7 @@
 import { streamText } from 'ai';
 import { ChatRequestSchema } from '@/lib/ai/schemas';
 import { getModelForProvider } from '@/lib/ai/provider';
-import { buildChatSystemPrompt } from '@/lib/ai/prompts';
+import { buildChatSystemPrompt, buildReplayChatSystemPrompt } from '@/lib/ai/prompts';
 import { authenticateAiRequest, withAiErrorHandling } from '@/lib/ai/route-helpers';
 
 export async function POST(req: Request): Promise<Response> {
@@ -23,7 +23,27 @@ export async function POST(req: Request): Promise<Response> {
     );
   }
 
-  const { messages, sessionContext, providerId } = parsed.data;
+  const { messages, sessionContext, replayContext, mode, providerId } = parsed.data;
+
+  // Validate context matches mode
+  if (mode === 'replay' && !replayContext) {
+    return Response.json(
+      {
+        data: null,
+        error: { code: 'VALIDATION_ERROR', message: 'Replay mode requires replayContext.' },
+      },
+      { status: 400 }
+    );
+  }
+  if (mode === 'live' && !sessionContext) {
+    return Response.json(
+      {
+        data: null,
+        error: { code: 'VALIDATION_ERROR', message: 'Live mode requires sessionContext.' },
+      },
+      { status: 400 }
+    );
+  }
 
   // Authenticate, rate-limit, and decrypt API key
   const authResult = await authenticateAiRequest(providerId);
@@ -33,7 +53,10 @@ export async function POST(req: Request): Promise<Response> {
 
   return withAiErrorHandling(async () => {
     const model = getModelForProvider(providerId, apiKey);
-    const systemPrompt = buildChatSystemPrompt(sessionContext);
+    const systemPrompt =
+      mode === 'replay' && replayContext
+        ? buildReplayChatSystemPrompt(replayContext)
+        : buildChatSystemPrompt(sessionContext!);
 
     const result = streamText({
       model,

@@ -1,4 +1,5 @@
 import type { SessionContext } from './schemas';
+import type { ReplayContext } from './schemas';
 import type { DataSufficiency } from '@/features/coaching/context-builder';
 import { getGenreTerminologyHints } from '@/features/coaching/genre-terminology';
 
@@ -186,6 +187,67 @@ export function buildRecalibrationSystemPrompt(): string {
     '- Parameter adjustments should be incremental, not dramatic',
     '- If a dimension is plateaued, suggest switching focus rather than increasing intensity',
     '- Consider genre context when making recommendations',
+  ].join('\n');
+}
+
+function formatReplayMomentBlock(context: ReplayContext): string {
+  const lines: string[] = [`REPLAY MOMENT DATA (at ${context.timestampFormatted}):`];
+
+  if (context.notesAtMoment.length > 0)
+    lines.push(`NOTES AT MOMENT: ${context.notesAtMoment.join(', ')}`);
+  else lines.push('NOTES AT MOMENT: (silence)');
+
+  if (context.chordAtMoment) lines.push(`CHORD AT MOMENT: ${context.chordAtMoment}`);
+  if (context.key) lines.push(`KEY: ${context.key}`);
+  if (context.tempo) lines.push(`TEMPO: ${context.tempo} BPM`);
+
+  const pct = Number.isFinite(context.timingAccuracy)
+    ? (context.timingAccuracy * 100).toFixed(0)
+    : '0';
+  lines.push(`TIMING ACCURACY (window): ${pct}%`);
+
+  if (context.chordProgression.length > 0)
+    lines.push(`CHORD PROGRESSION (leading up): ${context.chordProgression.join(' → ')}`);
+
+  if (context.nearbySnapshots.length > 0) {
+    lines.push(`NEARBY ANALYSIS SNAPSHOTS (${context.nearbySnapshots.length}):`);
+    for (const snap of context.nearbySnapshots) {
+      lines.push(`  [${snap.insightCategory}] ${snap.keyInsight}`);
+    }
+  }
+
+  lines.push(
+    `CONTEXT WINDOW: ±${Math.round(context.windowMs / 1000)}s around ${context.timestampFormatted}`
+  );
+
+  return lines.join('\n');
+}
+
+/**
+ * Build the system prompt for replay-mode chat (timestamp-specific questions).
+ */
+export function buildReplayChatSystemPrompt(context: ReplayContext): string {
+  return [
+    STUDIO_ENGINEER_BASE,
+    '',
+    'REPLAY MODE INSTRUCTIONS:',
+    `You are analyzing a specific recorded moment at timestamp ${context.timestampFormatted}.`,
+    'Reference ONLY the data from this exact moment and the surrounding context window.',
+    'Do not make claims about the entire session unless explicitly asked.',
+    'If the data at this moment is insufficient to answer, say so explicitly.',
+    'When the musician asks about timing, reference actual deviations.',
+    'When the musician asks about harmony, reference the detected key, chord, and note names.',
+    'When comparing multiple moments, explicitly cite both timestamps.',
+    '',
+    formatGenreSection(context.genre ?? null),
+    '',
+    formatReplayMomentBlock(context),
+    '',
+    'CHAT INSTRUCTIONS:',
+    "- Answer the musician's question about THIS specific moment using the data above.",
+    '- Keep responses under 150 words unless the question demands detail.',
+    '- Be precise: cite specific note names, chord quality, timestamps, and data.',
+    '- If asked about something outside the replay moment data, acknowledge the limitation.',
   ].join('\n');
 }
 
