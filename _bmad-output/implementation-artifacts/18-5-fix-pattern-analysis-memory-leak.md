@@ -1,6 +1,6 @@
 # Story 18.5: Fix Pattern Analysis Memory Leak
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -45,8 +45,22 @@ So that no memory leaks or stale state access occurs after component unmount.
 
 ### Agent Model Used
 
+Claude Opus 4.6
+
 ### Debug Log References
+
+- All 3 lifecycle tests pass
+- TypeScript compiles clean
 
 ### Completion Notes List
 
+- Stored patternInterval in patternIntervalRef (was bare const)
+- Added mountedRef flag checked at top of runPatternAnalysis
+- Cleanup order: mountedRef=false first, then clearInterval, then async ops
+- Rapid mount/unmount clears stale interval before creating new one
+- No duplicate intervals created on remount
+
 ### File List
+
+- src/features/analysis/use-analysis-pipeline.ts (modified)
+- src/features/analysis/use-analysis-pipeline.test.ts (new)

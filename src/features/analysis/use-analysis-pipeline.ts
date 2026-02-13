@@ -51,6 +51,8 @@ export function useAnalysisPipeline() {
   const clusterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sessionEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const patternIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
     const timingAnalysis = createTimingAnalysis();
@@ -88,6 +90,8 @@ export function useAnalysisPipeline() {
     }
 
     function runPatternAnalysis() {
+      // Guard: skip if component has unmounted
+      if (!mountedRef.current) return;
       // Skip if no new data since last run (fix #4: avoid idle updates)
       if (accumulator.totalNoteCount === lastPatternNoteCount) return;
       if (accumulator.notes.length < 8 && accumulator.chords.length < 3) return;
@@ -110,7 +114,11 @@ export function useAnalysisPipeline() {
     }
 
     // Schedule pattern analysis every 30 seconds during active play
-    const patternInterval = setInterval(runPatternAnalysis, PATTERN_ANALYSIS_INTERVAL_MS);
+    // Clear any stale interval from rapid mount/unmount cycles
+    if (patternIntervalRef.current !== null) {
+      clearInterval(patternIntervalRef.current);
+    }
+    patternIntervalRef.current = setInterval(runPatternAnalysis, PATTERN_ANALYSIS_INTERVAL_MS);
 
     function flushCluster() {
       const cluster = analysisClusterRef.current;
@@ -395,16 +403,26 @@ export function useAnalysisPipeline() {
     );
 
     const heldNotes = heldNotesRef.current;
+    mountedRef.current = true;
 
     return () => {
+      // Step 1: Set mounted flag FIRST to prevent interval callbacks from running
+      mountedRef.current = false;
+
+      // Step 2: Clear all intervals and timers synchronously
       unsubscribe();
-      clearInterval(patternInterval);
+      if (patternIntervalRef.current !== null) {
+        clearInterval(patternIntervalRef.current);
+        patternIntervalRef.current = null;
+      }
       if (clusterTimerRef.current !== null) clearTimeout(clusterTimerRef.current);
       if (silenceTimerRef.current !== null) clearTimeout(silenceTimerRef.current);
       if (sessionEndTimerRef.current !== null) clearTimeout(sessionEndTimerRef.current);
       analysisClusterRef.current = [];
       heldNotes.clear();
       timingAnalysis.reset();
+
+      // Step 3: Async cleanup AFTER all synchronous cleanup completes
       // Stop recording (final flush + session update).
       // stopRecording clears all recorder state internally — do NOT call resetRecorder
       // afterward as it would wipe the buffer before the async flush completes.
