@@ -71,8 +71,8 @@ export function AppSidebar() {
             <Image
               src="/minstrel-logo-white.svg"
               alt=""
-              width={collapsed ? 24 : 120}
-              height={collapsed ? 24 : 28}
+              width={collapsed ? 20 : 88}
+              height={collapsed ? 20 : 22}
               className="shrink-0"
               aria-hidden="true"
             />
