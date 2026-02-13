@@ -2,6 +2,7 @@
 
 import { TroubleshootingPanel } from '@/components/troubleshooting-panel';
 import { SilentCoach } from '@/features/modes/silent-coach';
+import { DashboardChat } from '@/features/modes/dashboard-chat';
 import { useMidi } from '@/features/midi/use-midi';
 import { getTroubleshootingSteps } from '@/features/midi/troubleshooting';
 import { isAudioSupported } from '@/features/midi/audio-engine';
@@ -30,13 +31,7 @@ export default function GuestPlayPage() {
     <>
       {/* Mode-specific layout */}
       {currentMode === 'silent-coach' && <SilentCoach />}
-      {currentMode === 'dashboard-chat' && (
-        <div className="flex h-screen items-center justify-center bg-background">
-          <span className="font-mono text-caption text-muted-foreground">
-            Dashboard + Chat — coming soon
-          </span>
-        </div>
-      )}
+      {currentMode === 'dashboard-chat' && <DashboardChat />}
       {currentMode === 'replay-studio' && (
         <div className="flex h-screen items-center justify-center bg-background">
           <span className="font-mono text-caption text-muted-foreground">

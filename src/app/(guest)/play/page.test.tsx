@@ -15,6 +15,9 @@ vi.mock('@/components/troubleshooting-panel', () => ({
 vi.mock('@/features/modes/mode-switcher', () => ({
   ModeSwitcher: () => <div data-testid="mode-switcher">ModeSwitcher</div>,
 }));
+vi.mock('@/features/modes/dashboard-chat', () => ({
+  DashboardChat: () => <div data-testid="dashboard-chat">DashboardChat</div>,
+}));
 
 // Mock hooks and utilities
 vi.mock('@/features/session/use-guest-session', () => ({
@@ -91,10 +94,10 @@ describe('GuestPlayPage', () => {
     expect(screen.getByTestId('troubleshooting-panel')).toBeInTheDocument();
   });
 
-  it('renders Dashboard placeholder when mode is dashboard-chat', () => {
+  it('renders DashboardChat when mode is dashboard-chat', () => {
     useSessionStore.getState().setCurrentMode('dashboard-chat');
     render(<GuestPlayPage />);
-    expect(screen.getByText(/Dashboard \+ Chat/)).toBeInTheDocument();
+    expect(screen.getByTestId('dashboard-chat')).toBeInTheDocument();
     expect(screen.queryByTestId('visualization-canvas')).not.toBeInTheDocument();
   });
 

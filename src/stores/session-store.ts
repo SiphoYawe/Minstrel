@@ -17,6 +17,7 @@ import type {
 } from '@/features/analysis/analysis-types';
 import type { SessionMode } from '@/features/modes/mode-types';
 import type { SessionType } from '@/features/session/session-types';
+import type { ChatMessage } from '@/features/coaching/coaching-types';
 
 interface SessionState {
   currentMode: SessionMode;
@@ -41,6 +42,8 @@ interface SessionState {
   avoidancePatterns: AvoidancePatterns | null;
   currentSnapshot: InstantSnapshot | null;
   snapshots: InstantSnapshot[];
+  chatHistory: ChatMessage[];
+  totalNotesPlayed: number;
 }
 
 interface SessionActions {
@@ -67,6 +70,9 @@ interface SessionActions {
   setAvoidancePatterns: (patterns: AvoidancePatterns | null) => void;
   setCurrentSnapshot: (snapshot: InstantSnapshot | null) => void;
   addSnapshot: (snapshot: InstantSnapshot) => void;
+  addChatMessage: (message: ChatMessage) => void;
+  clearChatHistory: () => void;
+  incrementNotesPlayed: (count?: number) => void;
   resetAnalysis: () => void;
 }
 
@@ -95,6 +101,8 @@ const initialState: SessionState = {
   avoidancePatterns: null,
   currentSnapshot: null,
   snapshots: [],
+  chatHistory: [],
+  totalNotesPlayed: 0,
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -164,6 +172,18 @@ export const useSessionStore = create<SessionStore>()(
             : [...state.snapshots, snapshot];
         return { snapshots: snaps };
       }),
+
+    addChatMessage: (message) =>
+      set((state) => ({
+        chatHistory: [...state.chatHistory, message],
+      })),
+
+    clearChatHistory: () => set({ chatHistory: [] }),
+
+    incrementNotesPlayed: (count = 1) =>
+      set((state) => ({
+        totalNotesPlayed: state.totalNotesPlayed + count,
+      })),
 
     resetAnalysis: () =>
       set((state) => ({
