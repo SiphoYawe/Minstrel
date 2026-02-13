@@ -20,6 +20,9 @@ import { useAppStore } from '@/stores/app-store';
 import { ApiKeyPrompt } from '@/features/auth/api-key-prompt';
 import { getApiKeyMetadata, submitApiKey, deleteApiKey } from '@/features/auth/api-key-manager';
 import type { ApiKeyMetadata, ApiKeyProvider } from '@/features/auth/auth-types';
+import { TokenUsageDisplay } from '@/features/coaching/token-usage-display';
+import { getTotalTokenUsage, getRecentSessionUsage } from '@/features/coaching/token-usage';
+import type { TokenUsageSummary } from '@/features/coaching/token-usage';
 
 export default function SettingsPage() {
   const { user, isAuthenticated, isLoading, signOut } = useAuth();
@@ -31,6 +34,10 @@ export default function SettingsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [totalUsage, setTotalUsage] = useState<TokenUsageSummary | null>(null);
+  const [recentUsage, setRecentUsage] = useState<TokenUsageSummary | null>(null);
+  const [usageLoaded, setUsageLoaded] = useState(false);
+  const hasApiKey = useAppStore((s) => s.hasApiKey);
 
   useEffect(() => {
     return () => {
@@ -60,6 +67,27 @@ export default function SettingsPage() {
       cancelled = true;
     };
   }, [isAuthenticated]);
+
+  // Fetch token usage when authenticated and has API key
+  useEffect(() => {
+    if (!isAuthenticated || !user || !hasApiKey) return;
+    let cancelled = false;
+    Promise.all([getTotalTokenUsage(user.id), getRecentSessionUsage(user.id)])
+      .then(([total, recent]) => {
+        if (cancelled) return;
+        setTotalUsage(total);
+        setRecentUsage(recent);
+      })
+      .catch(() => {
+        // Usage fetch is non-critical — silently degrade to empty state
+      })
+      .finally(() => {
+        if (!cancelled) setUsageLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, user, hasApiKey]);
 
   const handleSaveKey = useCallback(async (provider: ApiKeyProvider, apiKey: string) => {
     setIsSubmitting(true);
@@ -179,6 +207,34 @@ export default function SettingsPage() {
               />
             )}
           </div>
+
+          {/* Usage Summary — only shown when user has an API key */}
+          {hasApiKey && (
+            <div className="mt-6 border-t border-border pt-4">
+              <h3 className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                Usage Summary
+              </h3>
+              <div className="mt-3 space-y-4">
+                {!usageLoaded ? (
+                  <span className="font-mono text-caption text-muted-foreground">
+                    Loading usage...
+                  </span>
+                ) : (
+                  <>
+                    <TokenUsageDisplay summary={totalUsage} variant="total" />
+                    {recentUsage && (
+                      <div>
+                        <p className="mb-1 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                          Most Recent Session
+                        </p>
+                        <TokenUsageDisplay summary={recentUsage} variant="session" />
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Preferences section */}

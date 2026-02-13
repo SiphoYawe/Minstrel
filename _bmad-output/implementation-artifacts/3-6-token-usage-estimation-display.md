@@ -1,6 +1,6 @@
 # Story 3.6: Token Usage Estimation Display
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -100,6 +100,7 @@ So that I can manage my LLM API spending transparently.
 ### Project Structure Notes
 
 Files created/modified in this story:
+
 ```
 src/lib/ai/pricing.ts                       (create)
 src/features/coaching/token-tracker.ts       (create)

@@ -64,13 +64,13 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: Accounts & API Key Management
-  epic-3: in-progress
+  epic-3: done
   3-1-user-registration-and-login: done
   3-2-guest-to-account-data-migration: done
   3-3-llm-api-key-configuration-ui: done
   3-4-api-key-validation-and-encrypted-storage: done
   3-5-graceful-degradation-without-api-key: done
-  3-6-token-usage-estimation-display: ready-for-dev
+  3-6-token-usage-estimation-display: done
   epic-3-retrospective: optional
 
   # Epic 4: AI Coaching & Dashboard Mode
