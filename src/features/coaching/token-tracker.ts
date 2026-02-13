@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import * as Sentry from '@sentry/nextjs';
 
 export interface TokenUsageParams {
   sessionId: string;
@@ -66,15 +67,46 @@ export function extractTokenUsage(aiResponse: {
   };
 }
 
+// In-memory fallback queue for failed token tracking writes.
+// Retries are drained on the next successful recordTokenUsage call.
+const tokenFallbackQueue: Array<{
+  params: TokenUsageParams;
+  timestamp: number;
+}> = [];
+
+/** Get the current fallback queue size (for testing). */
+export function getTokenFallbackQueueSize(): number {
+  return tokenFallbackQueue.length;
+}
+
 /**
  * Record token usage to the ai_conversations table.
- *
- * NOTE: Currently uses the browser Supabase client for RLS-authenticated inserts.
- * When Epic 4 integrates this into server-side API routes, switch the import to
- * `@/lib/supabase/server` (createClient from server) for cookie-based auth.
+ * On failure, reports to Sentry and queues the record for retry.
  */
 export async function recordTokenUsage(params: TokenUsageParams): Promise<void> {
   const supabase = createClient();
+
+  // Attempt to drain fallback queue first
+  if (tokenFallbackQueue.length > 0) {
+    const pending = [...tokenFallbackQueue];
+    tokenFallbackQueue.length = 0;
+    for (const entry of pending) {
+      const { error: retryError } = await supabase.from('ai_conversations').insert({
+        session_id: entry.params.sessionId,
+        user_id: entry.params.userId,
+        role: entry.params.role,
+        content: entry.params.content,
+        token_count: entry.params.tokenCount,
+        model: entry.params.model,
+        provider: entry.params.provider,
+        metadata: entry.params.metadata ?? null,
+      });
+      if (retryError) {
+        // Re-queue if retry also fails
+        tokenFallbackQueue.push(entry);
+      }
+    }
+  }
 
   const { error } = await supabase.from('ai_conversations').insert({
     session_id: params.sessionId,
@@ -89,6 +121,16 @@ export async function recordTokenUsage(params: TokenUsageParams): Promise<void> 
 
   if (error) {
     console.error('Failed to record token usage:', error.message);
+    Sentry.captureException(new Error(`Token tracking failed: ${error.message}`), {
+      tags: { component: 'token-tracker' },
+      extra: {
+        provider: params.provider,
+        model: params.model,
+        tokenCount: params.tokenCount,
+      },
+    });
+    // Queue for retry on next call
+    tokenFallbackQueue.push({ params, timestamp: Date.now() });
   }
 }
 

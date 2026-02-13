@@ -3,7 +3,11 @@ import type { LanguageModel, TextStreamPart, ToolSet } from 'ai';
 import { ChatRequestSchema } from '@/lib/ai/schemas';
 import { getModelForProvider, DEFAULT_MODELS } from '@/lib/ai/provider';
 import type { SupportedProvider } from '@/lib/ai/provider';
-import { buildChatSystemPrompt, buildReplayChatSystemPrompt } from '@/lib/ai/prompts';
+import {
+  buildChatSystemPrompt,
+  buildReplayChatSystemPrompt,
+  sanitizeUserMessage,
+} from '@/lib/ai/prompts';
 import { authenticateAiRequest, withAiErrorHandling } from '@/lib/ai/route-helpers';
 import { replaceProhibitedWords, PROHIBITED_WORDS } from '@/features/coaching/growth-mindset-rules';
 import {
@@ -184,7 +188,10 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   // Authenticate, rate-limit, and decrypt API key
-  const authResult = await authenticateAiRequest(providerId);
+  const authResult = await authenticateAiRequest(providerId, {
+    bucket: 'ai:chat',
+    maxRequests: 100,
+  });
   if (authResult instanceof Response) return authResult;
 
   const { apiKey, userId } = authResult;
@@ -218,7 +225,8 @@ export async function POST(req: Request): Promise<Response> {
     for (const m of trimmedMessages) {
       finalMessages.push({
         role: m.role as 'user' | 'assistant',
-        content: m.content,
+        // Sanitize user messages to prevent prompt injection
+        content: m.role === 'user' ? sanitizeUserMessage(m.content) : m.content,
       });
     }
 

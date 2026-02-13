@@ -32,7 +32,10 @@ export async function POST(req: Request): Promise<Response> {
   const { sessionContext, weakness, difficultyParameters, previousDrillDescriptions, providerId } =
     parsed.data;
 
-  const authResult = await authenticateAiRequest(providerId);
+  const authResult = await authenticateAiRequest(providerId, {
+    bucket: 'ai:drill',
+    maxRequests: 10,
+  });
   if (authResult instanceof Response) return authResult;
 
   const { apiKey } = authResult;

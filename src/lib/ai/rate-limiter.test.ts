@@ -84,4 +84,29 @@ describe('checkRateLimit', () => {
     const result = checkRateLimit('user-1');
     expect(result.allowed).toBe(true);
   });
+
+  it('separate buckets: chat limit exhausted does not block drill', () => {
+    // Fill the chat bucket to its default limit (RATE_LIMIT_MAX = 100)
+    for (let i = 0; i < RATE_LIMIT_MAX; i++) {
+      checkRateLimit('ai:chat:user1');
+    }
+    expect(checkRateLimit('ai:chat:user1').allowed).toBe(false);
+
+    // Drill bucket for the same user should still be allowed with its own limit
+    const result = checkRateLimit('ai:drill:user1', 10);
+    expect(result.allowed).toBe(true);
+  });
+
+  it('separate buckets: drill has stricter limit', () => {
+    // Fill the drill bucket to its stricter limit of 10
+    for (let i = 0; i < 10; i++) {
+      checkRateLimit('ai:drill:user1', 10);
+    }
+    // Drill should now be blocked
+    expect(checkRateLimit('ai:drill:user1', 10).allowed).toBe(false);
+
+    // Chat bucket for the same user should still have room
+    const chatResult = checkRateLimit('ai:chat:user1');
+    expect(chatResult.allowed).toBe(true);
+  });
 });

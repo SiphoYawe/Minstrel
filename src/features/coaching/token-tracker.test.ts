@@ -4,7 +4,14 @@ import {
   recordTokenUsage,
   trackTokenUsage,
   getTokenUsageSummary,
+  getTokenFallbackQueueSize,
 } from './token-tracker';
+
+// Mock Sentry
+vi.mock('@sentry/nextjs', () => ({
+  captureException: vi.fn(),
+}));
+import * as Sentry from '@sentry/nextjs';
 
 // Mock Supabase client
 const mockInsert = vi.fn().mockResolvedValue({ error: null });
@@ -295,5 +302,72 @@ describe('getTokenUsageSummary', () => {
 
     expect(result.totalTokens).toBe(0);
     expect(result.interactionCount).toBe(1);
+  });
+});
+
+describe('recordTokenUsage Sentry & fallback queue', () => {
+  const validParams = {
+    sessionId: 's1',
+    userId: 'u1',
+    role: 'user' as const,
+    content: 'test',
+    tokenCount: 10,
+    model: 'gpt-4o',
+    provider: 'openai',
+  };
+
+  /**
+   * Drain the fallback queue by calling recordTokenUsage with a successful insert.
+   * This ensures test isolation for the queue.
+   */
+  async function drainQueue() {
+    mockInsert.mockResolvedValue({ error: null });
+    // A successful call drains any queued entries
+    await recordTokenUsage(validParams);
+  }
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    mockInsert.mockResolvedValue({ error: null });
+    // Drain any leftover queue items from prior tests
+    await drainQueue();
+    vi.clearAllMocks();
+    mockInsert.mockResolvedValue({ error: null });
+  });
+
+  it('reports to Sentry when recording fails', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockInsert.mockResolvedValue({ error: { message: 'DB error' } });
+
+    await recordTokenUsage(validParams);
+
+    expect(Sentry.captureException).toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
+  it('queues failed record for retry', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockInsert.mockResolvedValue({ error: { message: 'DB error' } });
+
+    await recordTokenUsage(validParams);
+
+    expect(getTokenFallbackQueueSize()).toBe(1);
+    consoleSpy.mockRestore();
+  });
+
+  it('drains fallback queue on next successful call', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // First call fails — queues the entry
+    mockInsert.mockResolvedValue({ error: { message: 'DB error' } });
+    await recordTokenUsage(validParams);
+    expect(getTokenFallbackQueueSize()).toBe(1);
+
+    // Second call succeeds — should drain the queue
+    mockInsert.mockResolvedValue({ error: null });
+    await recordTokenUsage(validParams);
+    expect(getTokenFallbackQueueSize()).toBe(0);
+
+    consoleSpy.mockRestore();
   });
 });

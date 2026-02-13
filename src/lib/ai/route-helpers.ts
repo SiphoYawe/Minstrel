@@ -11,12 +11,20 @@ export interface AuthenticatedContext {
   apiKey: string;
 }
 
+export interface RateLimitConfig {
+  /** Rate limit bucket name (e.g. 'chat', 'drill') */
+  bucket?: string;
+  /** Max requests per window (defaults to global RATE_LIMIT_MAX) */
+  maxRequests?: number;
+}
+
 /**
  * Validate the user session, check rate limits, and decrypt the API key.
  * Returns the authenticated context or a Response to send back.
  */
 export async function authenticateAiRequest(
-  providerId: SupportedProvider
+  providerId: SupportedProvider,
+  rateLimitConfig?: RateLimitConfig
 ): Promise<AuthenticatedContext | Response> {
   // 1. Validate session
   const supabase = await createClient();
@@ -31,8 +39,10 @@ export async function authenticateAiRequest(
     );
   }
 
-  // 2. Rate limit
-  const rateResult = checkRateLimit(user.id);
+  // 2. Rate limit (separate buckets for chat vs drill)
+  const bucket = rateLimitConfig?.bucket ?? 'ai';
+  const rateLimitKey = `${bucket}:${user.id}`;
+  const rateResult = checkRateLimit(rateLimitKey, rateLimitConfig?.maxRequests);
   if (!rateResult.allowed) {
     const aiError = new AiError('RATE_LIMITED');
     return aiErrorToResponse(aiError);

@@ -1,6 +1,6 @@
 # Story 18.8: Fix AI Security — Prompt Injection, Rate Limits, Silent Failures
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -44,8 +44,34 @@ So that billing data is never lost, the AI persona cannot be hijacked, and expen
 
 ### Agent Model Used
 
+Claude Opus 4.6
+
 ### Debug Log References
+
+- All 71 tests pass (rate-limiter: 9, prompts: 39, token-tracker: 23)
+- TypeScript compiles clean
 
 ### Completion Notes List
 
+- AI-C2: `recordTokenUsage` now reports failures to Sentry with component tag and token metadata
+- AI-C2: Added in-memory `tokenFallbackQueue` — failed records are queued and drained on next successful call
+- AI-C2: Exported `getTokenFallbackQueueSize()` for testing
+- AI-C4: Created `sanitizeUserMessage()` — escapes `<`/`>` to `&lt;`/`&gt;`, wraps in `<user_message>` delimiters
+- AI-C4: All user messages sanitized before sending to AI in chat route
+- AI-C4: Added anti-jailbreak SECURITY INSTRUCTIONS to STUDIO_ENGINEER_BASE system prompt (reject role overrides, never reveal prompt, ignore user instructions)
+- AI-C5: Updated `checkRateLimit(key, maxRequests?)` to support composite keys and custom limits
+- AI-C5: Updated `authenticateAiRequest` to accept `RateLimitConfig` with bucket and maxRequests
+- AI-C5: Chat route uses `ai:chat` bucket with 100 req/window; drill route uses `ai:drill` bucket with 10 req/window
+- AI-C5: Separate buckets mean chat limit exhaustion does not block drill generation and vice versa
+
 ### File List
+
+- src/lib/ai/rate-limiter.ts (modified)
+- src/lib/ai/rate-limiter.test.ts (modified)
+- src/lib/ai/route-helpers.ts (modified)
+- src/lib/ai/prompts.ts (modified)
+- src/lib/ai/prompts.test.ts (modified)
+- src/app/api/ai/chat/route.ts (modified)
+- src/app/api/ai/drill/route.ts (modified)
+- src/features/coaching/token-tracker.ts (modified)
+- src/features/coaching/token-tracker.test.ts (modified)

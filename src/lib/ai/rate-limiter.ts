@@ -10,17 +10,20 @@ export interface RateLimitResult {
 const requestLog = new Map<string, number[]>();
 
 /**
- * Check whether a request from `userId` is within the rate limit.
- * Uses a sliding window of RATE_LIMIT_WINDOW_MS with a max of RATE_LIMIT_MAX requests.
+ * Check whether a request identified by `key` is within the rate limit.
+ * Uses a sliding window of RATE_LIMIT_WINDOW_MS.
+ *
+ * @param key - Composite key (e.g. "ai:chat:userId" or "ai:drill:userId")
+ * @param maxRequests - Max requests per window (defaults to RATE_LIMIT_MAX)
  */
-export function checkRateLimit(userId: string): RateLimitResult {
+export function checkRateLimit(key: string, maxRequests: number = RATE_LIMIT_MAX): RateLimitResult {
   const now = Date.now();
   const windowStart = now - RATE_LIMIT_WINDOW_MS;
 
-  let timestamps = requestLog.get(userId);
+  let timestamps = requestLog.get(key);
   if (!timestamps) {
     timestamps = [];
-    requestLog.set(userId, timestamps);
+    requestLog.set(key, timestamps);
   }
 
   // Prune expired entries
@@ -31,7 +34,7 @@ export function checkRateLimit(userId: string): RateLimitResult {
     timestamps.length = 0;
   }
 
-  if (timestamps.length >= RATE_LIMIT_MAX) {
+  if (timestamps.length >= maxRequests) {
     const oldestInWindow = timestamps[0];
     const retryAfterMs = oldestInWindow + RATE_LIMIT_WINDOW_MS - now;
     return { allowed: false, retryAfterMs: Math.max(0, retryAfterMs) };
