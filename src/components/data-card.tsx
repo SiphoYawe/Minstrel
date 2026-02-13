@@ -9,6 +9,7 @@ type SessionDisplayMode = 'live' | 'summary';
 
 interface SessionSummary {
   predominantKey: string;
+  keyConfidence: number | null;
   averageTempo: string;
   tempoRange: string;
   timingTrend: { value: number; direction: 'improving' | 'stable' | 'declining' };
@@ -19,6 +20,18 @@ interface SessionSummary {
 function formatKey(key: { root: string; mode: string } | null): string {
   if (!key) return 'detecting...';
   return `${key.root} ${key.mode}`;
+}
+
+function getKeyConfidenceColor(confidence: number): string {
+  if (confidence >= 0.7) return 'hsl(var(--accent-success))';
+  if (confidence >= 0.4) return 'hsl(var(--accent-warm))';
+  return 'hsl(var(--muted-foreground))';
+}
+
+function getKeyConfidenceLabel(confidence: number): string {
+  if (confidence >= 0.7) return 'high confidence';
+  if (confidence >= 0.4) return 'moderate confidence';
+  return 'low confidence';
 }
 
 function formatTempo(tempo: number | null): string {
@@ -104,6 +117,7 @@ function useSessionSummary(): SessionSummary {
 
     return {
       predominantKey,
+      keyConfidence: currentKey?.confidence ?? null,
       averageTempo,
       tempoRange,
       timingTrend: { value: timingAccuracy, direction },
@@ -146,12 +160,33 @@ export function DataCard({ sessionMode = 'live' }: DataCardProps) {
             </span>
           )}
         </div>
-        <span
-          className="block font-mono text-sm text-foreground"
-          aria-label={`Current key: ${summary.predominantKey}`}
-        >
-          {summary.predominantKey}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span
+            className="font-mono text-sm text-foreground"
+            aria-label={`Current key: ${summary.predominantKey}${summary.keyConfidence !== null ? `, ${getKeyConfidenceLabel(summary.keyConfidence)}` : ''}`}
+          >
+            {summary.predominantKey}
+          </span>
+          {summary.keyConfidence !== null && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: getKeyConfidenceColor(summary.keyConfidence) }}
+                    aria-hidden="true"
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span className="font-mono text-xs">
+                    {Math.round(summary.keyConfidence * 100)}%{' '}
+                    {getKeyConfidenceLabel(summary.keyConfidence)}
+                  </span>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
       </Card>
 
       {/* Tempo */}

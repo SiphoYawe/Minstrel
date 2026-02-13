@@ -8,10 +8,13 @@ import { analyzeChord, chordDisplayName, updateProgression } from './chord-analy
 import { createTimingAnalysis } from './timing-analyzer';
 import {
   detectKey,
+  detectKeyWeighted,
   detectKeyFromChords,
   detectModulation,
   analyzeHarmonicFunction,
   classifyNote,
+  KEY_DISPLAY_CONFIDENCE_THRESHOLD,
+  KEY_DEBOUNCE_MS,
 } from './harmonic-analyzer';
 import { detectGenrePatterns } from './genre-detector';
 import { trackTendencies, detectAvoidance } from './tendency-tracker';
@@ -52,6 +55,9 @@ export function useAnalysisPipeline() {
     let timingNoteCount = 0;
     let lastTimingUpdate = 0;
     const allPitchClasses: number[] = [];
+    const weightedNotes: Array<{ pitchClass: number; velocity: number }> = [];
+    let lastKeyChangeTime = 0;
+    let lastConfidentKey: import('./analysis-types').KeyCenter | null = null;
     let lastChord: import('./analysis-types').DetectedChord | null = null;
 
     // Analysis accumulator for genre/tendency tracking
@@ -213,6 +219,7 @@ export function useAnalysisPipeline() {
         resetAccumulator();
         lastChord = null;
         allPitchClasses.length = 0;
+        weightedNotes.length = 0;
         silenceTimerRef.current = null;
       }, SILENCE_THRESHOLD_MS);
     }
@@ -305,15 +312,37 @@ export function useAnalysisPipeline() {
           accumulator.notes.push(detected);
           accumulator.totalNoteCount++;
 
-          // Harmonic analysis: key detection from individual notes (rolling window)
+          // Harmonic analysis: velocity-weighted key detection (Story 14.6)
           allPitchClasses.push(detected.midiNumber % 12);
           if (allPitchClasses.length > PITCH_CLASS_ROLLING_WINDOW) {
             allPitchClasses.splice(0, allPitchClasses.length - PITCH_CLASS_ROLLING_WINDOW);
           }
+          weightedNotes.push({ pitchClass: detected.midiNumber % 12, velocity: detected.velocity });
+          if (weightedNotes.length > PITCH_CLASS_ROLLING_WINDOW) {
+            weightedNotes.splice(0, weightedNotes.length - PITCH_CLASS_ROLLING_WINDOW);
+          }
           const store = useSessionStore.getState();
-          if (!store.currentKey && allPitchClasses.length >= 8) {
-            const key = detectKey(allPitchClasses);
-            if (key) store.setKeyCenter(key);
+          if (allPitchClasses.length >= 8) {
+            // Use velocity-weighted detection, fall back to unweighted
+            const key = detectKeyWeighted(weightedNotes) ?? detectKey(allPitchClasses);
+            if (key) {
+              const now = performance.now();
+              const isNewKey =
+                !store.currentKey ||
+                key.root !== store.currentKey.root ||
+                key.mode !== store.currentKey.mode;
+              const passesDebounce = !isNewKey || now - lastKeyChangeTime >= KEY_DEBOUNCE_MS;
+              const passesConfidence = key.confidence >= KEY_DISPLAY_CONFIDENCE_THRESHOLD;
+
+              if (passesConfidence && passesDebounce) {
+                if (isNewKey) lastKeyChangeTime = now;
+                lastConfidentKey = key;
+                store.setKeyCenter(key);
+              } else if (!store.currentKey && lastConfidentKey) {
+                // Show last confident key if nothing displayed yet
+                store.setKeyCenter(lastConfidentKey);
+              }
+            }
           }
 
           // Chord-tone classification

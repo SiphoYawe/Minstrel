@@ -256,19 +256,15 @@ describe('session-recorder', () => {
       expect(session!.tempo).toBe(120);
     });
 
-    it('skips update if nothing changed', async () => {
+    it('always writes on repeated calls even with same values', async () => {
       await startRecording('freeform');
       const updateSpy = vi.spyOn(db.sessions, 'update');
 
       await updateMetadata('C major', 120);
       expect(updateSpy).toHaveBeenCalledTimes(1);
 
-      // Same values — should skip
+      // Same values — should still write (no caching)
       await updateMetadata('C major', 120);
-      expect(updateSpy).toHaveBeenCalledTimes(1);
-
-      // Different values — should update
-      await updateMetadata('G major', 130);
       expect(updateSpy).toHaveBeenCalledTimes(2);
 
       updateSpy.mockRestore();

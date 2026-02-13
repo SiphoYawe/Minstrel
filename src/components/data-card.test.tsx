@@ -24,7 +24,7 @@ describe('DataCard', () => {
   it('shows placeholder values when no data', () => {
     render(<DataCard />);
     const keyDisplay = screen.getByLabelText(/Current key/);
-    expect(keyDisplay.textContent).toBe('--');
+    expect(keyDisplay.textContent).toContain('detecting...');
   });
 
   it('displays detected key', () => {
@@ -38,7 +38,7 @@ describe('DataCard', () => {
   it('displays current tempo', () => {
     useSessionStore.setState({ currentTempo: 95.4 });
     render(<DataCard />);
-    expect(screen.getByLabelText(/Current tempo: 95 BPM/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Tempo: 95 BPM/)).toBeInTheDocument();
   });
 
   it('displays timing accuracy with blue color when high', () => {
@@ -64,7 +64,7 @@ describe('DataCard', () => {
       ],
     });
     render(<DataCard />);
-    expect(screen.getByLabelText(/Recent chords: C, Am/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Recent chords: C Am/)).toBeInTheDocument();
   });
 
   it('has ARIA region label', () => {

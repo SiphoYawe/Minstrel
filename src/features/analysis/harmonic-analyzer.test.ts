@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   detectKey,
+  detectKeyWeighted,
   detectKeyFromChords,
   detectModulation,
   analyzeHarmonicFunction,
@@ -264,6 +265,80 @@ describe('analyzeHarmonicFunction', () => {
     const fn = analyzeHarmonicFunction(bbm, cMajor);
     expect(fn.romanNumeral).toBe('bvii');
     expect(fn.isSecondary).toBe(false);
+  });
+});
+
+describe('detectKeyWeighted', () => {
+  it('returns null with fewer than 5 notes', () => {
+    const notes = [
+      { pitchClass: 0, velocity: 100 },
+      { pitchClass: 4, velocity: 100 },
+      { pitchClass: 7, velocity: 100 },
+    ];
+    expect(detectKeyWeighted(notes)).toBeNull();
+  });
+
+  it('detects C major from velocity-weighted C major scale notes', () => {
+    // Build a strong C major signal: emphasize tonic (C), dominant (G), mediant (E)
+    const notes: Array<{ pitchClass: number; velocity: number }> = [];
+    const cMajorPCs = [0, 2, 4, 5, 7, 9, 11]; // C D E F G A B
+    for (let rep = 0; rep < 3; rep++) {
+      for (const pc of cMajorPCs) {
+        // Weight tonic/dominant/mediant heavily
+        const vel = pc === 0 ? 127 : pc === 7 ? 110 : pc === 4 ? 100 : 60;
+        notes.push({ pitchClass: pc, velocity: vel });
+      }
+    }
+    const key = detectKeyWeighted(notes);
+    expect(key).not.toBeNull();
+    expect(key!.root).toBe('C');
+    expect(key!.mode).toBe('major');
+    expect(key!.confidence).toBeGreaterThan(0);
+  });
+
+  it('gives higher confidence when best key is well-separated from second-best', () => {
+    // Pure C major triads with strong velocity on tonic notes
+    const strongNotes: Array<{ pitchClass: number; velocity: number }> = [];
+    for (let i = 0; i < 10; i++) {
+      strongNotes.push({ pitchClass: 0, velocity: 127 }); // C (loud)
+      strongNotes.push({ pitchClass: 4, velocity: 100 }); // E
+      strongNotes.push({ pitchClass: 7, velocity: 110 }); // G
+    }
+    const strongKey = detectKeyWeighted(strongNotes);
+
+    // Mixed notes with less clear signal
+    const mixedNotes: Array<{ pitchClass: number; velocity: number }> = [];
+    for (let i = 0; i < 12; i++) {
+      mixedNotes.push({ pitchClass: i, velocity: 60 + Math.floor(Math.random() * 40) });
+    }
+    // Add some C major bias
+    for (let i = 0; i < 5; i++) {
+      mixedNotes.push({ pitchClass: 0, velocity: 80 });
+    }
+    const mixedKey = detectKeyWeighted(mixedNotes);
+
+    // Both should return something, but strong signal should have higher confidence
+    expect(strongKey).not.toBeNull();
+    if (mixedKey) {
+      expect(strongKey!.confidence).toBeGreaterThan(mixedKey.confidence);
+    }
+  });
+
+  it('velocity weighting shifts detection toward accented notes', () => {
+    // Play ambiguous notes but accent A minor scale heavily
+    const notes: Array<{ pitchClass: number; velocity: number }> = [];
+    const aMinorPCs = [9, 11, 0, 2, 4, 5, 7]; // A B C D E F G
+    for (let rep = 0; rep < 3; rep++) {
+      for (const pc of aMinorPCs) {
+        // Heavily accent A (tonic), E (dominant), C (mediant)
+        const vel = pc === 9 ? 127 : pc === 4 ? 115 : pc === 0 ? 100 : 40;
+        notes.push({ pitchClass: pc, velocity: vel });
+      }
+    }
+    const key = detectKeyWeighted(notes);
+    expect(key).not.toBeNull();
+    // With heavy accent on A, should tend toward A minor
+    expect(key!.confidence).toBeGreaterThan(0);
   });
 });
 

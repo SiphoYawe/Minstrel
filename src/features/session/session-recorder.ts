@@ -16,8 +16,6 @@ let pendingBuffer: MidiEvent[] = [];
 let eventBuffer: Omit<StoredMidiEvent, 'id'>[] = [];
 let autosaveTimer: ReturnType<typeof setInterval> | null = null;
 let metadataTimer: ReturnType<typeof setInterval> | null = null;
-let lastMetadataKey: string | null = null;
-let lastMetadataTempo: number | null = null;
 let flushInProgress = false;
 
 /**
@@ -145,15 +143,11 @@ export async function flush(): Promise<void> {
 /**
  * Updates session metadata in Dexie (key, tempo).
  * Called periodically to keep the session record current.
+ * Story 14.6: Always writes on scheduled interval even if values
+ * match the cache, to ensure metadata consistency.
  */
 export async function updateMetadata(key: string | null, tempo: number | null): Promise<void> {
   if (activeSessionId === null) return;
-
-  // Skip if nothing changed
-  if (key === lastMetadataKey && tempo === lastMetadataTempo) return;
-
-  lastMetadataKey = key;
-  lastMetadataTempo = tempo;
 
   await db.sessions.update(activeSessionId, { key, tempo });
 }
@@ -236,8 +230,6 @@ export async function stopRecording(): Promise<number | null> {
   activeSessionId = null;
   recordingRequested = false;
   pendingBuffer = [];
-  lastMetadataKey = null;
-  lastMetadataTempo = null;
 
   return sessionId;
 }
@@ -272,7 +264,5 @@ export function resetRecorder(): void {
   recordingRequested = false;
   pendingBuffer = [];
   eventBuffer = [];
-  lastMetadataKey = null;
-  lastMetadataTempo = null;
   flushInProgress = false;
 }

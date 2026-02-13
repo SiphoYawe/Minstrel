@@ -20,7 +20,10 @@ const MINOR_PROFILE = [6.33, 2.68, 3.52, 5.38, 2.6, 3.53, 2.54, 4.75, 3.98, 2.69
 const MIN_NOTES_FOR_KEY = 5;
 const MIN_CHORDS_FOR_KEY = 3;
 const KEY_CONFIDENCE_THRESHOLD = 0.45;
+const KEY_DISPLAY_CONFIDENCE_THRESHOLD = 0.6;
+const KEY_DEBOUNCE_MS = 3000;
 const MODULATION_CHORD_COUNT = 3;
+const MAX_MIDI_VELOCITY = 127;
 
 // --- Key Detection ---
 
@@ -62,6 +65,59 @@ export function detectKey(pitchClasses: number[]): KeyCenter | null {
 
   return bestKey;
 }
+
+/**
+ * Velocity-weighted key detection (Story 14.6).
+ * Each note's contribution is weighted by velocity/127,
+ * giving louder/accented notes more influence on key detection.
+ */
+export function detectKeyWeighted(
+  notes: Array<{ pitchClass: number; velocity: number }>
+): KeyCenter | null {
+  if (notes.length < MIN_NOTES_FOR_KEY) return null;
+
+  // Build velocity-weighted pitch-class distribution
+  const distribution = new Array(12).fill(0);
+  for (const note of notes) {
+    const weight = note.velocity / MAX_MIDI_VELOCITY;
+    distribution[note.pitchClass % 12] += weight;
+  }
+
+  let bestKey: KeyCenter | null = null;
+  let bestCorrelation = -Infinity;
+  let secondBest = -Infinity;
+
+  for (let root = 0; root < 12; root++) {
+    for (const mode of ['major', 'minor'] as KeyMode[]) {
+      const profile = mode === 'major' ? MAJOR_PROFILE : MINOR_PROFILE;
+      const rotated = rotateProfile(profile, root);
+      const correlation = pearsonCorrelation(distribution, rotated);
+
+      if (correlation > bestCorrelation) {
+        secondBest = bestCorrelation;
+        bestCorrelation = correlation;
+        bestKey = {
+          root: NOTE_NAMES[root],
+          mode,
+          confidence: correlation,
+        };
+      } else if (correlation > secondBest) {
+        secondBest = correlation;
+      }
+    }
+  }
+
+  if (!bestKey || bestKey.confidence < KEY_CONFIDENCE_THRESHOLD) return null;
+
+  // Enhanced confidence: separation between best and second-best
+  const separation = bestCorrelation > 0 ? (bestCorrelation - secondBest) / bestCorrelation : 0;
+  bestKey.confidence = Math.min(1, bestKey.confidence * (0.5 + 0.5 * separation));
+
+  return bestKey;
+}
+
+/** Exported constants for consumers. */
+export { KEY_DISPLAY_CONFIDENCE_THRESHOLD, KEY_DEBOUNCE_MS };
 
 /**
  * Detects key from chord progression by extracting pitch classes from chord roots and notes.

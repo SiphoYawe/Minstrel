@@ -37,10 +37,13 @@ export {
 export type { BeatGrid, TimingAnalysisState } from './timing-analyzer';
 export {
   detectKey,
+  detectKeyWeighted,
   detectKeyFromChords,
   detectModulation,
   analyzeHarmonicFunction,
   classifyNote,
+  KEY_DISPLAY_CONFIDENCE_THRESHOLD,
+  KEY_DEBOUNCE_MS,
 } from './harmonic-analyzer';
 export { detectGenrePatterns } from './genre-detector';
 export { trackTendencies, detectAvoidance } from './tendency-tracker';
