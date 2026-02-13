@@ -60,3 +60,32 @@ export interface TempoSegment {
   endTimestamp: number;
   noteCount: number;
 }
+
+// --- Harmonic Analysis Types (Story 2.3) ---
+
+export type KeyMode = 'major' | 'minor';
+
+export interface KeyCenter {
+  root: string;
+  mode: KeyMode;
+  confidence: number;
+}
+
+export interface HarmonicFunction {
+  romanNumeral: string;
+  quality: ChordQuality;
+  isSecondary: boolean;
+}
+
+export interface NoteAnalysis {
+  note: DetectedNote;
+  isChordTone: boolean;
+  chordContext: DetectedChord | null;
+}
+
+export interface KeySegment {
+  key: KeyCenter;
+  startTimestamp: number;
+  endTimestamp: number;
+  chordCount: number;
+}

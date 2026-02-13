@@ -7,7 +7,13 @@ import type { MidiEvent } from '@/features/midi/midi-types';
 import { renderNotes, createFadingNote } from './piano-roll-renderer';
 import type { FadingNote } from './piano-roll-renderer';
 import { renderTimingGrid } from './timing-grid-renderer';
-import type { TimingEvent } from '@/features/analysis/analysis-types';
+import { renderHarmonicOverlay } from './harmonic-overlay-renderer';
+import type {
+  TimingEvent,
+  KeyCenter,
+  HarmonicFunction,
+  NoteAnalysis,
+} from '@/features/analysis/analysis-types';
 
 export function VisualizationCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -21,6 +27,9 @@ export function VisualizationCanvas() {
   const chordLabelRef = useRef<string | null>(null);
   const tempoRef = useRef<number | null>(null);
   const timingDeviationsRef = useRef<TimingEvent[]>([]);
+  const keyRef = useRef<KeyCenter | null>(null);
+  const harmonicFnRef = useRef<HarmonicFunction | null>(null);
+  const noteAnalysesRef = useRef<NoteAnalysis[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -95,6 +104,29 @@ export function VisualizationCanvas() {
       }
     );
 
+    // --- Zustand vanilla subscriptions for harmonic data from sessionStore ---
+    const unsubKey = useSessionStore.subscribe(
+      (state) => state.currentKey,
+      (key) => {
+        keyRef.current = key;
+        dirtyRef.current = true;
+      }
+    );
+    const unsubHarmonicFn = useSessionStore.subscribe(
+      (state) => state.currentHarmonicFunction,
+      (fn) => {
+        harmonicFnRef.current = fn;
+        dirtyRef.current = true;
+      }
+    );
+    const unsubNoteAnalyses = useSessionStore.subscribe(
+      (state) => state.currentNoteAnalyses,
+      (analyses) => {
+        noteAnalysesRef.current = analyses;
+        dirtyRef.current = true;
+      }
+    );
+
     // --- Render loop (60fps via requestAnimationFrame) ---
     function frame() {
       const c = ctxRef.current;
@@ -134,6 +166,16 @@ export function VisualizationCanvas() {
         // Render timing grid in bottom band (separate vertical region)
         renderTimingGrid(c, logicalW, logicalH, tempoRef.current, timingDeviationsRef.current);
 
+        // Render harmonic overlay (key label, roman numeral, chord-tone markers)
+        renderHarmonicOverlay(
+          c,
+          logicalW,
+          logicalH,
+          keyRef.current,
+          harmonicFnRef.current,
+          noteAnalysesRef.current
+        );
+
         // Keep rendering while fading notes remain
         if (fadingNotesRef.current.length > 0) {
           dirtyRef.current = true;
@@ -150,6 +192,9 @@ export function VisualizationCanvas() {
       unsubSession();
       unsubTempo();
       unsubDeviations();
+      unsubKey();
+      unsubHarmonicFn();
+      unsubNoteAnalyses();
       resizeObserver.disconnect();
       ctxRef.current = null;
     };

@@ -6,6 +6,11 @@ export type {
   ChordProgression,
   TimingEvent,
   TempoSegment,
+  KeyMode,
+  KeyCenter,
+  HarmonicFunction,
+  NoteAnalysis,
+  KeySegment,
 } from './analysis-types';
 
 export { detectNote, noteDisplayName } from './note-detector';
@@ -19,3 +24,10 @@ export {
   createTimingAnalysis,
 } from './timing-analyzer';
 export type { BeatGrid, TimingAnalysisState } from './timing-analyzer';
+export {
+  detectKey,
+  detectKeyFromChords,
+  detectModulation,
+  analyzeHarmonicFunction,
+  classifyNote,
+} from './harmonic-analyzer';

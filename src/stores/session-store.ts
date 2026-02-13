@@ -6,6 +6,10 @@ import type {
   ChordProgression,
   TimingEvent,
   TempoSegment,
+  KeyCenter,
+  KeySegment,
+  HarmonicFunction,
+  NoteAnalysis,
 } from '@/features/analysis/analysis-types';
 
 interface SessionState {
@@ -17,6 +21,10 @@ interface SessionState {
   timingAccuracy: number;
   timingDeviations: TimingEvent[];
   tempoHistory: TempoSegment[];
+  currentKey: KeyCenter | null;
+  keyHistory: KeySegment[];
+  currentHarmonicFunction: HarmonicFunction | null;
+  currentNoteAnalyses: NoteAnalysis[];
 }
 
 interface SessionActions {
@@ -29,6 +37,10 @@ interface SessionActions {
     deviations: TimingEvent[];
     tempoHistory: TempoSegment[];
   }) => void;
+  setKeyCenter: (key: KeyCenter | null) => void;
+  addKeySegment: (segment: KeySegment) => void;
+  setHarmonicFunction: (fn: HarmonicFunction | null) => void;
+  setNoteAnalyses: (analyses: NoteAnalysis[]) => void;
   resetAnalysis: () => void;
 }
 
@@ -43,6 +55,10 @@ const initialState: SessionState = {
   timingAccuracy: 100,
   timingDeviations: [],
   tempoHistory: [],
+  currentKey: null,
+  keyHistory: [],
+  currentHarmonicFunction: null,
+  currentNoteAnalyses: [],
 };
 
 export const useSessionStore = create<SessionStore>()(
@@ -70,6 +86,17 @@ export const useSessionStore = create<SessionStore>()(
         timingDeviations: data.deviations,
         tempoHistory: data.tempoHistory,
       }),
+
+    setKeyCenter: (key) => set({ currentKey: key }),
+
+    addKeySegment: (segment) =>
+      set((state) => ({
+        keyHistory: [...state.keyHistory, segment],
+      })),
+
+    setHarmonicFunction: (fn) => set({ currentHarmonicFunction: fn }),
+
+    setNoteAnalyses: (analyses) => set({ currentNoteAnalyses: analyses }),
 
     resetAnalysis: () => set(initialState),
   }))
