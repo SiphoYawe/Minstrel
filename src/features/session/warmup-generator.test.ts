@@ -19,6 +19,7 @@ import {
 } from './warmup-generator';
 import { SkillDimension, type SkillProfile } from '@/features/difficulty/difficulty-types';
 import type { GeneratedDrill, SessionSummary } from '@/features/drills/drill-types';
+import type { WarmupContext } from './session-types';
 import { DEFAULT_DIFFICULTY } from '@/features/difficulty/difficulty-engine';
 
 // --- Helpers ---
@@ -299,6 +300,58 @@ describe('generateWarmup', () => {
       (e) => e.title.includes('Bb') || e.title.includes('B')
     );
     expect(bbExercise).toBeDefined();
+  });
+
+  it('avoids recently practiced keys when warmupCtx is provided', () => {
+    const profile = makeProfile();
+    const sessions: SessionSummary[] = [{ key: 'C major', weaknesses: [], avgTempo: 100 }];
+    const warmupCtx: WarmupContext = {
+      recentKeys: ['C major'],
+      recentChordTypes: [],
+      recentSkillAreas: [],
+      improvingPatterns: [],
+    };
+    const warmup = generateWarmup(profile, sessions, undefined, warmupCtx);
+    // First exercise should NOT be in C major (avoidance)
+    expect(warmup.exercises[0].title).not.toContain('C major');
+  });
+
+  it('falls back to default key when all common keys are recently practiced', () => {
+    const profile = makeProfile();
+    const warmupCtx: WarmupContext = {
+      recentKeys: [
+        'C major',
+        'G major',
+        'D major',
+        'A major',
+        'E major',
+        'F major',
+        'Bb major',
+        'A minor',
+        'D minor',
+        'E minor',
+        'B minor',
+      ],
+      recentChordTypes: [],
+      recentSkillAreas: [],
+      improvingPatterns: [],
+    };
+    // Should not throw; falls back to first recent key from sessions
+    const warmup = generateWarmup(profile, [], undefined, warmupCtx);
+    expect(warmup.exercises.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('adds improving pattern exercise when warmupCtx has improving patterns', () => {
+    const profile = makeProfile();
+    const warmupCtx: WarmupContext = {
+      recentKeys: [],
+      recentChordTypes: [],
+      recentSkillAreas: [],
+      improvingPatterns: ['G major scale patterns'],
+    };
+    const warmup = generateWarmup(profile, [], undefined, warmupCtx);
+    // Should have an exercise related to the improving pattern
+    expect(warmup.exercises.length).toBeGreaterThanOrEqual(3);
   });
 });
 

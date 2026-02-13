@@ -18,6 +18,7 @@ import type {
   GeneratedDrill,
   SessionSummary,
 } from '@/features/drills/drill-types';
+import type { WarmupContext } from './session-types';
 
 // --- Constants ---
 
@@ -299,18 +300,56 @@ export function buildRhythmWarmup(tempo: number, difficulty: WarmupDifficulty): 
 // --- Warm-Up Routine Generation ---
 
 /**
+ * Pick a key that hasn't been recently practiced, or fall back to defaults.
+ */
+function selectAvoidantKey(recentKeys: string[], warmupCtx?: WarmupContext): string {
+  if (!warmupCtx || warmupCtx.recentKeys.length === 0) {
+    return recentKeys[0] ?? 'C major';
+  }
+
+  // All available keys to choose from
+  const allKeys = [
+    'C major',
+    'G major',
+    'D major',
+    'A major',
+    'E major',
+    'F major',
+    'Bb major',
+    'A minor',
+    'D minor',
+    'E minor',
+    'B minor',
+  ];
+
+  // Filter out recently practiced keys
+  const avoided = new Set(warmupCtx.recentKeys.map((k) => k.toLowerCase()));
+  const available = allKeys.filter((k) => !avoided.has(k.toLowerCase()));
+
+  if (available.length > 0) return available[0];
+  return recentKeys[0] ?? 'C major';
+}
+
+/**
  * Generate a ~2 minute warm-up routine based on skill profile and recent sessions.
  * Rule-based (no LLM) for instant generation.
+ *
+ * @param warmupCtx - Optional context from continuity service for practice avoidance
  */
 export function generateWarmup(
   skillProfile: SkillProfile | null,
   recentSessions: SessionSummary[],
-  upcomingFocus?: string
+  upcomingFocus?: string,
+  warmupCtx?: WarmupContext
 ): WarmupRoutine {
   const speedLevel = skillProfile?.dimensions.Speed?.value ?? 0.5;
   const recentKeys = extractRecentKeys(recentSessions);
   const recentWeaknesses = extractRecentWeaknesses(recentSessions);
-  const primaryKey = recentKeys[0] ?? 'C major';
+
+  // Use avoidance logic if warmup context is available
+  const primaryKey = warmupCtx
+    ? selectAvoidantKey(recentKeys, warmupCtx)
+    : (recentKeys[0] ?? 'C major');
 
   const exercises: WarmupExercise[] = [];
 
@@ -326,13 +365,20 @@ export function generateWarmup(
     exercises.push(buildScaleWarmup(secondKey, speedLevel, 'moderate'));
   }
 
-  // Exercise 3: Adapt to upcoming focus if specified (target, 100% tempo)
+  // Exercise 3: Build on improving patterns from continuity context
+  if (warmupCtx && warmupCtx.improvingPatterns.length > 0 && !upcomingFocus) {
+    const improvingFocus = warmupCtx.improvingPatterns[0];
+    const focusExercise = buildFocusExercise(improvingFocus, speedLevel);
+    if (focusExercise) exercises.push(focusExercise);
+  }
+
+  // Exercise 4: Adapt to upcoming focus if specified (target, 100% tempo)
   if (upcomingFocus) {
     const focusExercise = buildFocusExercise(upcomingFocus, speedLevel);
     if (focusExercise) exercises.push(focusExercise);
   }
 
-  // Exercise 4: Rhythm warm-up at target tempo
+  // Exercise 5: Rhythm warm-up at target tempo
   const targetTempo = Math.max(80, Math.round(speedLevel * 120));
   exercises.push(buildRhythmWarmup(targetTempo, 'target'));
 

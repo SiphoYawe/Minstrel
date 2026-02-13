@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
 import type { GuestSession, StoredMidiEvent, AnalysisSnapshot } from './db';
+import { db } from './db';
 
 export const BATCH_SIZE = 500;
 export const MAX_RETRIES = 3;
@@ -129,4 +130,97 @@ export async function syncSessionToSupabase(
   }
 
   return { success: true, sessionUUID };
+}
+
+export interface PendingSyncResult {
+  synced: number;
+  failed: number;
+  errors: string[];
+}
+
+/**
+ * Sync all completed but unsynced sessions from Dexie to Supabase.
+ * Called non-blocking at session start for cross-session continuity.
+ * Uploads session metadata and analysis snapshots (not raw MIDI events,
+ * which sync separately in the background).
+ */
+export async function syncPendingSessions(userId: string): Promise<PendingSyncResult> {
+  if (!db) return { synced: 0, failed: 0, errors: ['IndexedDB not available'] };
+
+  const result: PendingSyncResult = { synced: 0, failed: 0, errors: [] };
+
+  try {
+    const pendingSessions = await db.sessions
+      .where('syncStatus')
+      .equals('pending')
+      .filter((s) => s.status === 'completed')
+      .toArray();
+
+    for (const session of pendingSessions) {
+      if (!session.id) continue;
+
+      try {
+        const snapshots = await db.analysisSnapshots
+          .where('sessionId')
+          .equals(session.id)
+          .toArray();
+
+        // Sync session + snapshots (skip MIDI events for speed)
+        const syncResult = await syncSessionToSupabase(
+          session,
+          [], // empty MIDI events — those sync in background
+          snapshots,
+          userId,
+          session.supabaseId ?? undefined
+        );
+
+        // Mark session as synced in Dexie
+        await db.sessions.update(session.id, {
+          syncStatus: 'synced',
+          supabaseId: syncResult.sessionUUID,
+        });
+
+        // Mark snapshots as synced
+        const snapshotIds = snapshots
+          .map((s) => s.id)
+          .filter((id): id is number => id !== undefined);
+        if (snapshotIds.length > 0) {
+          await db.analysisSnapshots
+            .where('id')
+            .anyOf(snapshotIds)
+            .modify({ syncStatus: 'synced' });
+        }
+
+        result.synced++;
+      } catch (err) {
+        result.failed++;
+        result.errors.push(
+          `Session ${session.id}: ${err instanceof Error ? err.message : 'Unknown error'}`
+        );
+        // Mark as failed but don't block other sessions
+        if (session.id) {
+          await db.sessions.update(session.id, { syncStatus: 'failed' }).catch(() => {});
+        }
+      }
+    }
+  } catch (err) {
+    result.errors.push(`Query failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+  }
+
+  return result;
+}
+
+/**
+ * Query recent session summaries from Dexie (local).
+ * Used for guest users or as fallback when Supabase is unreachable.
+ */
+export async function getLocalSessionSummaries(count: number = 5): Promise<GuestSession[]> {
+  if (!db) return [];
+
+  return db.sessions
+    .where('status')
+    .equals('completed')
+    .reverse()
+    .sortBy('startedAt')
+    .then((sessions) => sessions.slice(0, count));
 }

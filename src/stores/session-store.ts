@@ -32,6 +32,7 @@ import type {
   MicroSessionStack,
 } from '@/features/drills/drill-types';
 import type { GuestSession, StoredMidiEvent } from '@/lib/dexie/db';
+import type { ContinuitySessionSummary } from '@/features/session/session-types';
 import { DrillPhase } from '@/features/drills/drill-types';
 import type { DrillRepResult, ImprovementDelta } from '@/features/drills/drill-tracker';
 import { calculateImprovementDelta, toRepPerformance } from '@/features/drills/drill-tracker';
@@ -79,6 +80,8 @@ interface SessionState {
   currentWarmupExercise: number;
   warmupRoutine: WarmupRoutine | null;
   microSessionStack: MicroSessionStack | null;
+  // Cross-session continuity (Story 6.4)
+  recentSessions: ContinuitySessionSummary[];
   // Replay Studio state
   replaySession: GuestSession | null;
   replayEvents: StoredMidiEvent[];
@@ -129,6 +132,8 @@ interface SessionActions {
   setCurrentWarmupExercise: (index: number) => void;
   setWarmupRoutine: (routine: WarmupRoutine | null) => void;
   setMicroSessionStack: (stack: MicroSessionStack | null) => void;
+  // Continuity actions
+  setRecentSessions: (sessions: ContinuitySessionSummary[]) => void;
   // Replay actions
   setReplaySession: (session: GuestSession | null) => void;
   setReplayEvents: (events: StoredMidiEvent[]) => void;
@@ -179,6 +184,7 @@ const initialState: SessionState = {
   currentWarmupExercise: 0,
   warmupRoutine: null,
   microSessionStack: null,
+  recentSessions: [],
   replaySession: null,
   replayEvents: [],
   replayStatus: 'idle',
@@ -366,6 +372,8 @@ export const useSessionStore = create<SessionStore>()(
     setWarmupRoutine: (routine) => set({ warmupRoutine: routine }),
 
     setMicroSessionStack: (stack) => set({ microSessionStack: stack }),
+
+    setRecentSessions: (sessions) => set({ recentSessions: sessions }),
 
     setReplaySession: (session) => set({ replaySession: session }),
     setReplayEvents: (events) => set({ replayEvents: events }),

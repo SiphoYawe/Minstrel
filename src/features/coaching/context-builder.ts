@@ -3,6 +3,7 @@ import type { SessionContext } from '@/lib/ai/schemas';
 import type { ReplayContext } from '@/features/coaching/coaching-types';
 import type { StoredMidiEvent } from '@/lib/dexie/db';
 import type { AnalysisSnapshot } from '@/lib/dexie/db';
+import type { ContinuityContext } from '@/features/session/session-types';
 
 export interface DataSufficiency {
   hasSufficientData: boolean;
@@ -238,4 +239,57 @@ export function buildReplayContext(
     genre: sessionMeta.genre,
     windowMs,
   };
+}
+
+/**
+ * Format the cross-session continuity context as a structured section
+ * for the AI system prompt. Budget: ~500 tokens max.
+ * Returns empty string if no recent sessions are available.
+ */
+export function formatContinuitySection(context: ContinuityContext): string {
+  if (context.recentSessions.length === 0) return '';
+
+  const lines: string[] = [
+    `CROSS-SESSION HISTORY (${context.recentSessions.length} recent sessions):`,
+  ];
+
+  for (const session of context.recentSessions) {
+    const parts: string[] = [session.date];
+    if (session.key) parts.push(`key: ${session.key}`);
+    if (session.tempo) parts.push(`tempo: ${session.tempo} BPM`);
+    if (session.timingAccuracy !== null) {
+      parts.push(`timing: ${Math.round(session.timingAccuracy * 100)}%`);
+    }
+    if (session.chordsUsed.length > 0) {
+      parts.push(`chords: ${session.chordsUsed.join(', ')}`);
+    }
+    lines.push(`  - ${parts.join(' | ')}`);
+    if (session.keyInsight) {
+      lines.push(`    Insight: ${session.keyInsight}`);
+    }
+  }
+
+  if (context.timingTrend) {
+    lines.push(`TIMING TREND: ${context.timingTrend}`);
+  }
+
+  if (context.lastInsight) {
+    lines.push(`MOST RECENT INSIGHT: ${context.lastInsight}`);
+  }
+
+  if (context.rankedWeaknesses.length > 0) {
+    lines.push('PRIORITY WEAKNESSES (ranked):');
+    for (const w of context.rankedWeaknesses.slice(0, 5)) {
+      const trendIcon = w.trend === 'improving' ? '↑' : w.trend === 'declining' ? '↓' : '→';
+      lines.push(
+        `  ${trendIcon} ${w.skill} (severity: ${Math.round(w.severity * 100)}%, trend: ${w.trend})`
+      );
+    }
+  }
+
+  lines.push(
+    'Reference this history naturally. If the user practiced something recently, acknowledge it and build on it.'
+  );
+
+  return lines.join('\n');
 }

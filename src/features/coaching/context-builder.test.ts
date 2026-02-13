@@ -1,7 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { buildSessionContext, assessDataSufficiency, buildReplayContext } from './context-builder';
+import {
+  buildSessionContext,
+  assessDataSufficiency,
+  buildReplayContext,
+  formatContinuitySection,
+} from './context-builder';
 import { useSessionStore } from '@/stores/session-store';
 import type { StoredMidiEvent, AnalysisSnapshot } from '@/lib/dexie/db';
+import type { ContinuityContext } from '@/features/session/session-types';
 
 describe('buildSessionContext', () => {
   beforeEach(() => {
@@ -294,5 +300,145 @@ describe('buildReplayContext', () => {
     const ctx = buildReplayContext(events, 5000, [], sessionMeta, 10_000);
     expect(ctx.chordProgression.length).toBeGreaterThanOrEqual(2);
     expect(ctx.chordProgression[0]).toContain('C');
+  });
+});
+
+// --- formatContinuitySection ---
+
+describe('formatContinuitySection', () => {
+  it('returns empty string for no sessions', () => {
+    const ctx: ContinuityContext = {
+      recentSessions: [],
+      timingTrend: null,
+      lastInsight: null,
+      rankedWeaknesses: [],
+    };
+    expect(formatContinuitySection(ctx)).toBe('');
+  });
+
+  it('includes session count in header', () => {
+    const ctx: ContinuityContext = {
+      recentSessions: [
+        {
+          date: '2026-02-13',
+          key: 'C major',
+          tempo: 120,
+          timingAccuracy: 0.8,
+          chordsUsed: ['Cm'],
+          keyInsight: 'Good session',
+        },
+      ],
+      timingTrend: null,
+      lastInsight: 'Good session',
+      rankedWeaknesses: [],
+    };
+    const result = formatContinuitySection(ctx);
+    expect(result).toContain('1 recent sessions');
+  });
+
+  it('includes session metadata', () => {
+    const ctx: ContinuityContext = {
+      recentSessions: [
+        {
+          date: '2026-02-13',
+          key: 'G major',
+          tempo: 100,
+          timingAccuracy: 0.75,
+          chordsUsed: [],
+          keyInsight: null,
+        },
+      ],
+      timingTrend: null,
+      lastInsight: null,
+      rankedWeaknesses: [],
+    };
+    const result = formatContinuitySection(ctx);
+    expect(result).toContain('key: G major');
+    expect(result).toContain('tempo: 100 BPM');
+    expect(result).toContain('timing: 75%');
+  });
+
+  it('includes timing trend', () => {
+    const ctx: ContinuityContext = {
+      recentSessions: [
+        {
+          date: '2026-02-13',
+          key: null,
+          tempo: null,
+          timingAccuracy: 0.83,
+          chordsUsed: [],
+          keyInsight: null,
+        },
+      ],
+      timingTrend: '72% → 78% → 83%',
+      lastInsight: null,
+      rankedWeaknesses: [],
+    };
+    const result = formatContinuitySection(ctx);
+    expect(result).toContain('TIMING TREND: 72% → 78% → 83%');
+  });
+
+  it('includes ranked weaknesses with trend icons', () => {
+    const ctx: ContinuityContext = {
+      recentSessions: [
+        {
+          date: '2026-02-13',
+          key: null,
+          tempo: null,
+          timingAccuracy: null,
+          chordsUsed: [],
+          keyInsight: null,
+        },
+      ],
+      timingTrend: null,
+      lastInsight: null,
+      rankedWeaknesses: [
+        { skill: 'timing', severity: 0.8, lastSessionDate: '2026-02-13', trend: 'declining' },
+        { skill: 'voicing', severity: 0.5, lastSessionDate: '2026-02-13', trend: 'improving' },
+      ],
+    };
+    const result = formatContinuitySection(ctx);
+    expect(result).toContain('↓ timing');
+    expect(result).toContain('↑ voicing');
+  });
+
+  it('includes most recent insight', () => {
+    const ctx: ContinuityContext = {
+      recentSessions: [
+        {
+          date: '2026-02-13',
+          key: null,
+          tempo: null,
+          timingAccuracy: null,
+          chordsUsed: [],
+          keyInsight: 'C to Am slow',
+        },
+      ],
+      timingTrend: null,
+      lastInsight: 'C to Am slow',
+      rankedWeaknesses: [],
+    };
+    const result = formatContinuitySection(ctx);
+    expect(result).toContain('MOST RECENT INSIGHT: C to Am slow');
+  });
+
+  it('includes natural reference instruction', () => {
+    const ctx: ContinuityContext = {
+      recentSessions: [
+        {
+          date: '2026-02-13',
+          key: null,
+          tempo: null,
+          timingAccuracy: null,
+          chordsUsed: [],
+          keyInsight: null,
+        },
+      ],
+      timingTrend: null,
+      lastInsight: null,
+      rankedWeaknesses: [],
+    };
+    const result = formatContinuitySection(ctx);
+    expect(result).toContain('Reference this history naturally');
   });
 });

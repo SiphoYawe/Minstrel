@@ -1,7 +1,9 @@
 import type { SessionContext } from './schemas';
 import type { ReplayContext } from './schemas';
 import type { DataSufficiency } from '@/features/coaching/context-builder';
+import type { ContinuityContext } from '@/features/session/session-types';
 import { getGenreTerminologyHints } from '@/features/coaching/genre-terminology';
+import { formatContinuitySection } from '@/features/coaching/context-builder';
 
 const STUDIO_ENGINEER_BASE = `You are the Studio Engineer — Minstrel's AI coaching companion for musicians.
 
@@ -103,8 +105,11 @@ function formatSufficiencySection(sufficiency?: DataSufficiency): string {
  */
 export function buildChatSystemPrompt(
   context: SessionContext,
-  sufficiency?: DataSufficiency
+  sufficiency?: DataSufficiency,
+  continuity?: ContinuityContext
 ): string {
+  const continuitySection = continuity ? formatContinuitySection(continuity) : '';
+
   return [
     STUDIO_ENGINEER_BASE,
     '',
@@ -114,6 +119,8 @@ export function buildChatSystemPrompt(
     '',
     formatSufficiencySection(sufficiency),
     '',
+    continuitySection,
+    continuitySection ? '' : '',
     "CRITICAL: Only reference data points present in the SESSION DATA above. If the user asks about something not covered by the data, say explicitly that you don't have enough information for that assessment yet.",
     'When referencing data, be precise: cite specific numbers, chord names, timestamps, and improvement deltas.',
     'If data sufficiency is limited, acknowledge it: "I only have [N] notes to work with so far. Here\'s what I can see..."',
@@ -122,13 +129,21 @@ export function buildChatSystemPrompt(
     "- Answer the musician's question using the session data above.",
     '- Keep responses under 150 words unless the question demands detail.',
     '- If asked about something outside the session data, acknowledge the limitation.',
+    continuitySection
+      ? '- When the user asks about progress or history, reference the CROSS-SESSION HISTORY above.'
+      : '',
   ].join('\n');
 }
 
 /**
  * Build the system prompt for the drill generation endpoint.
  */
-export function buildDrillSystemPrompt(context: SessionContext): string {
+export function buildDrillSystemPrompt(
+  context: SessionContext,
+  continuity?: ContinuityContext
+): string {
+  const continuitySection = continuity ? formatContinuitySection(continuity) : '';
+
   return [
     STUDIO_ENGINEER_BASE,
     '',
@@ -136,12 +151,20 @@ export function buildDrillSystemPrompt(context: SessionContext): string {
     '',
     formatSessionBlock(context),
     '',
+    continuitySection,
+    continuitySection ? '' : '',
     'DRILL GENERATION INSTRUCTIONS:',
     '- Generate a targeted drill that addresses the specified weakness.',
     '- The drill should be achievable at the current difficulty level but push the edge.',
     '- Include specific notes, chords, and tempo targets.',
     '- Success criteria should be measurable via MIDI analysis.',
     '- Frame the drill as a growth opportunity, not a punishment.',
+    continuity && continuity.rankedWeaknesses.length > 0
+      ? `- PRIORITY: Focus on these ranked weaknesses from recent sessions: ${continuity.rankedWeaknesses
+          .slice(0, 3)
+          .map((w) => w.skill)
+          .join(', ')}.`
+      : '',
   ].join('\n');
 }
 
