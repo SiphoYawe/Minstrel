@@ -4,7 +4,12 @@ import { Button } from '@/components/ui/button';
 import { useSessionStore } from '@/stores/session-store';
 import { useAppStore } from '@/stores/app-store';
 
-export function SnapshotCTA() {
+interface SnapshotCTAProps {
+  onGenerateDrill?: () => void;
+  isDrillGenerating?: boolean;
+}
+
+export function SnapshotCTA({ onGenerateDrill, isDrillGenerating = false }: SnapshotCTAProps) {
   const currentSnapshot = useSessionStore((s) => s.currentSnapshot);
   const setCurrentMode = useSessionStore((s) => s.setCurrentMode);
   const hasApiKey = useAppStore((s) => s.hasApiKey);
@@ -33,14 +38,16 @@ export function SnapshotCTA() {
       <Button
         size="sm"
         onClick={() => {
-          useSessionStore.getState().setPendingDrillRequest(true);
+          if (onGenerateDrill) {
+            onGenerateDrill();
+          }
           setCurrentMode('dashboard-chat');
         }}
-        disabled={!hasApiKey}
+        disabled={!hasApiKey || isDrillGenerating}
         title={!hasApiKey ? 'Add an API key in Settings to generate drills' : undefined}
         className="font-mono text-[11px] uppercase tracking-[0.1em] backdrop-blur-sm"
       >
-        Generate Drill
+        {isDrillGenerating ? 'Generating...' : 'Generate Drill'}
       </Button>
     </div>
   );

@@ -1,38 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
 import { StatusBar } from '@/components/status-bar';
 import { SnapshotCTA } from '@/components/snapshot-cta';
 import { DataCard } from '@/components/data-card';
 import { AIChatPanel } from '@/components/ai-chat-panel';
+import { DrillPanel } from '@/components/drill-panel';
 import { PersonalRecords } from '@/components/personal-records';
 import { WeeklySummary } from '@/components/weekly-summary';
 import { useCoachingChat } from '@/features/coaching/coaching-client';
+import { useDrillGeneration } from '@/hooks/use-drill-generation';
 import { useAppStore } from '@/stores/app-store';
-import { useSessionStore } from '@/stores/session-store';
 
 export function DashboardChat() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, error, setInput } =
     useCoachingChat();
+  const drillGen = useDrillGeneration();
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
   const [showEngagement, setShowEngagement] = useState(false);
-  const pendingDrillRequest = useSessionStore((s) => s.pendingDrillRequest);
-
-  // Auto-trigger drill generation when requested from SnapshotCTA
-  useEffect(() => {
-    if (!pendingDrillRequest) return;
-    useSessionStore.getState().setPendingDrillRequest(false);
-    const snapshot = useSessionStore.getState().currentSnapshot;
-    const insight = snapshot?.keyInsight ?? 'Generate a drill based on my current session';
-    const drillPrompt = `Generate a drill for me: ${insight}`;
-    setInput(drillPrompt);
-    // Trigger submit on next tick after input is set
-    const timer = setTimeout(() => {
-      handleSubmit();
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [pendingDrillRequest, handleSubmit, setInput]);
 
   return (
     <div className="relative h-dvh w-full bg-background">
@@ -41,7 +27,10 @@ export function DashboardChat() {
       <div className="h-full pt-10 grid grid-cols-1 lg:grid-cols-[3fr_2fr] transition-all duration-300 overflow-y-auto lg:overflow-hidden">
         <div className="min-w-0 min-h-[400px] lg:min-h-0 h-full relative">
           <VisualizationCanvas />
-          <SnapshotCTA />
+          <SnapshotCTA
+            onGenerateDrill={() => drillGen.generate()}
+            isDrillGenerating={drillGen.isGenerating}
+          />
         </div>
 
         <div className="flex flex-col h-full border-l border-border min-w-0">
@@ -49,6 +38,22 @@ export function DashboardChat() {
             <DataCard />
           </div>
           <div className="h-px bg-border shrink-0" />
+
+          {/* Drill panel (shown when generating, error, or drill ready) */}
+          {(drillGen.isGenerating || drillGen.error || drillGen.drill) && (
+            <>
+              <div className="shrink-0 p-3">
+                <DrillPanel
+                  drill={drillGen.drill}
+                  isGenerating={drillGen.isGenerating}
+                  error={drillGen.error}
+                  onRetry={drillGen.retry}
+                  onDismiss={drillGen.dismiss}
+                />
+              </div>
+              <div className="h-px bg-border shrink-0" />
+            </>
+          )}
 
           {/* Engagement toggle (authenticated users only) */}
           {isAuthenticated && (

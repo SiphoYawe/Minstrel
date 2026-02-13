@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@/test-utils/render';
 import { SnapshotCTA } from './snapshot-cta';
 import { useSessionStore } from '@/stores/session-store';
@@ -23,7 +23,6 @@ describe('SnapshotCTA', () => {
     useSessionStore.setState({
       currentSnapshot: null,
       currentMode: 'silent-coach',
-      pendingDrillRequest: false,
     });
     useAppStore.setState({
       hasApiKey: false,
@@ -50,12 +49,13 @@ describe('SnapshotCTA', () => {
     expect(useSessionStore.getState().currentMode).toBe('dashboard-chat');
   });
 
-  it('sets pendingDrillRequest and switches mode when Generate Drill is clicked', () => {
+  it('calls onGenerateDrill and switches mode when Generate Drill is clicked', () => {
     useSessionStore.setState({ currentSnapshot: fakeSnapshot });
     useAppStore.setState({ hasApiKey: true });
-    render(<SnapshotCTA />);
+    const onGenerate = vi.fn();
+    render(<SnapshotCTA onGenerateDrill={onGenerate} />);
     screen.getByRole('button', { name: /generate drill/i }).click();
-    expect(useSessionStore.getState().pendingDrillRequest).toBe(true);
+    expect(onGenerate).toHaveBeenCalledOnce();
     expect(useSessionStore.getState().currentMode).toBe('dashboard-chat');
   });
 
