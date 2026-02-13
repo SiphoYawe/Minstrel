@@ -58,9 +58,7 @@ export function AppSidebar() {
     >
       {/* Logo + Collapse toggle */}
       <div className="shrink-0 flex flex-col border-b border-border">
-        <div
-          className={`flex items-center justify-between ${collapsed ? 'px-2 py-3' : 'px-3.5 py-4'}`}
-        >
+        <div className={`flex items-center justify-between h-10 ${collapsed ? 'px-2' : 'px-3.5'}`}>
           <a
             href="/session"
             onClick={(e) => {

@@ -1,6 +1,6 @@
 # Story 18.3: Fix Session Buffer Data Loss and Flush Reentrancy
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -47,8 +47,24 @@ So that I never lose practice session data unexpectedly.
 
 ### Agent Model Used
 
+Claude Opus 4.6
+
 ### Debug Log References
+
+- All 28 session-recorder tests pass (5 new + 23 existing updated)
+- TypeScript compiles clean
 
 ### Completion Notes List
 
+- Added dedicated retryQueue separate from eventBuffer
+- Flush errors move events to retryQueue (no data loss)
+- Async lock via flushPromise — concurrent callers await first flush
+- Retry queue processed before main buffer on each flush
+- Added emergencyFlush() with sendBeacon + sync IndexedDB fallback
+- beforeunload handler attached on startRecording, detached on stop
+- Added getRetryQueueSize() for monitoring
+
 ### File List
+
+- src/features/session/session-recorder.ts (modified)
+- src/features/session/session-recorder.test.ts (modified)

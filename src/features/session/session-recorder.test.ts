@@ -3,12 +3,14 @@ import {
   startRecording,
   recordEvent,
   flush,
+  emergencyFlush,
   updateMetadata,
   recordSnapshot,
   startMetadataSync,
   stopRecording,
   getActiveRecordingId,
   getBufferSize,
+  getRetryQueueSize,
   resetRecorder,
 } from './session-recorder';
 import type { MidiEvent } from '@/features/midi/midi-types';
@@ -54,6 +56,7 @@ describe('session-recorder', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     resetRecorder();
   });
 
@@ -168,7 +171,7 @@ describe('session-recorder', () => {
       expect(stored).toBe(2);
     });
 
-    it('retains events on write failure and rethrows', async () => {
+    it('moves failed events to retry queue (not back to main buffer)', async () => {
       await startRecording('freeform');
       recordEvent(makeMidiEvent());
       recordEvent(makeMidiEvent());
@@ -178,16 +181,56 @@ describe('session-recorder', () => {
         .spyOn(db.midiEvents, 'bulkAdd')
         .mockRejectedValueOnce(new Error('Write failed'));
 
-      await expect(flush()).rejects.toThrow('Write failed');
-      // Events should be retained in buffer
-      expect(getBufferSize()).toBe(2);
+      await flush();
+      // Events should be in retry queue, not main buffer
+      expect(getBufferSize()).toBe(0);
+      expect(getRetryQueueSize()).toBe(2);
 
-      // Restore and retry — should succeed
+      // Restore and retry — next flush processes retry queue first
       bulkAddSpy.mockImplementation(originalBulkAdd);
       await flush();
+      expect(getRetryQueueSize()).toBe(0);
+      const stored = await db.midiEvents.count();
+      expect(stored).toBe(2);
+    });
+
+    it('processes retry queue before main buffer on flush', async () => {
+      await startRecording('freeform');
+      recordEvent(makeMidiEvent({ note: 60 }));
+
+      const originalBulkAdd = db.midiEvents.bulkAdd.bind(db.midiEvents);
+      const bulkAddSpy = vi
+        .spyOn(db.midiEvents, 'bulkAdd')
+        .mockRejectedValueOnce(new Error('Write failed'));
+
+      // First flush fails — events go to retry queue
+      await flush();
+      expect(getRetryQueueSize()).toBe(1);
+
+      // Now add new events to main buffer
+      recordEvent(makeMidiEvent({ note: 64 }));
+      expect(getBufferSize()).toBe(1);
+
+      // Restore and flush — retry queue processed first, then main buffer
+      bulkAddSpy.mockImplementation(originalBulkAdd);
+      await flush();
+      expect(getRetryQueueSize()).toBe(0);
       expect(getBufferSize()).toBe(0);
       const stored = await db.midiEvents.count();
       expect(stored).toBe(2);
+    });
+
+    it('concurrent flush waits for first flush to complete', async () => {
+      await startRecording('freeform');
+      recordEvent(makeMidiEvent({ note: 60 }));
+      recordEvent(makeMidiEvent({ note: 64 }));
+      recordEvent(makeMidiEvent({ note: 67 }));
+
+      // Both flush calls should resolve without errors or duplicates
+      await Promise.all([flush(), flush()]);
+
+      const stored = await db.midiEvents.count();
+      expect(stored).toBe(3);
     });
   });
 
@@ -348,8 +391,38 @@ describe('session-recorder', () => {
     });
   });
 
+  describe('emergencyFlush', () => {
+    it('clears both event buffer and retry queue', async () => {
+      await startRecording('freeform');
+      recordEvent(makeMidiEvent());
+      recordEvent(makeMidiEvent());
+
+      // Force one event into retry queue
+      const originalBulkAdd = db.midiEvents.bulkAdd.bind(db.midiEvents);
+      vi.spyOn(db.midiEvents, 'bulkAdd').mockRejectedValueOnce(new Error('fail'));
+      await flush();
+      expect(getRetryQueueSize()).toBe(2);
+      vi.spyOn(db.midiEvents, 'bulkAdd').mockImplementation(originalBulkAdd);
+
+      // Add new events
+      recordEvent(makeMidiEvent());
+      expect(getBufferSize()).toBe(1);
+
+      emergencyFlush();
+
+      expect(getBufferSize()).toBe(0);
+      expect(getRetryQueueSize()).toBe(0);
+    });
+
+    it('does nothing when buffers are empty', () => {
+      // Should not throw
+      emergencyFlush();
+      expect(getBufferSize()).toBe(0);
+    });
+  });
+
   describe('resetRecorder', () => {
-    it('clears all internal state', async () => {
+    it('clears all internal state including retry queue', async () => {
       await startRecording('freeform');
       recordEvent(makeMidiEvent());
       startMetadataSync(() => ({ key: null, tempo: null }));
@@ -358,6 +431,7 @@ describe('session-recorder', () => {
 
       expect(getActiveRecordingId()).toBeNull();
       expect(getBufferSize()).toBe(0);
+      expect(getRetryQueueSize()).toBe(0);
     });
   });
 });

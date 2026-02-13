@@ -14,9 +14,10 @@ let activeSessionId: number | null = null;
 let recordingRequested = false;
 let pendingBuffer: MidiEvent[] = [];
 let eventBuffer: Omit<StoredMidiEvent, 'id'>[] = [];
+let retryQueue: Omit<StoredMidiEvent, 'id'>[] = [];
 let autosaveTimer: ReturnType<typeof setInterval> | null = null;
 let metadataTimer: ReturnType<typeof setInterval> | null = null;
-let flushInProgress = false;
+let flushPromise: Promise<void> | null = null;
 
 /**
  * Starts recording a session. Creates a session record in Dexie.
@@ -47,6 +48,10 @@ export async function startRecording(
 
   activeSessionId = id as number;
   eventBuffer = [];
+  retryQueue = [];
+
+  // Attach emergency flush handler
+  attachBeforeUnload();
 
   // Drain any events that arrived while awaiting session creation
   for (const event of pendingBuffer) {
@@ -118,26 +123,90 @@ export function recordEvent(event: MidiEvent): void {
 
 /**
  * Flushes the event buffer to IndexedDB.
- * On failure, retains events in buffer for retry.
- * Guarded against concurrent calls — only one flush runs at a time.
+ * Processes retry queue first, then main buffer.
+ * Uses async lock: concurrent callers await the in-progress flush.
  */
 export async function flush(): Promise<void> {
-  if (eventBuffer.length === 0) return;
-  if (flushInProgress) return;
+  if (flushPromise) {
+    await flushPromise;
+    // After waiting, recurse to flush any events that arrived during the wait
+    if (eventBuffer.length > 0 || retryQueue.length > 0) {
+      return flush();
+    }
+    return;
+  }
 
-  flushInProgress = true;
-  const toWrite = eventBuffer;
-  eventBuffer = [];
+  if (eventBuffer.length === 0 && retryQueue.length === 0) return;
+
+  flushPromise = (async () => {
+    // Process retry queue first
+    if (retryQueue.length > 0) {
+      const retryBatch = retryQueue;
+      retryQueue = [];
+      try {
+        await db.midiEvents.bulkAdd(retryBatch);
+      } catch {
+        // Re-enqueue failed retries
+        retryQueue = [...retryBatch, ...retryQueue];
+      }
+    }
+
+    // Then process main buffer
+    if (eventBuffer.length > 0) {
+      const toWrite = eventBuffer;
+      eventBuffer = [];
+      try {
+        await db.midiEvents.bulkAdd(toWrite);
+      } catch {
+        // Move failed events to retry queue (not back to main buffer)
+        retryQueue = [...retryQueue, ...toWrite];
+      }
+    }
+  })();
 
   try {
-    await db.midiEvents.bulkAdd(toWrite);
-  } catch (err) {
-    // Retain events on failure — they'll be retried on next flush
-    eventBuffer = [...toWrite, ...eventBuffer];
-    throw err;
+    await flushPromise;
   } finally {
-    flushInProgress = false;
+    flushPromise = null;
   }
+}
+
+/**
+ * Emergency flush for beforeunload — synchronous fallback using sendBeacon.
+ */
+export function emergencyFlush(): void {
+  const allEvents = [...retryQueue, ...eventBuffer];
+  if (allEvents.length === 0) return;
+
+  // Try sendBeacon first (fire-and-forget)
+  if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+    const blob = new Blob([JSON.stringify(allEvents)], { type: 'application/json' });
+    navigator.sendBeacon('/api/session/emergency', blob);
+  }
+
+  // Also attempt synchronous IndexedDB write as fallback
+  try {
+    db.midiEvents.bulkAdd(allEvents);
+  } catch {
+    // Best effort — tab is closing
+  }
+
+  eventBuffer = [];
+  retryQueue = [];
+}
+
+let beforeUnloadAttached = false;
+
+function attachBeforeUnload(): void {
+  if (beforeUnloadAttached || typeof window === 'undefined') return;
+  window.addEventListener('beforeunload', emergencyFlush);
+  beforeUnloadAttached = true;
+}
+
+function detachBeforeUnload(): void {
+  if (!beforeUnloadAttached || typeof window === 'undefined') return;
+  window.removeEventListener('beforeunload', emergencyFlush);
+  beforeUnloadAttached = false;
 }
 
 /**
@@ -231,6 +300,9 @@ export async function stopRecording(): Promise<number | null> {
   recordingRequested = false;
   pendingBuffer = [];
 
+  // Detach emergency flush handler
+  detachBeforeUnload();
+
   return sessionId;
 }
 
@@ -260,9 +332,18 @@ export function resetRecorder(): void {
     clearInterval(metadataTimer);
     metadataTimer = null;
   }
+  detachBeforeUnload();
   activeSessionId = null;
   recordingRequested = false;
   pendingBuffer = [];
   eventBuffer = [];
-  flushInProgress = false;
+  retryQueue = [];
+  flushPromise = null;
+}
+
+/**
+ * Returns the current retry queue size (for monitoring/testing).
+ */
+export function getRetryQueueSize(): number {
+  return retryQueue.length;
 }
