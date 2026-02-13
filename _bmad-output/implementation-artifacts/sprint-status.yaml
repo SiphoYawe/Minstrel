@@ -194,7 +194,7 @@ development_status:
   epic-15-retrospective: optional
 
   # Epic 16: AI Chat & Visualization Enrichment (P1/P2)
-  epic-16: in-progress
+  epic-16: done
   16-1-increase-chord-and-note-visualization-sizing: done
   16-2-build-rich-ai-response-components: done
   16-3-fix-visual-hierarchy-and-typography: done
@@ -203,7 +203,7 @@ development_status:
   epic-16-retrospective: optional
 
   # Epic 17: UX Polish & Missing Features (P2/P3)
-  epic-17: in-progress
+  epic-17: done
   17-1-surface-warm-up-drills-section: done
   17-2-surface-progress-data-prominently: done
   17-3-improve-mode-switching-ux: done
@@ -211,5 +211,5 @@ development_status:
   17-5-design-better-empty-states: done
   17-6-fix-color-usage-add-success-states: done
   17-7-add-visual-chord-indicators: done
-  17-8-add-midi-input-quality-feedback: ready-for-dev
+  17-8-add-midi-input-quality-feedback: done
   epic-17-retrospective: optional

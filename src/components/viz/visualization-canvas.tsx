@@ -6,9 +6,16 @@ import { useSessionStore } from '@/stores/session-store';
 import type { MidiEvent } from '@/features/midi/midi-types';
 import { renderNotes, createFadingNote } from './piano-roll-renderer';
 import type { FadingNote } from './piano-roll-renderer';
-import { renderTimingGrid } from './timing-grid-renderer';
+import {
+  renderTimingGrid,
+  renderTimingPulses,
+  renderFlowGlow,
+  createTimingPulse,
+} from './timing-grid-renderer';
+import type { TimingPulse } from './timing-grid-renderer';
 import { renderHarmonicOverlay } from './harmonic-overlay-renderer';
 import { renderSnapshotOverlay } from './snapshot-renderer';
+import { detectFlowState } from '@/features/analysis/flow-state-detector';
 import { SNAPSHOT_FADE_IN_MS, SNAPSHOT_FADE_OUT_MS } from '@/lib/constants';
 import type {
   TimingEvent,
@@ -49,6 +56,10 @@ export function VisualizationCanvas() {
   const replayPositionRef = useRef(0);
   const replayTotalDurationRef = useRef(0);
   const replayStateRef = useRef<'paused' | 'playing'>('paused');
+  // Timing pulse & flow state refs (Story 17.8)
+  const timingPulsesRef = useRef<TimingPulse[]>([]);
+  const prevDeviationCountRef = useRef(0);
+  const isInFlowRef = useRef(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -144,6 +155,30 @@ export function VisualizationCanvas() {
     const unsubDeviations = useSessionStore.subscribe(
       (state) => state.timingDeviations,
       (deviations) => {
+        // Create timing pulses for newly arrived deviations (Story 17.8)
+        const prevCount = prevDeviationCountRef.current;
+        if (deviations.length > prevCount && tempoRef.current) {
+          const dpr = window.devicePixelRatio || 1;
+          const logicalW = sizeRef.current.w / dpr;
+          const logicalH = sizeRef.current.h / dpr;
+          const bandTop = logicalH * 0.8;
+          const bandHeight = logicalH * 0.15;
+          const nowMs = performance.now();
+
+          for (let i = prevCount; i < deviations.length; i++) {
+            const pulse = createTimingPulse(
+              deviations[i],
+              logicalW,
+              bandTop,
+              bandHeight,
+              tempoRef.current,
+              deviations,
+              nowMs
+            );
+            if (pulse) timingPulsesRef.current.push(pulse);
+          }
+        }
+        prevDeviationCountRef.current = deviations.length;
         timingDeviationsRef.current = deviations;
         dirtyRef.current = true;
       }
@@ -321,6 +356,27 @@ export function VisualizationCanvas() {
         // Render timing grid in bottom band (separate vertical region)
         renderTimingGrid(c, logicalW, logicalH, tempoRef.current, timingDeviationsRef.current);
 
+        // Render timing pulses (Story 17.8)
+        if (timingPulsesRef.current.length > 0) {
+          timingPulsesRef.current = renderTimingPulses(
+            c,
+            timingPulsesRef.current,
+            now,
+            prefersReducedMotionRef.current
+          );
+          if (timingPulsesRef.current.length > 0) {
+            dirtyRef.current = true;
+          }
+        }
+
+        // Flow state detection & glow (Story 17.8)
+        const flowState = detectFlowState(timingDeviationsRef.current, Date.now());
+        isInFlowRef.current = flowState.isInFlow;
+        if (flowState.isInFlow) {
+          renderFlowGlow(c, logicalW, logicalH, now, prefersReducedMotionRef.current);
+          dirtyRef.current = true; // Keep animating glow pulse
+        }
+
         // Render harmonic overlay (key label, chord block, roman numeral, chord-tone markers)
         renderHarmonicOverlay(
           c,
@@ -404,8 +460,13 @@ export function VisualizationCanvas() {
           dirtyRef.current = true;
         }
 
-        // Keep rendering while fading notes remain or snapshot transitioning
-        if (fadingNotesRef.current.length > 0 || snapshotTransitionRef.current !== 'none') {
+        // Keep rendering while fading notes, timing pulses, or snapshot transitioning
+        if (
+          fadingNotesRef.current.length > 0 ||
+          timingPulsesRef.current.length > 0 ||
+          isInFlowRef.current ||
+          snapshotTransitionRef.current !== 'none'
+        ) {
           dirtyRef.current = true;
         }
       }

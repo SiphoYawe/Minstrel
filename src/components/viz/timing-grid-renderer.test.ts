@@ -1,5 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { renderTimingGrid } from './timing-grid-renderer';
+import {
+  renderTimingGrid,
+  renderTimingPulses,
+  renderFlowGlow,
+  createTimingPulse,
+} from './timing-grid-renderer';
+import type { TimingPulse } from './timing-grid-renderer';
 import type { TimingEvent } from '@/features/analysis/analysis-types';
 
 function createMockCtx() {
@@ -9,18 +15,34 @@ function createMockCtx() {
     fillText: vi.fn(),
     strokeStyle: '',
     lineWidth: 0,
+    globalAlpha: 1,
     beginPath: vi.fn(),
     moveTo: vi.fn(),
     lineTo: vi.fn(),
     stroke: vi.fn(),
+    arc: vi.fn(),
+    fill: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
     font: '',
     textAlign: 'start',
     textBaseline: 'alphabetic',
+    createRadialGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
+    createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
   } as unknown as CanvasRenderingContext2D;
 }
 
 const WIDTH = 800;
 const HEIGHT = 600;
+
+function makeEvent(beatIndex: number, deviationMs: number, noteTs: number): TimingEvent {
+  return {
+    noteTimestamp: noteTs,
+    expectedBeatTimestamp: noteTs - deviationMs,
+    deviationMs,
+    beatIndex,
+  };
+}
 
 describe('renderTimingGrid', () => {
   it('does nothing when bpm is null', () => {
@@ -79,5 +101,100 @@ describe('renderTimingGrid', () => {
     const ctx = createMockCtx();
     renderTimingGrid(ctx, WIDTH, HEIGHT, 120, []);
     expect(ctx.textAlign).toBe('start');
+  });
+});
+
+describe('createTimingPulse', () => {
+  const bandTop = HEIGHT * 0.8;
+  const bandHeight = HEIGHT * 0.15;
+  const bpm = 120;
+
+  it('returns null when bpm is 0', () => {
+    const d = makeEvent(0, 10, 1000);
+    expect(createTimingPulse(d, WIDTH, bandTop, bandHeight, 0, [d], 1000)).toBeNull();
+  });
+
+  it('returns null with empty deviations', () => {
+    const d = makeEvent(0, 10, 1000);
+    expect(createTimingPulse(d, WIDTH, bandTop, bandHeight, bpm, [], 1000)).toBeNull();
+  });
+
+  it('creates on-time pulse for notes within ±50ms', () => {
+    const d = makeEvent(5, 30, 3000);
+    const pulse = createTimingPulse(d, WIDTH, bandTop, bandHeight, bpm, [d], 3000);
+    expect(pulse).not.toBeNull();
+    expect(pulse!.isOnTime).toBe(true);
+  });
+
+  it('creates off-time pulse for notes beyond ±50ms', () => {
+    const d = makeEvent(5, 80, 3000);
+    const pulse = createTimingPulse(d, WIDTH, bandTop, bandHeight, bpm, [d], 3000);
+    expect(pulse).not.toBeNull();
+    expect(pulse!.isOnTime).toBe(false);
+  });
+
+  it('treats ±50ms boundary as on-time', () => {
+    const d = makeEvent(5, 50, 3000);
+    const pulse = createTimingPulse(d, WIDTH, bandTop, bandHeight, bpm, [d], 3000);
+    expect(pulse).not.toBeNull();
+    expect(pulse!.isOnTime).toBe(true);
+  });
+
+  it('treats -50ms boundary as on-time', () => {
+    const d = makeEvent(5, -50, 3000);
+    const pulse = createTimingPulse(d, WIDTH, bandTop, bandHeight, bpm, [d], 3000);
+    expect(pulse).not.toBeNull();
+    expect(pulse!.isOnTime).toBe(true);
+  });
+});
+
+describe('renderTimingPulses', () => {
+  it('returns empty array when all pulses have expired', () => {
+    const ctx = createMockCtx();
+    const pulses: TimingPulse[] = [{ x: 100, y: 200, startTime: 0, isOnTime: true }];
+    const alive = renderTimingPulses(ctx, pulses, 1000, false);
+    expect(alive).toHaveLength(0);
+  });
+
+  it('keeps alive pulses within lifespan (600ms total)', () => {
+    const ctx = createMockCtx();
+    const nowMs = 1000;
+    const pulses: TimingPulse[] = [{ x: 100, y: 200, startTime: nowMs - 100, isOnTime: true }];
+    const alive = renderTimingPulses(ctx, pulses, nowMs, false);
+    expect(alive).toHaveLength(1);
+  });
+
+  it('renders radial gradient for animated pulses', () => {
+    const ctx = createMockCtx();
+    const nowMs = 1000;
+    const pulses: TimingPulse[] = [{ x: 100, y: 200, startTime: nowMs - 100, isOnTime: true }];
+    renderTimingPulses(ctx, pulses, nowMs, false);
+    expect(ctx.createRadialGradient).toHaveBeenCalled();
+    expect(ctx.arc).toHaveBeenCalled();
+  });
+
+  it('renders static dot for reduced motion', () => {
+    const ctx = createMockCtx();
+    const nowMs = 1000;
+    const pulses: TimingPulse[] = [{ x: 100, y: 200, startTime: nowMs - 100, isOnTime: false }];
+    renderTimingPulses(ctx, pulses, nowMs, true);
+    expect(ctx.createRadialGradient).not.toHaveBeenCalled();
+    expect(ctx.arc).toHaveBeenCalled();
+  });
+});
+
+describe('renderFlowGlow', () => {
+  it('renders 4 edge gradients', () => {
+    const ctx = createMockCtx();
+    renderFlowGlow(ctx, WIDTH, HEIGHT, 5000, false);
+    expect(ctx.createLinearGradient).toHaveBeenCalledTimes(4);
+    expect(ctx.fillRect).toHaveBeenCalledTimes(4);
+  });
+
+  it('renders with static alpha when reduced motion is on', () => {
+    const ctx = createMockCtx();
+    renderFlowGlow(ctx, WIDTH, HEIGHT, 5000, true);
+    expect(ctx.createLinearGradient).toHaveBeenCalledTimes(4);
+    expect(ctx.fillRect).toHaveBeenCalledTimes(4);
   });
 });

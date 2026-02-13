@@ -1,6 +1,6 @@
 # Story 17.8: Add MIDI Input Quality Feedback
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -60,8 +60,26 @@ So that I get ambient awareness of my performance without being distracted from 
 
 ### Agent Model Used
 
+claude-opus-4-6
+
 ### Debug Log References
+
+- Removed unused ON_BEAT_TOLERANCE_MS import from flow-state-detector.ts
 
 ### Completion Notes List
 
+- Created flow state detector with 30-second rolling window and 85% accuracy threshold
+- Added timing pulses: green (on-time ±50ms) and amber (early/late) radial gradient pulses
+- Pulse animation: 200ms fade-in, 400ms fade-out at 12% max opacity
+- Flow glow: 4-edge linear gradient with sinusoidal pulse between 4-8% opacity over 2s cycle
+- prefers-reduced-motion: static dots for pulses, constant alpha for glow
+- All effects computed in render loop via vanilla Zustand subscribe — no React re-renders
+- 34 tests passing across flow-state-detector, timing-grid-renderer
+
 ### File List
+
+- Created: src/features/analysis/flow-state-detector.ts
+- Created: src/features/analysis/flow-state-detector.test.ts
+- Modified: src/components/viz/timing-grid-renderer.ts (added pulse + glow rendering)
+- Modified: src/components/viz/timing-grid-renderer.test.ts (added 13 new tests)
+- Modified: src/components/viz/visualization-canvas.tsx (wired pulses + flow detection)
