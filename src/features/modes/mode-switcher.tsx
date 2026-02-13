@@ -92,7 +92,7 @@ export function ModeSwitcher() {
                 relative px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.1em]
                 transition-all duration-150
                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary
-                ${isActive ? 'text-foreground' : 'text-muted-foreground hover:text-secondary'}
+                ${isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/70'}
               `}
             >
               {/* Active indicator — bottom edge line */}

@@ -311,7 +311,7 @@ export function TimelineScrubber({
                 ${
                   speed === s
                     ? 'text-primary border-primary/30 bg-primary/5'
-                    : 'text-muted-foreground border-surface-light hover:text-secondary hover:border-surface-border'
+                    : 'text-muted-foreground border-surface-light hover:text-foreground/70 hover:border-surface-border'
                 }
               `}
             >
@@ -324,7 +324,7 @@ export function TimelineScrubber({
         <div className="flex-1" />
 
         {/* Time display */}
-        <span className="text-secondary tabular-nums tracking-tight">
+        <span className="text-foreground/70 tabular-nums tracking-tight">
           {formatTime(position)}
           <span className="text-muted-foreground mx-1">/</span>
           {formatTime(totalDuration)}

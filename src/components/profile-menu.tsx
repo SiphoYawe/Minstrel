@@ -64,7 +64,7 @@ export function ProfileMenu({ email, displayName }: ProfileMenuProps) {
           <DropdownMenuItem asChild>
             <Link
               href="/history"
-              className="font-mono text-[11px] uppercase tracking-[0.1em] text-secondary focus:bg-card focus:text-foreground"
+              className="font-mono text-[11px] uppercase tracking-[0.1em] text-foreground/70 focus:bg-card focus:text-foreground"
             >
               Session History
             </Link>
@@ -72,7 +72,7 @@ export function ProfileMenu({ email, displayName }: ProfileMenuProps) {
           <DropdownMenuItem asChild>
             <Link
               href="/achievements"
-              className="font-mono text-[11px] uppercase tracking-[0.1em] text-secondary focus:bg-card focus:text-foreground"
+              className="font-mono text-[11px] uppercase tracking-[0.1em] text-foreground/70 focus:bg-card focus:text-foreground"
             >
               Achievements
             </Link>
@@ -81,7 +81,7 @@ export function ProfileMenu({ email, displayName }: ProfileMenuProps) {
           <DropdownMenuItem asChild>
             <Link
               href="/settings"
-              className="font-mono text-[11px] uppercase tracking-[0.1em] text-secondary focus:bg-card focus:text-foreground"
+              className="font-mono text-[11px] uppercase tracking-[0.1em] text-foreground/70 focus:bg-card focus:text-foreground"
             >
               Settings
             </Link>
@@ -89,7 +89,7 @@ export function ProfileMenu({ email, displayName }: ProfileMenuProps) {
           <DropdownMenuSeparator className="bg-surface-light" />
           <DropdownMenuItem
             onClick={handleSignOut}
-            className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground focus:bg-card focus:text-foreground"
+            className="font-mono text-[11px] uppercase tracking-[0.1em] text-foreground/60 focus:bg-card focus:text-foreground"
           >
             Sign Out
           </DropdownMenuItem>
