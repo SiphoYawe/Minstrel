@@ -133,24 +133,24 @@ development_status:
   epic-9-retrospective: optional
 
   # Epic 10: Missing Screens & User Journeys
-  epic-10: in-progress
-  10-1-first-run-onboarding-empty-state: ready-for-dev
-  10-2-session-summary-screen: ready-for-dev
-  10-3-return-session-welcome-experience: ready-for-dev
-  10-4-session-history-browser: ready-for-dev
-  10-5-achievement-gallery: ready-for-dev
-  10-6-keyboard-shortcuts-help-panel: ready-for-dev
-  10-7-warm-up-generation-flow: ready-for-dev
-  10-8-offline-mode-indicator: ready-for-dev
+  epic-10: done
+  10-1-first-run-onboarding-empty-state: done
+  10-2-session-summary-screen: done
+  10-3-return-session-welcome-experience: done
+  10-4-session-history-browser: done
+  10-5-achievement-gallery: done
+  10-6-keyboard-shortcuts-help-panel: done
+  10-7-warm-up-generation-flow: done
+  10-8-offline-mode-indicator: done
   epic-10-retrospective: optional
 
   # Epic 11: AI Coaching & Data Integrity Fixes
-  epic-11: in-progress
+  epic-11: done
   11-1-wire-growth-mindset-validation-streaming: done
   11-2-add-genre-terminology-all-13-genres: done
-  11-3-wire-token-tracking-and-response-processor: ready-for-dev
+  11-3-wire-token-tracking-and-response-processor: done
   11-4-context-length-management-rate-limit-retry: done
   11-5-fix-xp-race-condition-and-streak-timezone: done
-  11-6-session-expiry-notification-api-key-validity: ready-for-dev
-  11-7-data-export-gdpr-compliance: ready-for-dev
+  11-6-session-expiry-notification-api-key-validity: done
+  11-7-data-export-gdpr-compliance: done
   epic-11-retrospective: optional
