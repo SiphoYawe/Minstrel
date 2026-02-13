@@ -88,6 +88,26 @@ describe('extractTokenUsage', () => {
       totalTokens: 500,
     });
   });
+
+  it('extracts AI SDK v6 usage format (inputTokens/outputTokens)', () => {
+    const result = extractTokenUsage({
+      usage: { inputTokens: 800, outputTokens: 200 },
+    });
+    expect(result).toEqual({
+      promptTokens: 800,
+      completionTokens: 200,
+      totalTokens: 1000,
+    });
+  });
+
+  it('prefers inputTokens over promptTokens when both present', () => {
+    const result = extractTokenUsage({
+      usage: { inputTokens: 500, outputTokens: 100, promptTokens: 1, completionTokens: 1 },
+    });
+    expect(result.promptTokens).toBe(500);
+    expect(result.completionTokens).toBe(100);
+    expect(result.totalTokens).toBe(600);
+  });
 });
 
 describe('recordTokenUsage', () => {

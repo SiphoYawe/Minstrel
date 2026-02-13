@@ -1,11 +1,11 @@
 import { streamText } from 'ai';
-import type { LanguageModel } from 'ai';
+import type { LanguageModel, TextStreamPart, ToolSet } from 'ai';
 import { ChatRequestSchema } from '@/lib/ai/schemas';
 import { getModelForProvider, DEFAULT_MODELS } from '@/lib/ai/provider';
 import type { SupportedProvider } from '@/lib/ai/provider';
 import { buildChatSystemPrompt, buildReplayChatSystemPrompt } from '@/lib/ai/prompts';
 import { authenticateAiRequest, withAiErrorHandling } from '@/lib/ai/route-helpers';
-import { replaceProhibitedWords } from '@/features/coaching/growth-mindset-rules';
+import { replaceProhibitedWords, PROHIBITED_WORDS } from '@/features/coaching/growth-mindset-rules';
 import {
   estimateTokenCount,
   getContextLimit,
@@ -50,7 +50,14 @@ async function streamWithRetry(
     model: LanguageModel;
     system: string;
     messages: Array<{ role: 'user' | 'assistant'; content: string }>;
-    onFinish?: (result: { text: string }) => void;
+    experimental_transform?: (options: {
+      tools: ToolSet;
+      stopStream: () => void;
+    }) => TransformStream<TextStreamPart<ToolSet>, TextStreamPart<ToolSet>>;
+    onFinish?: (result: {
+      text: string;
+      usage: { inputTokens?: number; outputTokens?: number };
+    }) => void;
   },
   maxRetries = MAX_RETRIES
 ) {
@@ -68,6 +75,68 @@ async function streamWithRetry(
 
   // Unreachable — the loop either returns or throws.
   throw new Error('Retry exhausted');
+}
+
+/**
+ * Creates a StreamTextTransform that replaces prohibited words in text-delta
+ * chunks in real-time, buffering across chunk boundaries to avoid splitting
+ * words mid-replacement.
+ */
+function createGrowthMindsetStreamTransform() {
+  const maxWordLen = Math.max(...PROHIBITED_WORDS.map((w) => w.length));
+
+  return () => {
+    let buffer = '';
+    let lastDeltaId = '';
+
+    return new TransformStream<TextStreamPart<ToolSet>, TextStreamPart<ToolSet>>({
+      transform(part, controller) {
+        if (part.type !== 'text-delta') {
+          // Flush buffer on text-end before passing through
+          if (part.type === 'text-end' && buffer.length > 0) {
+            controller.enqueue({
+              type: 'text-delta' as const,
+              id: lastDeltaId,
+              text: replaceProhibitedWords(buffer),
+            });
+            buffer = '';
+          }
+          controller.enqueue(part);
+          return;
+        }
+
+        lastDeltaId = part.id;
+        buffer += part.text;
+
+        // Flush safe prefix when buffer exceeds the danger zone
+        if (buffer.length > maxWordLen + 2) {
+          const safeEnd = buffer.length - maxWordLen - 1;
+          let splitAt = -1;
+          for (let i = safeEnd; i >= 0; i--) {
+            if (/\s/.test(buffer[i])) {
+              splitAt = i + 1;
+              break;
+            }
+          }
+          if (splitAt > 0) {
+            const safe = buffer.slice(0, splitAt);
+            buffer = buffer.slice(splitAt);
+            controller.enqueue({ ...part, text: replaceProhibitedWords(safe) });
+          }
+        }
+      },
+      flush(controller) {
+        if (buffer.length > 0) {
+          controller.enqueue({
+            type: 'text-delta' as const,
+            id: lastDeltaId,
+            text: replaceProhibitedWords(buffer),
+          } as TextStreamPart<ToolSet>);
+          buffer = '';
+        }
+      },
+    });
+  };
 }
 
 export async function POST(req: Request): Promise<Response> {
@@ -154,27 +223,22 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     // --- Stream with retry on rate-limit ---
-    // TODO: Tech debt — replaceProhibitedWords is applied server-side in onFinish
-    // as a post-filter. This ensures stored/final text is growth-mindset compliant
-    // but does not filter individual streaming chunks in real-time. A future
-    // enhancement could pipe textStream through createGrowthMindsetTransform()
-    // for real-time chunk filtering while preserving the UI message stream protocol.
     const result = await streamWithRetry({
       model,
       system: systemPrompt,
       messages: finalMessages,
-      onFinish: ({ text }) => {
-        // Apply growth mindset word replacement to the final streamed text.
-        replaceProhibitedWords(text);
+      experimental_transform: createGrowthMindsetStreamTransform(),
+      onFinish: ({ text, usage }) => {
+        // Apply growth mindset word replacement to the final text for storage.
+        const filteredText = replaceProhibitedWords(text);
 
-        // Track token usage asynchronously — fire and forget.
-        // The result object exposes usage after the stream completes.
-        const tokenUsage = extractTokenUsage({ text });
+        // Track token usage from AI SDK usage object (not text estimation).
+        const tokenUsage = extractTokenUsage({ usage });
         recordTokenUsage({
           sessionId: '',
           userId,
           role: 'assistant',
-          content: text.slice(0, 500), // Truncate for storage
+          content: filteredText.slice(0, 500),
           tokenCount: tokenUsage.totalTokens,
           model: modelId,
           provider: providerId,

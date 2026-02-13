@@ -27,33 +27,33 @@ export interface TokenUsageSummaryResult {
 
 /**
  * Extract token usage from a Vercel AI SDK response.
- * Falls back to character-based estimation if the SDK doesn't provide counts.
+ * Supports AI SDK v6 naming (inputTokens/outputTokens) and legacy naming
+ * (promptTokens/completionTokens). Falls back to character-based estimation.
  */
 export function extractTokenUsage(aiResponse: {
-  usage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number };
+  usage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+    inputTokens?: number;
+    outputTokens?: number;
+  };
   text?: string;
 }): ExtractedTokenUsage {
   const usage = aiResponse.usage;
 
-  if (usage && typeof usage.totalTokens === 'number' && usage.totalTokens > 0) {
-    return {
-      promptTokens: usage.promptTokens ?? 0,
-      completionTokens: usage.completionTokens ?? 0,
-      totalTokens: usage.totalTokens,
-    };
-  }
+  if (usage) {
+    // AI SDK v6 uses inputTokens/outputTokens
+    const prompt = usage.inputTokens ?? usage.promptTokens ?? 0;
+    const completion = usage.outputTokens ?? usage.completionTokens ?? 0;
+    const total =
+      typeof usage.totalTokens === 'number' && usage.totalTokens > 0
+        ? usage.totalTokens
+        : prompt + completion;
 
-  if (
-    usage &&
-    typeof usage.promptTokens === 'number' &&
-    typeof usage.completionTokens === 'number' &&
-    (usage.promptTokens > 0 || usage.completionTokens > 0)
-  ) {
-    return {
-      promptTokens: usage.promptTokens,
-      completionTokens: usage.completionTokens,
-      totalTokens: usage.promptTokens + usage.completionTokens,
-    };
+    if (total > 0) {
+      return { promptTokens: prompt, completionTokens: completion, totalTokens: total };
+    }
   }
 
   // Fallback: estimate from text content (~4 chars per token)

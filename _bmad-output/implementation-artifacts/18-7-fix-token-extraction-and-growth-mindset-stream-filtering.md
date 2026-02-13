@@ -1,6 +1,6 @@
 # Story 18.7: Fix Token Usage Extraction and Growth Mindset Stream Filtering
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -42,8 +42,26 @@ So that my token usage tracking is precise and I never see discouraging language
 
 ### Agent Model Used
 
+Claude Opus 4.6
+
 ### Debug Log References
+
+- All 52 tests pass (token-tracker: 20, growth-mindset-rules: 32)
+- TypeScript compiles clean (pre-existing chord-hud.tsx error unrelated)
 
 ### Completion Notes List
 
+- AI-C1: Fixed `extractTokenUsage` to accept AI SDK v6 `inputTokens`/`outputTokens` naming (was only handling legacy `promptTokens`/`completionTokens`)
+- AI-C1: Chat route `onFinish` now destructures `usage` from AI SDK result and passes it directly (was passing `{ text }` which fell through to character estimation)
+- AI-C1: `onFinish` now also uses the `replaceProhibitedWords` return value (was discarding it)
+- AI-C3: Created `createGrowthMindsetStreamTransform()` as a `StreamTextTransform` compatible with AI SDK v6 `experimental_transform`
+- AI-C3: Transform buffers text-delta chunks across word boundaries, flushes safe prefix with replacements, handles text-end flush
+- AI-C3: Wired via `experimental_transform` in `streamWithRetry` — prohibited words now filtered in real-time during streaming, not just in `onFinish`
+- Removed TODO tech debt comment (now resolved)
+- Added 2 new tests for AI SDK v6 inputTokens/outputTokens format
+
 ### File List
+
+- src/app/api/ai/chat/route.ts (modified)
+- src/features/coaching/token-tracker.ts (modified)
+- src/features/coaching/token-tracker.test.ts (modified)

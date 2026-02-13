@@ -223,7 +223,7 @@ development_status:
   18-4-fix-concurrent-xp-and-streak-race-conditions: done
   18-5-fix-pattern-analysis-memory-leak: done
   18-6-fix-ui-critical-landmarks-async-errors-memory-leaks: done
-  18-7-fix-token-extraction-and-growth-mindset-stream-filtering: ready-for-dev
+  18-7-fix-token-extraction-and-growth-mindset-stream-filtering: done
   18-8-fix-ai-security-prompt-injection-rate-limits: ready-for-dev
   epic-18-retrospective: optional
 
