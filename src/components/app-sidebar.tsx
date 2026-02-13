@@ -102,7 +102,7 @@ export function AppSidebar() {
       <div className="shrink-0 border-t border-border px-1.5 py-2">
         {user && !collapsed && (
           <div className="px-2 mb-1.5">
-            <span className="block text-[10px] text-muted-foreground truncate">{user.email}</span>
+            <span className="block text-xs text-foreground/80 truncate">{user.email}</span>
           </div>
         )}
         <button
