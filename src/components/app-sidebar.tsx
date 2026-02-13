@@ -14,6 +14,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/session', label: 'Session', icon: '\u25B6' },
+  { href: '/dashboard', label: 'Dashboard', icon: '\u25A6' },
   { href: '/history', label: 'History', icon: '\u2630' },
   { href: '/achievements', label: 'Achievements', icon: '\u2606' },
   { href: '/settings', label: 'Settings', icon: '\u2699' },
