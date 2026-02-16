@@ -314,7 +314,7 @@ export function SessionHistoryList() {
               aria-label={`Delete session from ${formatDate(session.startedAt)}`}
             >
               <Trash2
-                className="h-3.5 w-3.5 text-muted-foreground transition-colors duration-150 hover:text-red-400"
+                className="h-3.5 w-3.5 text-muted-foreground transition-colors duration-150 hover:text-accent-warm"
                 strokeWidth={1.5}
               />
             </button>
@@ -368,7 +368,7 @@ export function SessionHistoryList() {
               <button
                 onClick={handleDeleteSession}
                 disabled={isDeleting}
-                className="border border-red-500/30 bg-red-500/10 px-4 py-1.5 font-mono text-[11px] uppercase tracking-wider text-red-400 transition-colors hover:border-red-500/50 hover:bg-red-500/20 disabled:opacity-50"
+                className="border border-accent-warm/30 bg-accent-warm/10 px-4 py-1.5 font-mono text-[11px] uppercase tracking-wider text-accent-warm transition-colors hover:border-accent-warm/50 hover:bg-accent-warm/20 disabled:opacity-50"
               >
                 {isDeleting ? 'Deleting...' : 'Delete'}
               </button>

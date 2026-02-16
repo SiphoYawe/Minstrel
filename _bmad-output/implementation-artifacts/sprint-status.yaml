@@ -229,17 +229,17 @@ development_status:
 
   # Epic 19: High Priority Fixes (P1 — Recommended before launch)
   # Source: code-review-findings-epics-8-11.md — 27 HIGH findings
-  epic-19: in-progress
+  epic-19: done
   19-1-migrate-rate-limiting-to-distributed-store: done
   19-2-fix-api-key-validation-non-charging-endpoints: done
-  19-3-fix-stale-closures-and-reentrancy-guards: ready-for-dev
-  19-4-add-atomic-indexeddb-transactions: ready-for-dev
-  19-5-fix-ai-token-budget-context-error-classification: ready-for-dev
-  19-6-fix-drill-replay-context-and-timeout: ready-for-dev
-  19-7-fix-dashboard-accessibility-aria-attributes: ready-for-dev
-  19-8-fix-chat-and-input-accessibility: ready-for-dev
-  19-9-fix-modal-focus-traps-and-keyboard-support: ready-for-dev
-  19-10-fix-banner-behavior-and-timeline-navigation: ready-for-dev
+  19-3-fix-stale-closures-and-reentrancy-guards: done
+  19-4-add-atomic-indexeddb-transactions: done
+  19-5-fix-ai-token-budget-context-error-classification: done
+  19-6-fix-drill-replay-context-and-timeout: done
+  19-7-fix-dashboard-accessibility-aria-attributes: done
+  19-8-fix-chat-and-input-accessibility: done
+  19-9-fix-modal-focus-traps-and-keyboard-support: done
+  19-10-fix-banner-behavior-and-timeline-navigation: done
   epic-19-retrospective: optional
 
   # Epic 20: Medium Priority Polish (P2 — Post-launch acceptable)
