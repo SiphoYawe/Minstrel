@@ -278,7 +278,7 @@ development_status:
   22-1-create-centralized-error-banner-and-surface-midi-errors: done
   22-2-add-midi-connection-loading-indicator-and-timeout: done
   22-3-fix-troubleshooting-panel-behavior-and-persistence: done
-  22-4-add-audio-mode-limitations-explainer-and-permission-error: ready-for-dev
+  22-4-add-audio-mode-limitations-explainer-and-permission-error: done
   22-5-fix-drum-channel-warning-messaging: ready-for-dev
   22-6-fix-first-run-prompt-timing-and-midi-coordination: ready-for-dev
   22-7-add-session-expiry-ui-response: ready-for-dev
