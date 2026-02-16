@@ -24,17 +24,17 @@ const PULSE_TOTAL_MS = PULSE_FADE_IN_MS + PULSE_FADE_OUT_MS;
 const PULSE_ON_TIME_COLOR = { r: 74, g: 222, b: 128 }; // green-400 equivalent
 /** Off-time pulse color (amber). */
 const PULSE_OFF_TIME_COLOR = { r: 251, g: 191, b: 36 }; // amber-400 equivalent
-/** Max pulse opacity — subtle background effect per AC5. */
-const PULSE_MAX_OPACITY = 0.12;
+/** Max pulse opacity — clearly visible at arm's length (Story 23.2). */
+const PULSE_MAX_OPACITY = 0.35;
 /** Pulse radius (px). */
 const PULSE_RADIUS = 24;
 
 // --- Flow glow constants ---
 /** Glow edge thickness (px). */
 const FLOW_GLOW_SIZE = 60;
-/** Glow base alpha range — pulses between min and max over 2s cycle. */
-const FLOW_GLOW_ALPHA_MIN = 0.04;
-const FLOW_GLOW_ALPHA_MAX = 0.08;
+/** Glow base alpha range — visible at arm's length (Story 23.2). */
+const FLOW_GLOW_ALPHA_MIN = 0.15;
+const FLOW_GLOW_ALPHA_MAX = 0.25;
 /** Glow cycle period (ms). */
 const FLOW_GLOW_PERIOD_MS = 2000;
 /** Glow color — accent green. */

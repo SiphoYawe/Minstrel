@@ -288,7 +288,7 @@ development_status:
   # Source: adversarial-ux-review-2026-02-16.md — VIZ-C1-C8, VIZ HIGH findings
   epic-23: in-progress
   23-1-verify-and-fix-piano-roll-note-mapping-direction: done
-  23-2-fix-timing-feedback-visibility-pulses-and-flow-glow: ready-for-dev
+  23-2-fix-timing-feedback-visibility-pulses-and-flow-glow: done
   23-3-fix-harmonic-overlay-markers-and-chord-quality-distinction: ready-for-dev
   23-4-add-chord-hud-empty-and-waiting-states: ready-for-dev
   23-5-fix-canvas-clearing-and-idle-frame-handling: ready-for-dev

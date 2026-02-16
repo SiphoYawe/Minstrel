@@ -197,4 +197,53 @@ describe('renderFlowGlow', () => {
     expect(ctx.createLinearGradient).toHaveBeenCalledTimes(4);
     expect(ctx.fillRect).toHaveBeenCalledTimes(4);
   });
+
+  // Story 23.2: Verify glow uses visible alpha values (≥0.15)
+  it('uses gradient alpha values ≥ 0.15 for visibility', () => {
+    const ctx = createMockCtx();
+    const colorStops: Array<{ offset: number; color: string }> = [];
+    (ctx.createLinearGradient as ReturnType<typeof vi.fn>).mockReturnValue({
+      addColorStop: vi.fn((offset: number, color: string) => {
+        colorStops.push({ offset, color });
+      }),
+    });
+    renderFlowGlow(ctx, WIDTH, HEIGHT, 5000, false);
+    // All stop-0 colors should have alpha ≥ 0.15
+    const alphas = colorStops
+      .filter((s) => s.offset === 0)
+      .map((s) => {
+        const match = s.color.match(/rgba?\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)/);
+        return match ? parseFloat(match[1]) : 0;
+      });
+    for (const a of alphas) {
+      expect(a).toBeGreaterThanOrEqual(0.15);
+    }
+  });
+});
+
+// Story 23.2: Verify pulse opacity meets visibility threshold
+describe('timing pulse visibility', () => {
+  it('pulse max opacity is at least 0.30 for visibility at arm length', () => {
+    const ctx = createMockCtx();
+    const nowMs = 1000;
+    // Pulse at peak (just past fade-in at 200ms)
+    const pulses: TimingPulse[] = [{ x: 100, y: 200, startTime: nowMs - 200, isOnTime: true }];
+    const gradStops: Array<{ offset: number; color: string }> = [];
+    (ctx.createRadialGradient as ReturnType<typeof vi.fn>).mockReturnValue({
+      addColorStop: vi.fn((offset: number, color: string) => {
+        gradStops.push({ offset, color });
+      }),
+    });
+    renderTimingPulses(ctx, pulses, nowMs, false);
+    // Center stop (offset 0) should have alpha ≥ 0.30
+    const centerAlphas = gradStops
+      .filter((s) => s.offset === 0)
+      .map((s) => {
+        const match = s.color.match(/rgba?\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)/);
+        return match ? parseFloat(match[1]) : 0;
+      });
+    for (const a of centerAlphas) {
+      expect(a).toBeGreaterThanOrEqual(0.3);
+    }
+  });
 });
