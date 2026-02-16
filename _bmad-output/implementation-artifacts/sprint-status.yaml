@@ -320,13 +320,13 @@ development_status:
 
   # Epic 26: Dashboard & AI Coaching UX (P0/P1)
   # Source: adversarial-ux-review-2026-02-16.md — DASH-C1-C3, ENG-C1, Theme 2
-  epic-26: backlog
-  26-1-add-progressive-disclosure-to-dashboard: ready-for-dev
-  26-2-fix-growth-mindset-streaming-pre-filter-before-ui: ready-for-dev
-  26-3-fix-chat-input-overflow-and-mobile-ux: ready-for-dev
-  26-4-improve-data-card-values-empty-states-and-streak-messaging: ready-for-dev
-  26-5-improve-skill-radar-token-usage-and-difficulty-display: ready-for-dev
-  26-6-improve-ai-chat-error-messages-and-feedback: ready-for-dev
+  epic-26: done
+  26-1-add-progressive-disclosure-to-dashboard: done # 2026-02-16
+  26-2-fix-growth-mindset-streaming-pre-filter-before-ui: done # 2026-02-16
+  26-3-fix-chat-input-overflow-and-mobile-ux: done # 2026-02-16
+  26-4-improve-data-card-values-empty-states-and-streak-messaging: done # 2026-02-16
+  26-5-improve-skill-radar-token-usage-and-difficulty-display: done # 2026-02-16
+  26-6-improve-ai-chat-error-messages-and-feedback: done # 2026-02-16
   epic-26-retrospective: optional
 
   # Epic 27: Auth & BYOK Settings Overhaul (P0/P1)
@@ -355,7 +355,7 @@ development_status:
   # Source: adversarial-ux-review-2026-02-16.md — REPLAY-C1-C4, DS-C1-C2, Theme 5
   epic-29: in-progress
   29-1-add-replay-error-recovery-and-edge-case-handling: done # 2026-02-16
-  29-2-fix-replay-timestamp-alignment-and-chat-context: ready-for-dev
+  29-2-fix-replay-timestamp-alignment-and-chat-context: done # 2026-02-16
   29-3-improve-achievement-gallery-and-progress-feedback: ready-for-dev
   29-4-fix-hardcoded-colors-and-design-system-violations: ready-for-dev
   29-5-fix-responsive-breakdowns-across-viewports: ready-for-dev
