@@ -73,6 +73,15 @@ export const useMidiStore = create<MidiEventStore>()(
         }
 
         if (event.type === 'note-off') {
+          // Story 24.3: Only clear note if it came from the same source
+          const existing = state.activeNotes[event.note];
+          if (existing && existing.source !== event.source) {
+            // Cross-source note-off — don't clear the active note
+            return {
+              currentEvents: nextEvents,
+              latestEvent: event,
+            };
+          }
           const next = { ...state.activeNotes };
           delete next[event.note];
           return {
@@ -94,6 +103,18 @@ export const useMidiStore = create<MidiEventStore>()(
         const nextActiveNotes = { ...state.activeNotes };
         delete nextActiveNotes[noteNumber];
         return { activeNotes: nextActiveNotes };
+      }),
+
+    // Story 24.3: Clear all active notes from a specific source after source switch
+    clearSourceNotes: (source) =>
+      set((state) => {
+        const next: Record<number, MidiEvent> = {};
+        for (const [key, note] of Object.entries(state.activeNotes)) {
+          if (note.source !== source) {
+            next[Number(key)] = note;
+          }
+        }
+        return { activeNotes: next };
       }),
 
     clearEvents: () =>

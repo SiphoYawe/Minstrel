@@ -301,7 +301,7 @@ development_status:
   epic-24: in-progress
   24-1-fix-session-end-vs-session-summary-lifecycle: done # 2026-02-16
   24-2-add-multi-store-state-coordination: done # 2026-02-16
-  24-3-fix-audio-midi-switch-note-state-loss: ready-for-dev
+  24-3-fix-audio-midi-switch-note-state-loss: done # 2026-02-16
   24-4-add-indexeddb-write-error-handling-and-feedback: ready-for-dev
   24-5-fix-navigation-duplicate-handlers-and-device-hotplug: ready-for-dev
   24-6-fix-migration-indicator-and-localstorage-safety: ready-for-dev

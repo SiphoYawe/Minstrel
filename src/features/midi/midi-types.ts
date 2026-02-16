@@ -55,6 +55,7 @@ export interface MidiEventStoreState {
 export interface MidiEventStoreActions {
   addEvent: (event: MidiEvent) => void;
   removeNote: (noteNumber: number) => void;
+  clearSourceNotes: (source: InputSource) => void;
   clearEvents: () => void;
 }
 

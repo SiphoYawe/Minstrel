@@ -27,6 +27,8 @@ function createMidiCallbacks(): MidiEngineCallbacks {
         // arrives while store already reflects MIDI mode
         store.setInputSource('midi');
         stopAudioListening();
+        // Story 24.3: Clean up stale audio notes after source switch
+        store.clearSourceNotes('audio');
       }
 
       store.setConnectionStatus(status);

@@ -177,6 +177,45 @@ describe('midiStore', () => {
     });
   });
 
+  describe('cross-source note protection (Story 24.3)', () => {
+    it('does not clear active note on cross-source note-off', () => {
+      // MIDI note-on
+      useMidiStore.getState().addEvent(makeEvent({ note: 60, type: 'note-on', source: 'midi' }));
+      expect(useMidiStore.getState().activeNotes[60]).toBeDefined();
+
+      // Audio note-off for the same note number should NOT clear it
+      useMidiStore.getState().addEvent(makeEvent({ note: 60, type: 'note-off', source: 'audio' }));
+      expect(useMidiStore.getState().activeNotes[60]).toBeDefined();
+      expect(useMidiStore.getState().activeNotes[60].source).toBe('midi');
+    });
+
+    it('clears active note on same-source note-off', () => {
+      useMidiStore.getState().addEvent(makeEvent({ note: 60, type: 'note-on', source: 'midi' }));
+      useMidiStore.getState().addEvent(makeEvent({ note: 60, type: 'note-off', source: 'midi' }));
+      expect(useMidiStore.getState().activeNotes[60]).toBeUndefined();
+    });
+
+    it('clearSourceNotes removes only notes from specified source', () => {
+      useMidiStore.getState().addEvent(makeEvent({ note: 60, type: 'note-on', source: 'midi' }));
+      useMidiStore.getState().addEvent(makeEvent({ note: 64, type: 'note-on', source: 'audio' }));
+      useMidiStore.getState().addEvent(makeEvent({ note: 67, type: 'note-on', source: 'midi' }));
+
+      useMidiStore.getState().clearSourceNotes('audio');
+
+      const notes = useMidiStore.getState().activeNotes;
+      expect(notes[60]).toBeDefined();
+      expect(notes[64]).toBeUndefined();
+      expect(notes[67]).toBeDefined();
+    });
+
+    it('clearSourceNotes is a no-op when no notes from that source exist', () => {
+      useMidiStore.getState().addEvent(makeEvent({ note: 60, type: 'note-on', source: 'midi' }));
+      useMidiStore.getState().clearSourceNotes('audio');
+
+      expect(Object.keys(useMidiStore.getState().activeNotes)).toHaveLength(1);
+    });
+  });
+
   describe('subscribeWithSelector', () => {
     it('supports selector-based subscriptions', () => {
       const values: string[] = [];
