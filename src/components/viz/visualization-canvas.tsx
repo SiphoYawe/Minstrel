@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useMidiStore } from '@/stores/midi-store';
 import { useSessionStore } from '@/stores/session-store';
 import type { MidiEvent } from '@/features/midi/midi-types';
+import { clearCanvas } from './canvas-utils';
 import { renderNotes, createFadingNote } from './piano-roll-renderer';
 import type { FadingNote } from './piano-roll-renderer';
 import {
@@ -317,6 +318,23 @@ export function VisualizationCanvas() {
       }
     );
 
+    // --- Zustand vanilla subscription for session end (Story 23.5) ---
+    // Clear canvas completely when session ends to remove stale artifacts
+    const unsubSessionEnd = useSessionStore.subscribe(
+      (state) => state.activeSessionId,
+      (sessionId) => {
+        if (sessionId === null) {
+          // Session ended — clear all visual state
+          activeNotesRef.current = {};
+          prevActiveNotesRef.current = {};
+          fadingNotesRef.current = [];
+          timingPulsesRef.current = [];
+          isInFlowRef.current = false;
+          dirtyRef.current = true;
+        }
+      }
+    );
+
     // --- Render loop (60fps via requestAnimationFrame) ---
     function frame() {
       const c = ctxRef.current;
@@ -326,10 +344,12 @@ export function VisualizationCanvas() {
       }
 
       // Skip rendering when idle (no active notes, no fading, not dirty)
+      // Story 23.5: Clear canvas BEFORE idle return to prevent stale artifacts
       const hasActive = Object.keys(activeNotesRef.current).length > 0;
       const hasFading = fadingNotesRef.current.length > 0;
+      const hasPulses = timingPulsesRef.current.length > 0;
 
-      if (!dirtyRef.current && !hasActive && !hasFading) {
+      if (!dirtyRef.current && !hasActive && !hasFading && !hasPulses) {
         rafRef.current = requestAnimationFrame(frame);
         return;
       }
@@ -489,6 +509,7 @@ export function VisualizationCanvas() {
       unsubReplayPosition();
       unsubReplayState();
       unsubReplaySession();
+      unsubSessionEnd();
       unsubSnapshot();
       unsubTimingAccuracy();
       motionMql?.removeEventListener('change', handleMotionChange);

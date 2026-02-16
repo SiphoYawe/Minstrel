@@ -291,7 +291,7 @@ development_status:
   23-2-fix-timing-feedback-visibility-pulses-and-flow-glow: done
   23-3-fix-harmonic-overlay-markers-and-chord-quality-distinction: done
   23-4-add-chord-hud-empty-and-waiting-states: done
-  23-5-fix-canvas-clearing-and-idle-frame-handling: ready-for-dev
+  23-5-fix-canvas-clearing-and-idle-frame-handling: done
   23-6-fix-snapshot-and-label-text-readability: ready-for-dev
   23-7-fix-timing-grid-model-and-velocity-rendering: ready-for-dev
   epic-23-retrospective: optional
