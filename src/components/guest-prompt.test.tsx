@@ -29,10 +29,10 @@ describe('GuestPrompt', () => {
     expect(screen.getByText(/Create an account to save your progress/)).toBeInTheDocument();
   });
 
-  it('renders Sign Up link to /auth/sign-up', () => {
+  it('renders Sign Up link to /signup', () => {
     render(<GuestPrompt />);
     const link = screen.getByRole('link', { name: /sign up/i });
-    expect(link).toHaveAttribute('href', '/auth/sign-up');
+    expect(link).toHaveAttribute('href', '/signup');
   });
 
   it('has role="status" for accessibility', () => {

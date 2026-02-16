@@ -54,7 +54,7 @@ export function GuestPrompt() {
               /
             </span>
             <Link
-              href="/auth/sign-up"
+              href="/signup"
               className="font-medium text-primary underline underline-offset-2 transition-opacity duration-micro hover:opacity-80"
             >
               Sign Up
