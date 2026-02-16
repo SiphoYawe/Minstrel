@@ -82,7 +82,7 @@ export function ErrorBanner() {
     <div
       role="alert"
       aria-live="assertive"
-      className="relative z-30 border-b border-accent-warm/20 bg-accent-warm/[0.06]"
+      className="relative z-[var(--z-banner)] border-b border-accent-warm/20 bg-accent-warm/[0.06]"
     >
       <div className="mx-auto flex items-center gap-3 px-4 py-2">
         {/* Amber indicator dot */}

@@ -270,7 +270,7 @@ export function TimelineScrubber({
 
           {/* Current time floating label — clamped to avoid overflow */}
           <div
-            className="absolute -top-4 font-mono text-[10px] text-primary tabular-nums
+            className="absolute -top-5 font-mono text-sm text-primary tabular-nums
               pointer-events-none select-none whitespace-nowrap"
             style={{
               left: `${progressPercent}%`,
@@ -296,7 +296,7 @@ export function TimelineScrubber({
                   <div
                     key={`${marker.type}-${marker.timestamp}-${i}`}
                     role="listitem"
-                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10"
+                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-[var(--z-overlay)]"
                     style={{ left: `${markerPercent}%` }}
                   >
                     <button
@@ -325,7 +325,7 @@ export function TimelineScrubber({
                         className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2
                           px-2 py-1 bg-card border border-surface-border
                           font-mono text-[10px] text-foreground whitespace-nowrap
-                          pointer-events-none z-20"
+                          pointer-events-none z-[var(--z-banner)]"
                         role="tooltip"
                       >
                         <span

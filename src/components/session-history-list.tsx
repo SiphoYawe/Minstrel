@@ -343,7 +343,7 @@ export function SessionHistoryList() {
       {/* Delete confirmation overlay */}
       {confirmDeleteId != null && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/60"
           onClick={() => !isDeleting && setConfirmDeleteId(null)}
           role="dialog"
           aria-modal="true"

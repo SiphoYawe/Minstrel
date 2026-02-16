@@ -9,7 +9,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       {/* Navigation */}
       <nav
         aria-label="Main navigation"
-        className="fixed inset-x-0 top-0 z-50 h-14 border-b border-border bg-background/90 backdrop-blur-sm"
+        className="fixed inset-x-0 top-0 z-[var(--z-nav)] h-14 border-b border-border bg-background/90 backdrop-blur-sm"
       >
         <div className="mx-auto flex h-full max-w-content items-center justify-between px-8">
           {/* Logo */}

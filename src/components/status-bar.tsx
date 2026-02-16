@@ -93,7 +93,7 @@ export function StatusBar() {
 
   return (
     <header
-      className="absolute inset-x-0 top-0 z-40 h-10 border-b border-border bg-background/80 backdrop-blur-sm"
+      className="absolute inset-x-0 top-0 z-[var(--z-nav)] h-10 border-b border-border bg-background/80 backdrop-blur-sm"
       role="status"
     >
       <div className="mx-auto flex h-full items-center justify-between px-4">

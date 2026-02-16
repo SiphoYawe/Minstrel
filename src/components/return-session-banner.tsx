@@ -99,7 +99,7 @@ export function ReturnSessionBanner({ onStartFresh, onContinue }: ReturnSessionB
   return (
     <div
       ref={bannerRef}
-      className="absolute top-12 left-1/2 z-20 -translate-x-1/2 w-full max-w-lg"
+      className="absolute top-12 left-1/2 z-[var(--z-banner)] -translate-x-1/2 w-full max-w-lg"
       style={{ animation: 'banner-slide-in 0.3s ease-out' }}
       role="status"
       aria-live="polite"

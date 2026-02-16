@@ -70,7 +70,7 @@ export function FirstRunPrompt() {
   if (connectionStatus === 'connected') {
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-background/80 backdrop-blur-sm"
         role="status"
         aria-live="polite"
         data-testid="first-run-connected"
@@ -104,7 +104,7 @@ export function FirstRunPrompt() {
   // State: MIDI not connected → "Connect your instrument to get started"
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-background/80 backdrop-blur-sm"
       role="status"
       aria-live="polite"
       data-testid="first-run-prompt"
@@ -195,7 +195,7 @@ function SessionStartedConfirmation({ onDone }: { onDone: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-background/80 backdrop-blur-sm"
       role="status"
       aria-live="assertive"
       data-testid="session-started-confirmation"

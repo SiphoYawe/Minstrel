@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TroubleshootingPanel } from '@/components/troubleshooting-panel';
 import { KeyboardShortcutsPanel } from '@/components/keyboard-shortcuts-panel';
@@ -21,6 +21,7 @@ import { getTroubleshootingSteps } from '@/features/midi/troubleshooting';
 import { isAudioSupported } from '@/features/midi/audio-engine';
 import { useAnalysisPipeline } from '@/features/analysis/use-analysis-pipeline';
 import { useSessionStore } from '@/stores/session-store';
+import { useAppStore } from '@/stores/app-store';
 import { useAchievements } from '@/features/engagement/use-achievements';
 import { buildTriggerContext } from '@/features/engagement/achievement-engine';
 import { achievementRegistry } from '@/features/engagement/achievement-definitions';
@@ -33,6 +34,12 @@ export default function SessionPage() {
   const currentMode = useSessionStore((s) => s.currentMode);
   const activeSessionId = useSessionStore((s) => s.activeSessionId);
   const showSummary = useSessionStore((s) => s.showSessionSummary);
+  const recentSessions = useSessionStore((s) => s.recentSessions);
+  const isAuthenticated = useAppStore((s) => s.isAuthenticated);
+
+  // Overlay priority: ReturnSessionBanner suppresses WarmUpPrompt until dismissed
+  const returnBannerWouldShow = isAuthenticated && recentSessions.length > 0;
+  const [returnBannerDismissed, setReturnBannerDismissed] = useState(false);
 
   // Achievement system
   const { recentlyUnlocked, evaluateSessionAchievements, dismissRecent } = useAchievements();
@@ -113,8 +120,14 @@ export default function SessionPage() {
       {/* Mode-specific layout */}
       <div className="relative">
         <FirstRunPrompt />
-        <ReturnSessionBanner />
-        <WarmUpPrompt onStartWarmUp={startWarmUp} onSkip={skipWarmUp} />
+        <ReturnSessionBanner
+          onStartFresh={() => setReturnBannerDismissed(true)}
+          onContinue={() => setReturnBannerDismissed(true)}
+        />
+        {/* WarmUpPrompt suppressed while ReturnSessionBanner is visible (priority: banner > warm-up) */}
+        {(!returnBannerWouldShow || returnBannerDismissed) && (
+          <WarmUpPrompt onStartWarmUp={startWarmUp} onSkip={skipWarmUp} />
+        )}
         {currentMode === 'silent-coach' && <SilentCoach />}
         {currentMode === 'dashboard-chat' && <DashboardChat />}
         {currentMode === 'replay-studio' && <ReplayStudio sessionId={activeSessionId} />}

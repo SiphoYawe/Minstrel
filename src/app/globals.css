@@ -42,12 +42,24 @@
     --font-size-body: 14px;
     --font-size-label: 10px;
 
-    /* Z-index scale */
+    /* Z-index scale — complete hierarchy, all layers documented
+     * --z-base:     0  → Canvas overlays, chord strips, inline elements
+     * --z-overlay: 10  → In-canvas UI (legends, HUDs, snapshot CTA, warm-up prompt)
+     * --z-banner:  20  → Banners (return-session, error, MIDI loading)
+     * --z-nav:     30  → StatusBar, fixed navigation, sidebar
+     * --z-panel:   40  → Panels (troubleshooting), tooltips
+     * --z-modal:   50  → Modals, alerts, dialogs, full-screen overlays
+     * --z-toast:   60  → Toasts, achievement notifications
+     * --z-critical:100  → Critical overlays (mobile redirect, migration blocking)
+     */
     --z-base: 0;
     --z-overlay: 10;
-    --z-nav: 20;
-    --z-modal: 30;
-    --z-toast: 40;
+    --z-banner: 20;
+    --z-nav: 30;
+    --z-panel: 40;
+    --z-modal: 50;
+    --z-toast: 60;
+    --z-critical: 100;
 
     /* Minstrel extended palette */
     --surface: 0 0% 9%;

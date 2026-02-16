@@ -26,7 +26,7 @@ export function SnapshotCTA({ onGenerateDrill, isDrillGenerating = false }: Snap
 
   return (
     <div
-      className="absolute bottom-16 left-1/2 z-10 -translate-x-1/2 flex gap-3 animate-[fadeUp_300ms_ease-out]"
+      className="absolute bottom-16 left-1/2 z-[var(--z-overlay)] -translate-x-1/2 flex gap-3 animate-[fadeUp_300ms_ease-out]"
       aria-live="polite"
     >
       <span className="sr-only">

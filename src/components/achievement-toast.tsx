@@ -79,7 +79,7 @@ export function AchievementToast({ achievements, onDismiss }: AchievementToastPr
     <div
       aria-live="polite"
       role="status"
-      className="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"
+      className="fixed top-4 right-4 z-[var(--z-toast)] flex flex-col gap-2 pointer-events-none"
       style={{ maxWidth: '340px' }}
     >
       {achievements.map((achievement) => {

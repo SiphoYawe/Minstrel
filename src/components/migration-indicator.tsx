@@ -12,7 +12,7 @@ export function MigrationIndicator() {
     migrationProgress.total > 0 ? migrationProgress.synced / migrationProgress.total : 0;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 pointer-events-none animate-in fade-in slide-in-from-bottom duration-300">
+    <div className="fixed inset-x-0 bottom-0 z-[var(--z-critical)] pointer-events-none animate-in fade-in slide-in-from-bottom duration-300">
       {/* Progress track — thin accent line */}
       {migrationStatus === 'migrating' && (
         <div className="h-px w-full bg-surface-border">

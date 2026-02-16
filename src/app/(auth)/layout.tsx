@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Story 13.5: Skip-to-content link */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-background focus:text-primary focus:px-4 focus:py-2"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-[var(--z-modal)] focus:bg-background focus:text-primary focus:px-4 focus:py-2"
       >
         Skip to content
       </a>

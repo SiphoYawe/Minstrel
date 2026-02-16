@@ -46,7 +46,7 @@ function ConnectionLoadingInner() {
     <div
       role="status"
       aria-live="polite"
-      className="relative z-30 border-b border-primary/20 bg-primary/[0.04]"
+      className="relative z-[var(--z-banner)] border-b border-primary/20 bg-primary/[0.04]"
     >
       <div className="mx-auto px-4 py-3">
         {!timedOut ? (

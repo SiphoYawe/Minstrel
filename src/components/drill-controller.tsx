@@ -178,7 +178,7 @@ function MetricTooltip({ text }: { text: string }) {
       {open && (
         <span
           role="tooltip"
-          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-surface-lighter text-text-secondary text-[10px] leading-tight w-40 z-20 border border-border"
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-surface-lighter text-text-secondary text-[10px] leading-tight w-40 z-[var(--z-panel)] border border-border"
         >
           {text}
         </span>
@@ -504,7 +504,7 @@ export function DrillController({
           {/* Pause overlay */}
           {isPaused && (
             <div
-              className="absolute inset-0 bg-card/90 backdrop-blur-sm z-10 flex flex-col items-center justify-center"
+              className="absolute inset-0 bg-card/90 backdrop-blur-sm z-[var(--z-overlay)] flex flex-col items-center justify-center"
               role="status"
               aria-label="Drill paused"
             >

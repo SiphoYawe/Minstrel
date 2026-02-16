@@ -77,7 +77,7 @@ export function MobileRedirect() {
       {/* Full-screen mobile overlay */}
       {showMobileOverlay && (
         <div
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background p-8 text-center"
+          className="fixed inset-0 z-[var(--z-critical)] flex flex-col items-center justify-center bg-background p-8 text-center"
           role="alertdialog"
           aria-modal="true"
           aria-label="Mobile device detected"
@@ -106,7 +106,7 @@ export function MobileRedirect() {
       {/* MIDI incompatibility banner */}
       {showMidiBanner && !showMobileOverlay && (
         <div
-          className="fixed inset-x-0 top-0 z-[70] flex items-center justify-between border-b border-accent-warm/20 bg-accent-warm/10 px-4 py-2"
+          className="fixed inset-x-0 top-0 z-[var(--z-critical)] flex items-center justify-between border-b border-accent-warm/20 bg-accent-warm/10 px-4 py-2"
           role="alert"
         >
           <p className="font-mono text-xs text-accent-warm">
