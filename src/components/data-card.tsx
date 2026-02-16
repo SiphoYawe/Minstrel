@@ -150,7 +150,11 @@ export function DataCard({ sessionMode = 'live' }: DataCardProps) {
       : 'detecting...';
 
   return (
-    <div className="grid grid-cols-2 gap-2 p-3" role="region" aria-label="Session metrics">
+    <div
+      className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3"
+      role="region"
+      aria-label="Session metrics"
+    >
       {/* Key */}
       <Card className="bg-card border-surface-light p-3">
         <div className="flex items-center justify-between mb-1">
@@ -249,7 +253,7 @@ export function DataCard({ sessionMode = 'live' }: DataCardProps) {
       </Card>
 
       {/* Notes Played */}
-      <Card className="bg-card border-surface-light p-3 col-span-2">
+      <Card className="bg-card border-surface-light p-3 sm:col-span-2">
         <span className="block text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-1">
           Notes Played
         </span>

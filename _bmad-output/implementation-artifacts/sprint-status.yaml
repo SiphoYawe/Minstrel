@@ -358,6 +358,6 @@ development_status:
   29-2-fix-replay-timestamp-alignment-and-chat-context: done # 2026-02-16
   29-3-improve-achievement-gallery-and-progress-feedback: done # 2026-02-16
   29-4-fix-hardcoded-colors-and-design-system-violations: done # 2026-02-16
-  29-5-fix-responsive-breakdowns-across-viewports: ready-for-dev
+  29-5-fix-responsive-breakdowns-across-viewports: done
   29-6-improve-replay-export-session-history-and-provider-ux: ready-for-dev
   epic-29-retrospective: optional

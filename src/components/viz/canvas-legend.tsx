@@ -58,10 +58,10 @@ export function CanvasLegend() {
           style={{ opacity, transition: 'opacity 300ms ease-in-out' }}
           aria-hidden="true"
         >
-          <div className="flex gap-8">
+          <div className="flex gap-3 md:gap-8">
             {/* Notes area */}
             <div className="flex flex-col items-center gap-2">
-              <div className="bg-background/85 px-4 py-2">
+              <div className="bg-background/85 px-2 py-1.5 md:px-4 md:py-2">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <rect
                     x="4"
@@ -80,14 +80,18 @@ export function CanvasLegend() {
                     opacity={0.5}
                   />
                 </svg>
-                <p className="text-xs text-primary font-mono mt-1 text-center">Notes</p>
-                <p className="text-[9px] text-muted-foreground text-center">Piano roll</p>
+                <p className="text-xs text-primary font-mono mt-1 text-center hidden md:block">
+                  Notes
+                </p>
+                <p className="text-[9px] text-muted-foreground text-center hidden md:block">
+                  Piano roll
+                </p>
               </div>
             </div>
 
             {/* Timing area */}
             <div className="flex flex-col items-center gap-2">
-              <div className="bg-background/85 px-4 py-2">
+              <div className="bg-background/85 px-2 py-1.5 md:px-4 md:py-2">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <line
                     x1="12"
@@ -100,14 +104,18 @@ export function CanvasLegend() {
                   />
                   <circle cx="12" cy="12" r="3" fill="hsl(var(--primary))" opacity={0.7} />
                 </svg>
-                <p className="text-xs text-primary font-mono mt-1 text-center">Timing</p>
-                <p className="text-[9px] text-muted-foreground text-center">Beat accuracy</p>
+                <p className="text-xs text-primary font-mono mt-1 text-center hidden md:block">
+                  Timing
+                </p>
+                <p className="text-[9px] text-muted-foreground text-center hidden md:block">
+                  Beat accuracy
+                </p>
               </div>
             </div>
 
             {/* Key area */}
             <div className="flex flex-col items-center gap-2">
-              <div className="bg-background/85 px-4 py-2">
+              <div className="bg-background/85 px-2 py-1.5 md:px-4 md:py-2">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <text
                     x="12"
@@ -120,8 +128,12 @@ export function CanvasLegend() {
                     K
                   </text>
                 </svg>
-                <p className="text-xs text-primary font-mono mt-1 text-center">Key</p>
-                <p className="text-[9px] text-muted-foreground text-center">Harmonic analysis</p>
+                <p className="text-xs text-primary font-mono mt-1 text-center hidden md:block">
+                  Key
+                </p>
+                <p className="text-[9px] text-muted-foreground text-center hidden md:block">
+                  Harmonic analysis
+                </p>
               </div>
             </div>
           </div>

@@ -121,6 +121,22 @@ describe('renderTimingGrid', () => {
     renderTimingGrid(ctx, WIDTH, HEIGHT, 120, []);
     expect(ctx.textAlign).toBe('start');
   });
+
+  it('renders fewer grid lines on narrow canvas (<500px compact mode)', () => {
+    const ctx = createMockCtx();
+    const narrowWidth = 400;
+    renderTimingGrid(ctx, narrowWidth, HEIGHT, 120, []);
+    // Compact: 6 past + 2 predictive + 1 = 9 grid lines
+    expect(ctx.stroke).toHaveBeenCalledTimes(9);
+    expect(ctx.fillText).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders full grid lines on wide canvas (>=500px)', () => {
+    const ctx = createMockCtx();
+    renderTimingGrid(ctx, 500, HEIGHT, 120, []);
+    // Full: 12 past + 4 predictive + 1 = 17 grid lines
+    expect(ctx.stroke).toHaveBeenCalledTimes(17);
+  });
 });
 
 describe('createTimingPulse', () => {
@@ -164,6 +180,16 @@ describe('createTimingPulse', () => {
     const pulse = createTimingPulse(d, WIDTH, bandTop, bandHeight, bpm, [d], 3000);
     expect(pulse).not.toBeNull();
     expect(pulse!.isOnTime).toBe(true);
+  });
+
+  it('uses compact beat range on narrow canvas', () => {
+    const narrowWidth = 400;
+    const d = makeEvent(5, 10, 3000);
+    const pulse = createTimingPulse(d, narrowWidth, bandTop, bandHeight, bpm, [d], 3000);
+    expect(pulse).not.toBeNull();
+    // Pulse should be within canvas bounds
+    expect(pulse!.x).toBeGreaterThan(0);
+    expect(pulse!.x).toBeLessThan(narrowWidth);
   });
 });
 

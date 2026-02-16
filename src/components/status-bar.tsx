@@ -113,8 +113,8 @@ export function StatusBar() {
 
           {activeDevice && connectionStatus === 'connected' && (
             <>
-              <span className="h-3 w-px bg-surface-border" aria-hidden="true" />
-              <span className="text-caption text-muted-foreground truncate max-w-[200px] sm:max-w-[300px]">
+              <span className="h-3 w-px bg-surface-border hidden sm:block" aria-hidden="true" />
+              <span className="text-caption text-muted-foreground truncate max-w-[200px] sm:max-w-[300px] hidden sm:inline">
                 {activeDevice.name}
               </span>
             </>
@@ -123,7 +123,7 @@ export function StatusBar() {
           {(connectionStatus === 'error' || connectionStatus === 'unsupported') && errorMessage && (
             <>
               <span className="h-3 w-px bg-surface-border" aria-hidden="true" />
-              <span className="text-caption text-muted-foreground truncate max-w-[300px]">
+              <span className="text-caption text-muted-foreground truncate max-w-[160px] sm:max-w-[300px]">
                 {errorMessage}
               </span>
             </>
@@ -133,7 +133,7 @@ export function StatusBar() {
             <Button
               variant="link"
               size="sm"
-              className="text-caption h-auto p-0"
+              className="text-caption h-auto p-0 hidden sm:inline-flex"
               onClick={() => {
                 const store = useMidiStore.getState();
                 store.setShowTroubleshooting(!store.showTroubleshooting);
@@ -147,7 +147,7 @@ export function StatusBar() {
 
         {/* Center: Key + Tempo (analysis readout) */}
         <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden items-center gap-3 sm:flex"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1.5 sm:gap-3"
           aria-label="Session analysis"
         >
           {currentKey && (

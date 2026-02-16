@@ -244,7 +244,7 @@ function DifficultyCard({ difficultyState }: { difficultyState: DifficultyState 
       </div>
 
       {/* Parameter breakdown */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
         {Object.entries(currentParameters).map(([key, value]) => (
           <div key={key} className="flex items-center justify-between">
             <span className="text-[10px] text-muted-foreground">

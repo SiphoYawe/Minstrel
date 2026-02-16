@@ -199,7 +199,7 @@ function DrillCard({
       )}
 
       {/* Metadata row */}
-      <div className="mt-3 flex items-center gap-4">
+      <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-4">
         <div className="flex items-center gap-1.5">
           <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             Tempo

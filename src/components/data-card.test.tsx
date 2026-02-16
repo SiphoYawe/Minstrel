@@ -71,4 +71,11 @@ describe('DataCard', () => {
     render(<DataCard />);
     expect(screen.getByRole('region', { name: 'Session metrics' })).toBeInTheDocument();
   });
+
+  it('uses responsive grid classes for mobile stacking', () => {
+    render(<DataCard />);
+    const grid = screen.getByRole('region', { name: 'Session metrics' });
+    expect(grid.className).toContain('grid-cols-1');
+    expect(grid.className).toContain('sm:grid-cols-2');
+  });
 });

@@ -78,29 +78,37 @@ describe('StatusBar', () => {
     expect(screen.getByText('MIDI access was not granted.')).toBeDefined();
   });
 
-  it('shows Help button when disconnected', () => {
+  it('shows MIDI Help button when disconnected', () => {
     useMidiStore.getState().setConnectionStatus('disconnected');
     render(<StatusBar />);
-    expect(screen.getByText('Help')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Toggle MIDI troubleshooting help' })).toBeDefined();
   });
 
-  it('shows Help button when error', () => {
+  it('shows MIDI Help button when error', () => {
     useMidiStore.getState().setConnectionStatus('error');
     render(<StatusBar />);
-    expect(screen.getByText('Help')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Toggle MIDI troubleshooting help' })).toBeDefined();
   });
 
-  it('does not show Help button when connected', () => {
-    useMidiStore.getState().setConnectionStatus('connected');
+  it('does not show Help button when unsupported', () => {
+    useMidiStore.getState().setConnectionStatus('unsupported');
     render(<StatusBar />);
-    expect(screen.queryByText('Help')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Toggle MIDI troubleshooting help' })).toBeNull();
   });
 
-  it('clicking Help sets showTroubleshooting to true in store', () => {
+  it('clicking MIDI Help sets showTroubleshooting to true in store', () => {
     useMidiStore.getState().setConnectionStatus('disconnected');
     render(<StatusBar />);
-    fireEvent.click(screen.getByText('Help'));
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle MIDI troubleshooting help' }));
     expect(useMidiStore.getState().showTroubleshooting).toBe(true);
+  });
+
+  it('shows key and BPM center section on all viewports (no hidden class)', () => {
+    render(<StatusBar />);
+    const analysisSection = screen.getByLabelText('Session analysis');
+    // Must not have a bare 'hidden' class — center section is always visible
+    expect(analysisSection.className).not.toMatch(/(?:^|\s)hidden(?:\s|$)/);
+    expect(analysisSection.className).toContain('flex');
   });
 
   it('renders as a header element positioned at top', () => {

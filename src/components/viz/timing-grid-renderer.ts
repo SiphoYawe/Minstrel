@@ -10,8 +10,12 @@ const ON_BEAT_ALPHA = 0.9;
 const OFF_BEAT_ALPHA = 0.5;
 const BPM_LABEL_FONT = '12px "JetBrains Mono", monospace';
 const BPM_LABEL_COLOR = vizRgba(VIZ_TIMING_RGB, 0.6);
-const BEATS_TO_SHOW = 12;
-const PREDICTIVE_BEATS = 4;
+const BEATS_TO_SHOW_FULL = 12;
+const BEATS_TO_SHOW_COMPACT = 6;
+const PREDICTIVE_BEATS_FULL = 4;
+const PREDICTIVE_BEATS_COMPACT = 2;
+/** Canvas width threshold for compact timing layout. */
+const COMPACT_WIDTH_PX = 500;
 const MAX_DEVIATION_PX = 40;
 
 // --- Timing pulse constants ---
@@ -70,13 +74,15 @@ export function createTimingPulse(
   const recent = deviations.slice(-16);
   if (recent.length === 0) return null;
 
+  const isCompact = canvasWidth < COMPACT_WIDTH_PX;
+  const beatsToShow = isCompact ? BEATS_TO_SHOW_COMPACT : BEATS_TO_SHOW_FULL;
   const lastBeat = recent[recent.length - 1].beatIndex;
-  const firstBeat = lastBeat - BEATS_TO_SHOW + 1;
-  const beatSpacingPx = canvasWidth / (BEATS_TO_SHOW + 1);
+  const firstBeat = lastBeat - beatsToShow + 1;
+  const beatSpacingPx = canvasWidth / (beatsToShow + 1);
   const bandCenterY = bandTop + bandHeight / 2;
 
   const beatOffset = d.beatIndex - firstBeat;
-  if (beatOffset < 0 || beatOffset > BEATS_TO_SHOW) return null;
+  if (beatOffset < 0 || beatOffset > beatsToShow) return null;
 
   const baseX = (beatOffset + 1) * beatSpacingPx;
   const deviationRatio = Math.max(-1, Math.min(1, d.deviationMs / (beatIntervalMs / 2)));
@@ -226,13 +232,18 @@ export function renderTimingGrid(
   const beatIntervalMs = 60000 / bpm;
   const recent = deviations.slice(-16);
 
+  // Adapt beat count to canvas width for mobile viewports
+  const isCompact = canvasWidth < COMPACT_WIDTH_PX;
+  const beatsToShow = isCompact ? BEATS_TO_SHOW_COMPACT : BEATS_TO_SHOW_FULL;
+  const predictiveBeats = isCompact ? PREDICTIVE_BEATS_COMPACT : PREDICTIVE_BEATS_FULL;
+
   // Total beats to render: past + predictive future
-  const totalBeats = BEATS_TO_SHOW + PREDICTIVE_BEATS;
+  const totalBeats = beatsToShow + predictiveBeats;
   const beatSpacingPx = canvasWidth / (totalBeats + 1);
 
   // Determine beat range: anchor on last known beat, extend forward
   const lastPlayedBeat = recent.length > 0 ? recent[recent.length - 1].beatIndex : 0;
-  const firstBeat = lastPlayedBeat - BEATS_TO_SHOW + 1;
+  const firstBeat = lastPlayedBeat - beatsToShow + 1;
 
   ctx.lineWidth = GRID_LINE_WIDTH;
 
