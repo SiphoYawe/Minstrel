@@ -17,6 +17,7 @@ import {
   type DifficultyState,
 } from '@/features/difficulty/difficulty-types';
 import type { AchievementDisplayItem } from '@/features/engagement/engagement-types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import {
   Music,
@@ -137,14 +138,28 @@ function formatNumber(n: number): string {
 
 function StatCard({ value, label, mono = true }: { value: string; label: string; mono?: boolean }) {
   return (
-    <div className="border border-surface-light bg-card px-4 py-3" aria-label={label}>
-      <div className={`text-xl leading-tight text-white ${mono ? 'font-mono' : 'font-sans'}`}>
-        {value}
-      </div>
-      <div className="mt-1 text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
-        {label}
-      </div>
-    </div>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className="border border-surface-light bg-card px-4 py-3"
+            aria-label={`${label}: ${value}`}
+          >
+            <div
+              className={`text-xl leading-tight text-white truncate ${mono ? 'font-mono' : 'font-sans'}`}
+            >
+              {value}
+            </div>
+            <div className="mt-1 text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+              {label}
+            </div>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <span className="font-mono text-xs">{value}</span>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -158,7 +173,7 @@ function SkillProfileSection({ skillProfile }: { skillProfile: SkillProfile | nu
         <div className="flex flex-col items-center justify-center py-6 gap-3">
           <div className="w-8 h-px bg-surface-light" />
           <p className="text-sm text-muted-foreground text-center">
-            Play more to build your skill profile
+            Your skill profile is waiting. Start playing to see it come alive.
           </p>
           <div className="w-8 h-px bg-surface-light" />
         </div>
@@ -179,7 +194,7 @@ function DifficultyCard({ difficultyState }: { difficultyState: DifficultyState 
         <div className="flex flex-col items-center justify-center py-6 gap-3">
           <div className="w-8 h-px bg-surface-light" />
           <p className="text-sm text-muted-foreground text-center">
-            Start a session to calibrate difficulty
+            Your difficulty calibration is waiting. Start a session to see it come alive.
           </p>
           <div className="w-8 h-px bg-surface-light" />
         </div>
@@ -331,7 +346,7 @@ function PlayingStyleCard() {
         <div className="flex flex-col items-center justify-center py-6 gap-3">
           <div className="w-8 h-px bg-surface-light" />
           <p className="text-sm text-muted-foreground text-center">
-            Play a session to discover your style
+            Your playing style is waiting. Start a session to see it come alive.
           </p>
           <div className="w-8 h-px bg-surface-light" />
         </div>

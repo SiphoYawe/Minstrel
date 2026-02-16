@@ -201,13 +201,15 @@ describe('AchievementGallery unauthenticated', () => {
     });
   });
 
-  it('shows all achievements as locked for unauthenticated users', async () => {
+  it('shows max 3 next-up achievements for new users with none unlocked', async () => {
     render(<AchievementGallery />);
 
     await screen.findAllByRole('listitem');
 
     const notYetLabels = screen.getAllByText('Not yet earned');
-    // All achievements should be locked when unauthenticated
-    expect(notYetLabels.length).toBe(ACHIEVEMENT_COUNT);
+    // New users see max 3 "next up" items instead of all locked
+    expect(notYetLabels.length).toBe(3);
+    // "See all" link should be visible
+    expect(screen.getByText(/See all/)).toBeInTheDocument();
   });
 });

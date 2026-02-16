@@ -29,9 +29,9 @@ function FlameIcon({ active }: { active: boolean }) {
 function getTooltipText(streak: StreakData): string {
   switch (streak.streakStatus) {
     case StreakStatus.AtRisk:
-      return 'Practice today to keep your streak';
+      return 'Ready for today\u2019s session?';
     case StreakStatus.Broken:
-      return 'Start fresh';
+      return 'Your next session starts a new streak';
     case StreakStatus.Milestone:
       return `Day ${streak.currentStreak} milestone`;
     case StreakStatus.Active:

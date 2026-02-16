@@ -74,6 +74,7 @@ function formatUnlockedDate(isoDate: string): string {
 }
 
 const PAGE_SIZE = 24;
+const MAX_NEXT_UP_FOR_NEW_USERS = 3;
 
 export function AchievementGallery() {
   const [items, setItems] = useState<AchievementDisplayItem[]>([]);
@@ -136,8 +137,12 @@ export function AchievementGallery() {
     return a.definition.category.localeCompare(b.definition.category);
   });
 
-  const paginatedItems = sortedItems.slice(0, visibleCount);
-  const hasMore = visibleCount < sortedItems.length;
+  // For new users (day 1, no unlocked), show only max 3 "next up" locked items
+  const displayItems =
+    unlockedCount === 0 ? sortedItems.slice(0, MAX_NEXT_UP_FOR_NEW_USERS) : sortedItems;
+
+  const paginatedItems = displayItems.slice(0, visibleCount);
+  const hasMore = visibleCount < displayItems.length;
 
   if (isLoading) {
     return (
@@ -272,8 +277,20 @@ export function AchievementGallery() {
         })}
       </div>
 
-      {/* Load More */}
-      {hasMore && (
+      {/* See all link for new users seeing truncated list */}
+      {unlockedCount === 0 && sortedItems.length > MAX_NEXT_UP_FOR_NEW_USERS && (
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => setVisibleCount(sortedItems.length)}
+            className="font-mono text-[11px] text-primary underline underline-offset-2 hover:text-primary/80 transition-colors"
+          >
+            See all {sortedItems.length} achievements
+          </button>
+        </div>
+      )}
+
+      {/* Load More (for users with achievements) */}
+      {hasMore && unlockedCount > 0 && (
         <div className="mt-6 flex justify-center">
           <button
             onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
