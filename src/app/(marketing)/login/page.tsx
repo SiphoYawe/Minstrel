@@ -8,6 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth';
+import { Loader2 } from 'lucide-react';
+
+function isValidEmail(email: string): boolean {
+  const regex = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
+  return regex.test(email);
+}
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -16,13 +22,29 @@ function LoginForm() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  function handleEmailBlur() {
+    if (email && !isValidEmail(email)) {
+      setEmailError('Please enter a valid email address');
+    } else {
+      setEmailError(null);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!isValidEmail(email)) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
+    setEmailError(null);
 
     try {
       const result = await signIn({ email, password }, redirectTo ?? undefined);
@@ -74,7 +96,15 @@ function LoginForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onBlur={handleEmailBlur}
+              aria-invalid={!!emailError}
+              aria-describedby={emailError ? 'email-error' : undefined}
             />
+            {emailError && (
+              <p id="email-error" className="text-caption text-accent-warm" role="alert">
+                {emailError}
+              </p>
+            )}
           </div>
 
           <div className="grid gap-2">
@@ -83,7 +113,7 @@ function LoginForm() {
                 Password
               </Label>
               <Link
-                href="/auth/forgot-password"
+                href="/forgot-password"
                 className="text-caption text-muted-foreground transition-colors duration-150 hover:text-primary"
               >
                 Forgot password?
@@ -108,7 +138,7 @@ function LoginForm() {
           <Button type="submit" className="mt-1 w-full" disabled={isLoading}>
             {isLoading ? (
               <span className="flex items-center gap-2">
-                <span className="inline-block h-3 w-3 animate-pulse border border-primary-foreground" />
+                <Loader2 className="size-4 animate-spin" />
                 Signing in...
               </span>
             ) : (
