@@ -68,10 +68,10 @@ export function getTroubleshootingSteps(
   if (detectedChannel != null && isDrumChannel(detectedChannel)) {
     steps.push({
       id: 'channel-mismatch',
-      title: 'Unexpected MIDI channel',
+      title: 'Percussion channel detected',
       description:
-        'It looks like your device is sending on channel 10 (typically drums). For the best experience, switch to channel 1 on your instrument. Minstrel will still listen on all channels.',
-      actionLabel: 'Got It',
+        'We detected a percussion channel (channel 10). Melodic features like chord and key detection work best on channels 1–9. You can keep playing — we\u2019re listening on all channels.',
+      actionLabel: 'Continue',
     });
   }
 
