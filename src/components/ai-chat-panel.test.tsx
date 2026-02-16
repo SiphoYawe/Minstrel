@@ -128,10 +128,10 @@ describe('AIChatPanel', () => {
     expect(onInputChange).toHaveBeenCalled();
   });
 
-  it('textarea has max-height of 200px and overflow-y auto', () => {
+  it('textarea has max-h-[200px] CSS class and overflow-y auto', () => {
     renderPanel();
     const textarea = screen.getByLabelText('Ask your coach');
-    expect(textarea.style.maxHeight).toBe('200px');
+    expect(textarea.className).toContain('max-h-[200px]');
     expect(textarea.className).toContain('overflow-y-auto');
   });
 

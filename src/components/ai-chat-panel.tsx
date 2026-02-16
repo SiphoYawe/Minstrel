@@ -142,6 +142,7 @@ export function AIChatPanel({
   const [isOverflowing, setIsOverflowing] = useState(false);
   const [resizeAnnouncement, setResizeAnnouncement] = useState('');
   const previousHeightRef = useRef<number>(0);
+  /** CSS max-h-[200px] handles the visual cap; this constant drives overflow detection */
   const TEXTAREA_MAX_HEIGHT = 200;
 
   function handleTextareaChange(e: ChangeEvent<HTMLTextAreaElement>) {
@@ -286,8 +287,7 @@ export function AIChatPanel({
             placeholder="Ask about your playing..."
             rows={1}
             disabled={isLoading}
-            className="w-full resize-none bg-card border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-sans min-h-[36px] overflow-y-auto"
-            style={{ maxHeight: `${TEXTAREA_MAX_HEIGHT}px` }}
+            className="w-full resize-none bg-card border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-sans min-h-[36px] max-h-[200px] overflow-y-auto"
           />
           <div aria-live="polite" className="sr-only" data-testid="resize-announcement">
             {resizeAnnouncement}

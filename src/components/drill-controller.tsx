@@ -188,7 +188,7 @@ export function DrillController({
               Start Drill
             </Button>
             <span className="text-caption text-text-tertiary flex items-center gap-1">
-              <kbd className="inline-flex h-5 items-center border border-border bg-card px-1.5 font-mono text-[10px] text-text-secondary">
+              <kbd className="inline-flex h-5 items-center border border-border bg-card px-1.5 font-mono text-caption text-text-secondary">
                 Enter
               </kbd>
             </span>

@@ -221,6 +221,37 @@ describe('MobileRedirect', () => {
     });
   });
 
+  describe('localStorage safety (UI-L4)', () => {
+    it('does not crash when localStorage.getItem throws', () => {
+      const spy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+        throw new DOMException('Access denied');
+      });
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)',
+        configurable: true,
+      });
+      // Should not throw — safeGetItem returns fallback
+      const { container } = render(<MobileRedirect />);
+      expect(container).toBeInTheDocument();
+      spy.mockRestore();
+    });
+
+    it('does not crash when localStorage.setItem throws on dismiss', () => {
+      const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new DOMException('QuotaExceededError');
+      });
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)',
+        configurable: true,
+      });
+      render(<MobileRedirect />);
+      // Should not throw — safeSetItem silently fails
+      fireEvent.click(screen.getByRole('button', { name: /continue anyway/i }));
+      expect(screen.queryByText('Designed for desktop')).not.toBeInTheDocument();
+      spy.mockRestore();
+    });
+  });
+
   describe('design compliance', () => {
     it('uses design token classes (no hardcoded hex in mobile overlay)', () => {
       Object.defineProperty(navigator, 'userAgent', {

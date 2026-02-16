@@ -602,6 +602,8 @@ const ChatPanel = memo(function ChatPanel() {
 
 // --- Sessions List Panel ---
 
+const SESSION_PAGE_SIZE = 20;
+
 const SessionsListPanel = memo(function SessionsListPanel() {
   const [sessions, setSessions] = useState<
     Array<{
@@ -613,17 +615,21 @@ const SessionsListPanel = memo(function SessionsListPanel() {
     }>
   >([]);
   const [loadingList, setLoadingList] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     import('@/lib/dexie/db').then(({ db }) => {
       db.sessions
         .orderBy('startedAt')
         .reverse()
-        .limit(20)
+        .limit(SESSION_PAGE_SIZE + 1)
         .toArray()
         .then((rows) => {
+          setHasMore(rows.length > SESSION_PAGE_SIZE);
+          const page = rows.slice(0, SESSION_PAGE_SIZE);
           setSessions(
-            rows.map((r) => ({
+            page.map((r) => ({
               id: r.id!,
               startedAt: r.startedAt,
               duration: r.duration,
@@ -635,6 +641,35 @@ const SessionsListPanel = memo(function SessionsListPanel() {
         .finally(() => setLoadingList(false));
     });
   }, []);
+
+  function loadMore() {
+    if (loadingMore || !hasMore || sessions.length === 0) return;
+    setLoadingMore(true);
+    const lastTimestamp = sessions[sessions.length - 1].startedAt;
+    import('@/lib/dexie/db').then(({ db }) => {
+      db.sessions
+        .where('startedAt')
+        .below(lastTimestamp)
+        .reverse()
+        .limit(SESSION_PAGE_SIZE + 1)
+        .toArray()
+        .then((rows) => {
+          setHasMore(rows.length > SESSION_PAGE_SIZE);
+          const page = rows.slice(0, SESSION_PAGE_SIZE);
+          setSessions((prev) => [
+            ...prev,
+            ...page.map((r) => ({
+              id: r.id!,
+              startedAt: r.startedAt,
+              duration: r.duration,
+              key: r.key,
+              tempo: r.tempo,
+            })),
+          ]);
+        })
+        .finally(() => setLoadingMore(false));
+    });
+  }
 
   if (loadingList) {
     return (
@@ -714,6 +749,18 @@ const SessionsListPanel = memo(function SessionsListPanel() {
           </div>
         </button>
       ))}
+      {hasMore && (
+        <button
+          onClick={loadMore}
+          disabled={loadingMore}
+          className="mt-1 py-2 text-center font-mono text-[11px] uppercase tracking-[0.1em]
+            text-primary hover:text-white border border-border hover:border-primary/30
+            bg-surface-light transition-colors duration-150
+            disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {loadingMore ? 'Loading...' : 'Load More'}
+        </button>
+      )}
     </div>
   );
 });

@@ -6,6 +6,24 @@ import Image from 'next/image';
 const MOBILE_DISMISS_KEY = 'minstrel:mobile-redirect-dismissed';
 const MIDI_DISMISS_KEY = 'minstrel:midi-compat-dismissed';
 
+/** Safe localStorage getter — returns fallback if storage is unavailable (private browsing, quota exceeded, etc.) */
+function safeGetItem(key: string, fallback: string | null = null): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return fallback;
+  }
+}
+
+/** Safe localStorage setter — silently fails if storage is unavailable */
+function safeSetItem(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Storage unavailable (private browsing, quota exceeded) — dismiss state won't persist
+  }
+}
+
 function isMobileUserAgent(): boolean {
   if (typeof navigator === 'undefined') return false;
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -24,22 +42,22 @@ function hasMidiSupport(): boolean {
 export function MobileRedirect() {
   const [showMobileOverlay, setShowMobileOverlay] = useState(() => {
     if (typeof window === 'undefined') return false;
-    const dismissed = localStorage.getItem(MOBILE_DISMISS_KEY);
+    const dismissed = safeGetItem(MOBILE_DISMISS_KEY);
     return !dismissed && (isMobileUserAgent() || isSmallScreen());
   });
   const [showMidiBanner, setShowMidiBanner] = useState(() => {
     if (typeof window === 'undefined') return false;
-    const dismissed = localStorage.getItem(MIDI_DISMISS_KEY);
+    const dismissed = safeGetItem(MIDI_DISMISS_KEY);
     return !dismissed && !hasMidiSupport();
   });
 
   function handleMobileDismiss() {
-    localStorage.setItem(MOBILE_DISMISS_KEY, '1');
+    safeSetItem(MOBILE_DISMISS_KEY, '1');
     setShowMobileOverlay(false);
   }
 
   function handleMidiDismiss() {
-    localStorage.setItem(MIDI_DISMISS_KEY, '1');
+    safeSetItem(MIDI_DISMISS_KEY, '1');
     setShowMidiBanner(false);
   }
 
