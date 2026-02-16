@@ -14,14 +14,14 @@ import { fetchStreak, updateStreak } from './streak-service';
 const TIMEZONE_STORAGE_KEY = 'minstrel:user-timezone';
 
 /**
- * Get a persisted timezone offset in minutes (UTC offset, e.g. UTC+2 = 120).
+ * Get the persisted IANA timezone string (e.g. 'America/New_York').
  *
  * On first call, captures the user's IANA timezone and persists it to
  * localStorage. Subsequent calls — even across sessions or after travel —
- * return the offset derived from the *persisted* IANA timezone, keeping
- * streak day-boundary calculations stable.
+ * return the *persisted* IANA timezone, keeping streak day-boundary
+ * calculations stable while correctly handling DST transitions (STATE-L1).
  */
-export function getPersistedTimezoneOffsetMinutes(): number {
+export function getPersistedTimezone(): string {
   let iana: string | null = null;
   try {
     iana = localStorage.getItem(TIMEZONE_STORAGE_KEY);
@@ -38,30 +38,7 @@ export function getPersistedTimezoneOffsetMinutes(): number {
     }
   }
 
-  // Derive the current UTC offset for the persisted IANA timezone.
-  // Using the persisted IANA name means the *timezone identity* stays
-  // stable across travel while DST transitions are still respected.
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: iana,
-    timeZoneName: 'shortOffset',
-  });
-  const parts = formatter.formatToParts(now);
-  const tzPart = parts.find((p) => p.type === 'timeZoneName')?.value ?? '';
-
-  // tzPart looks like "GMT", "GMT+2", "GMT-5:30", etc.
-  if (tzPart === 'GMT' || tzPart === 'UTC') return 0;
-
-  const match = tzPart.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
-  if (!match) {
-    // Fallback: use the runtime offset (negated to match our convention)
-    return -now.getTimezoneOffset();
-  }
-
-  const sign = match[1] === '+' ? 1 : -1;
-  const hours = parseInt(match[2], 10);
-  const minutes = parseInt(match[3] ?? '0', 10);
-  return sign * (hours * 60 + minutes);
+  return iana;
 }
 
 export function useStreak() {
@@ -84,8 +61,8 @@ export function useStreak() {
     (async () => {
       const data = await fetchStreak(userId);
       if (!cancelled) {
-        const timezoneOffsetMinutes = getPersistedTimezoneOffsetMinutes();
-        data.streakStatus = getStreakStatus(data, new Date(), timezoneOffsetMinutes);
+        const timeZone = getPersistedTimezone();
+        data.streakStatus = getStreakStatus(data, new Date(), timeZone);
         setStreak(data);
         setFetched(true);
       }
@@ -104,11 +81,11 @@ export function useStreak() {
       if (!userId) return;
       if (!isSessionMeaningful(activePlayDurationMs)) return;
 
-      const timezoneOffsetMinutes = getPersistedTimezoneOffsetMinutes();
+      const timeZone = getPersistedTimezone();
       // Read latest streak from ref (synchronously updated each render)
       // to avoid stale closure over the `streak` state variable.
       const currentStreak = streakRef.current;
-      const updated = calculateStreakUpdate(currentStreak, new Date(), timezoneOffsetMinutes);
+      const updated = calculateStreakUpdate(currentStreak, new Date(), timeZone);
 
       // Optimistic update for immediate UI feedback
       setStreak(updated);

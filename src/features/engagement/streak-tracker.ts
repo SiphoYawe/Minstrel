@@ -9,32 +9,41 @@ export function isSessionMeaningful(activePlayDurationMs: number): boolean {
   return activePlayDurationMs >= MIN_MEANINGFUL_PRACTICE_MS;
 }
 
-export function isSameCalendarDay(date1: Date, date2: Date, timezoneOffsetMinutes = 0): boolean {
-  const offset = timezoneOffsetMinutes * 60_000;
-  const d1 = new Date(date1.getTime() + offset);
-  const d2 = new Date(date2.getTime() + offset);
+/**
+ * Compares two dates to see if they fall on the same calendar day in the
+ * given IANA timezone. Uses Intl.DateTimeFormat for DST-safe comparison
+ * (STATE-L1) — on DST transition days, each date is formatted individually
+ * so the correct offset applies to each.
+ */
+export function isSameCalendarDay(date1: Date, date2: Date, timeZone?: string): boolean {
+  if (timeZone) {
+    const fmt = new Intl.DateTimeFormat('en-CA', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    return fmt.format(date1) === fmt.format(date2);
+  }
+  // Fallback: compare in UTC when no timezone provided
   return (
-    d1.getUTCFullYear() === d2.getUTCFullYear() &&
-    d1.getUTCMonth() === d2.getUTCMonth() &&
-    d1.getUTCDate() === d2.getUTCDate()
+    date1.getUTCFullYear() === date2.getUTCFullYear() &&
+    date1.getUTCMonth() === date2.getUTCMonth() &&
+    date1.getUTCDate() === date2.getUTCDate()
   );
 }
 
 export function calculateStreakUpdate(
   currentStreak: StreakData,
   sessionEndTime: Date,
-  timezoneOffsetMinutes = 0
+  timeZone?: string
 ): StreakData {
   const now = sessionEndTime.getTime();
 
   // If already qualified today, no change
   if (
     currentStreak.lastQualifiedAt &&
-    isSameCalendarDay(
-      new Date(currentStreak.lastQualifiedAt),
-      sessionEndTime,
-      timezoneOffsetMinutes
-    )
+    isSameCalendarDay(new Date(currentStreak.lastQualifiedAt), sessionEndTime, timeZone)
   ) {
     return { ...currentStreak };
   }
@@ -62,16 +71,12 @@ export function calculateStreakUpdate(
     streakStatus: getStreakStatus(
       { ...currentStreak, currentStreak: newStreak, lastQualifiedAt: sessionEndTime.toISOString() },
       sessionEndTime,
-      timezoneOffsetMinutes
+      timeZone
     ),
   };
 }
 
-export function getStreakStatus(
-  streak: StreakData,
-  now: Date,
-  timezoneOffsetMinutes = 0
-): StreakStatus {
+export function getStreakStatus(streak: StreakData, now: Date, timeZone?: string): StreakStatus {
   if (streak.currentStreak === 0 || !streak.lastQualifiedAt) {
     return StreakStatus.Broken;
   }
@@ -89,7 +94,7 @@ export function getStreakStatus(
   }
 
   // Check at-risk: last session was yesterday (qualified, but hasn't played today)
-  if (!isSameCalendarDay(new Date(streak.lastQualifiedAt), now, timezoneOffsetMinutes)) {
+  if (!isSameCalendarDay(new Date(streak.lastQualifiedAt), now, timeZone)) {
     return StreakStatus.AtRisk;
   }
 

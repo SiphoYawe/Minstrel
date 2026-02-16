@@ -40,54 +40,59 @@ describe('isSameCalendarDay', () => {
     expect(isSameCalendarDay(d1, d2)).toBe(false);
   });
 
-  it('handles timezone offset', () => {
-    // 11pm UTC on Feb 13, but in UTC+2 it's 1am Feb 14
+  it('handles IANA timezone (Africa/Cairo, UTC+2)', () => {
+    // 11pm UTC on Feb 13 = 1am EET Feb 14
+    // 12:30am UTC on Feb 14 = 2:30am EET Feb 14 → same day in Cairo
     const d1 = new Date('2026-02-13T23:00:00Z');
     const d2 = new Date('2026-02-14T00:30:00Z');
-    // With UTC+2 offset (120 min), d1 becomes 1am Feb 14, d2 becomes 2:30am Feb 14 → same day
-    expect(isSameCalendarDay(d1, d2, 120)).toBe(true);
+    expect(isSameCalendarDay(d1, d2, 'Africa/Cairo')).toBe(true);
   });
 
-  it('UTC-8 user at 11pm local (7am UTC next day) — same day locally', () => {
-    // User in UTC-8 (PST). It is 11pm on Feb 13 local time = 7am UTC Feb 14.
-    // A previous event at 3pm local Feb 13 = 11pm UTC Feb 13.
+  it('America/Los_Angeles user at 11pm local (7am UTC next day) — same day locally', () => {
     const localEvening = new Date('2026-02-14T07:00:00Z'); // 11pm PST Feb 13
     const localAfternoon = new Date('2026-02-13T23:00:00Z'); // 3pm PST Feb 13
-    // UTC-8 offset = -480 minutes
-    expect(isSameCalendarDay(localEvening, localAfternoon, -480)).toBe(true);
+    expect(isSameCalendarDay(localEvening, localAfternoon, 'America/Los_Angeles')).toBe(true);
   });
 
-  it('UTC+12 user at 1am local (1pm UTC previous day) — new day locally', () => {
-    // User in UTC+12 (NZST). It is 1am Feb 14 local = 1pm UTC Feb 13.
-    // Previous event at 11pm Feb 13 local = 11am UTC Feb 13.
-    const localNewDay = new Date('2026-02-13T13:00:00Z'); // 1am NZST Feb 14
-    const localPreviousDay = new Date('2026-02-13T11:00:00Z'); // 11pm NZST Feb 13
-    // UTC+12 offset = 720 minutes
-    // localNewDay shifted: 2026-02-14T01:00:00Z → different calendar day from
-    // localPreviousDay shifted: 2026-02-13T23:00:00Z
-    expect(isSameCalendarDay(localNewDay, localPreviousDay, 720)).toBe(false);
+  it('Pacific/Auckland user at 1am local (1pm UTC previous day) — new day locally', () => {
+    const localNewDay = new Date('2026-02-13T12:00:00Z'); // 1am NZDT Feb 14
+    const localPreviousDay = new Date('2026-02-13T10:00:00Z'); // 11pm NZDT Feb 13
+    expect(isSameCalendarDay(localNewDay, localPreviousDay, 'Pacific/Auckland')).toBe(false);
   });
 
-  it('UTC+0 — UTC and local are identical', () => {
+  it('UTC fallback — no timezone means UTC comparison', () => {
     const d1 = new Date('2026-02-13T23:59:59Z');
     const d2 = new Date('2026-02-13T00:00:00Z');
-    expect(isSameCalendarDay(d1, d2, 0)).toBe(true);
+    expect(isSameCalendarDay(d1, d2)).toBe(true);
   });
 
   it('exact midnight boundary — one second before vs. midnight is different day', () => {
     const justBeforeMidnight = new Date('2026-02-13T23:59:59Z');
     const exactMidnight = new Date('2026-02-14T00:00:00Z');
-    // At UTC+0, these are different calendar days
-    expect(isSameCalendarDay(justBeforeMidnight, exactMidnight, 0)).toBe(false);
+    expect(isSameCalendarDay(justBeforeMidnight, exactMidnight)).toBe(false);
   });
 
-  it('exact midnight boundary with timezone — still same local day for UTC-5', () => {
-    // In UTC-5 (EST), midnight UTC on Feb 14 = 7pm EST Feb 13.
-    // And 11:59pm UTC on Feb 13 = 6:59pm EST Feb 13.
+  it('exact midnight boundary with timezone — still same local day for America/New_York', () => {
+    // midnight UTC on Feb 14 = 7pm EST Feb 13, 11:59pm UTC Feb 13 = 6:59pm EST Feb 13
     const utcMidnight = new Date('2026-02-14T00:00:00Z');
     const utcBeforeMidnight = new Date('2026-02-13T23:59:59Z');
-    // UTC-5 offset = -300 minutes. Both shift to Feb 13 local → same day.
-    expect(isSameCalendarDay(utcMidnight, utcBeforeMidnight, -300)).toBe(true);
+    expect(isSameCalendarDay(utcMidnight, utcBeforeMidnight, 'America/New_York')).toBe(true);
+  });
+
+  it('DST transition day — spring forward correctly handled (STATE-L1)', () => {
+    // 2026 US spring forward: March 8 at 2am EST → 3am EDT
+    // 1:30am EST (6:30am UTC) and 3:30am EDT (7:30am UTC) are same calendar day
+    const beforeSpring = new Date('2026-03-08T06:30:00Z'); // 1:30am EST
+    const afterSpring = new Date('2026-03-08T07:30:00Z'); // 3:30am EDT
+    expect(isSameCalendarDay(beforeSpring, afterSpring, 'America/New_York')).toBe(true);
+  });
+
+  it('DST transition day — fall back correctly handled (STATE-L1)', () => {
+    // 2026 US fall back: November 1 at 2am EDT → 1am EST
+    // 11pm EDT Nov 1 (3am UTC Nov 2) and 12:30am EST Nov 2 (5:30am UTC Nov 2) are different days
+    const beforeFall = new Date('2026-11-02T03:00:00Z'); // 11pm EDT Nov 1
+    const afterFall = new Date('2026-11-02T05:30:00Z'); // 12:30am EST Nov 2
+    expect(isSameCalendarDay(beforeFall, afterFall, 'America/New_York')).toBe(false);
   });
 });
 
@@ -156,8 +161,8 @@ describe('calculateStreakUpdate', () => {
     expect(current).toEqual(original);
   });
 
-  it('does not double-count same local day for UTC-8 user', () => {
-    // User in UTC-8 (PST). Last qualified at 3pm PST Feb 12 = 11pm UTC Feb 12.
+  it('does not double-count same local day for America/Los_Angeles user', () => {
+    // User in America/Los_Angeles (PST). Last qualified at 3pm PST Feb 12 = 11pm UTC Feb 12.
     // Now it is 11pm PST Feb 12 = 7am UTC Feb 13 — same local day.
     const current: StreakData = {
       currentStreak: 5,
@@ -166,21 +171,21 @@ describe('calculateStreakUpdate', () => {
       streakStatus: StreakStatus.Active,
     };
     const sessionEnd = new Date('2026-02-13T07:00:00Z'); // 11pm PST Feb 12
-    const result = calculateStreakUpdate(current, sessionEnd, -480);
+    const result = calculateStreakUpdate(current, sessionEnd, 'America/Los_Angeles');
     expect(result.currentStreak).toBe(5); // No increment — same local day
   });
 
-  it('increments streak at UTC+12 when it is a new local day', () => {
-    // User in UTC+12 (NZST). Last qualified at 11pm NZST Feb 12 = 11am UTC Feb 12.
-    // Now it is 1am NZST Feb 13 = 1pm UTC Feb 12 — new local day.
+  it('increments streak at Pacific/Auckland when it is a new local day', () => {
+    // User in Pacific/Auckland (NZDT, UTC+13 in Feb). Last qualified 11pm NZDT Feb 12 = 10am UTC Feb 12.
+    // Now it is 1am NZDT Feb 13 = 12pm UTC Feb 12 — new local day.
     const current: StreakData = {
       currentStreak: 3,
       bestStreak: 5,
-      lastQualifiedAt: '2026-02-12T11:00:00Z', // 11pm NZST Feb 12
+      lastQualifiedAt: '2026-02-12T10:00:00Z', // 11pm NZDT Feb 12
       streakStatus: StreakStatus.Active,
     };
-    const sessionEnd = new Date('2026-02-12T13:00:00Z'); // 1am NZST Feb 13
-    const result = calculateStreakUpdate(current, sessionEnd, 720);
+    const sessionEnd = new Date('2026-02-12T12:00:00Z'); // 1am NZDT Feb 13
+    const result = calculateStreakUpdate(current, sessionEnd, 'Pacific/Auckland');
     expect(result.currentStreak).toBe(4); // Incremented — new local day
   });
 });

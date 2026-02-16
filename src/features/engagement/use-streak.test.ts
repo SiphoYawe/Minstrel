@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useStreak, getPersistedTimezoneOffsetMinutes } from './use-streak';
+import { useStreak, getPersistedTimezone } from './use-streak';
 import { useAppStore } from '@/stores/app-store';
 import { StreakStatus, type StreakData } from './engagement-types';
 
@@ -168,9 +168,9 @@ describe('useStreak', () => {
 });
 
 // ---------------------------------------------------------------------------
-// getPersistedTimezoneOffsetMinutes — timezone persistence (STATE-M1)
+// getPersistedTimezone — IANA timezone persistence (STATE-L1)
 // ---------------------------------------------------------------------------
-describe('getPersistedTimezoneOffsetMinutes', () => {
+describe('getPersistedTimezone', () => {
   beforeEach(() => {
     localStorage.clear();
   });
@@ -182,7 +182,7 @@ describe('getPersistedTimezoneOffsetMinutes', () => {
   it('persists the detected IANA timezone on first call', () => {
     const spy = vi.spyOn(Storage.prototype, 'setItem');
 
-    getPersistedTimezoneOffsetMinutes();
+    getPersistedTimezone();
 
     expect(spy).toHaveBeenCalledWith(TIMEZONE_KEY, expect.any(String));
     const storedTz = spy.mock.calls.find((c) => c[0] === TIMEZONE_KEY)?.[1];
@@ -194,49 +194,41 @@ describe('getPersistedTimezoneOffsetMinutes', () => {
     localStorage.setItem(TIMEZONE_KEY, 'Asia/Tokyo');
     const spy = vi.spyOn(Storage.prototype, 'setItem');
 
-    getPersistedTimezoneOffsetMinutes();
+    getPersistedTimezone();
 
     // Should NOT write again since it was already persisted
     const tzWrites = spy.mock.calls.filter((c) => c[0] === TIMEZONE_KEY);
     expect(tzWrites).toHaveLength(0);
   });
 
-  it('returns a number within valid offset range', () => {
-    const offset = getPersistedTimezoneOffsetMinutes();
-    expect(typeof offset).toBe('number');
-    expect(offset).toBeGreaterThanOrEqual(-720);
-    expect(offset).toBeLessThanOrEqual(840);
+  it('returns an IANA timezone string', () => {
+    const tz = getPersistedTimezone();
+    expect(typeof tz).toBe('string');
+    // IANA timezone strings contain a '/' (e.g. America/New_York)
+    // or are UTC/GMT
+    expect(tz.length).toBeGreaterThan(0);
   });
 
-  it('returns 0 for GMT timezone', () => {
-    localStorage.setItem(TIMEZONE_KEY, 'Etc/GMT');
-    const offset = getPersistedTimezoneOffsetMinutes();
-    expect(offset).toBe(0);
-  });
-
-  it('returns consistent value across calls for same timezone', () => {
+  it('returns persisted timezone for Asia/Tokyo', () => {
     localStorage.setItem(TIMEZONE_KEY, 'Asia/Tokyo');
-    const offset1 = getPersistedTimezoneOffsetMinutes();
-    const offset2 = getPersistedTimezoneOffsetMinutes();
-    expect(offset1).toBe(offset2);
+    const tz = getPersistedTimezone();
+    expect(tz).toBe('Asia/Tokyo');
   });
 
-  it('returns correct offset for Asia/Tokyo (UTC+9, no DST)', () => {
+  it('returns consistent value across calls', () => {
     localStorage.setItem(TIMEZONE_KEY, 'Asia/Tokyo');
-    const offset = getPersistedTimezoneOffsetMinutes();
-    expect(offset).toBe(540); // 9 * 60
+    const tz1 = getPersistedTimezone();
+    const tz2 = getPersistedTimezone();
+    expect(tz1).toBe(tz2);
   });
 
   it('preserves home timezone even after simulated travel', () => {
-    // Simulate: user first opens app in Tokyo
     localStorage.setItem(TIMEZONE_KEY, 'Asia/Tokyo');
-    const homeOffset = getPersistedTimezoneOffsetMinutes();
-
-    // "Travel" to New York — runtime Intl would give a different value,
-    // but the stored IANA timezone stays as Tokyo.
-    const afterTravelOffset = getPersistedTimezoneOffsetMinutes();
-    expect(afterTravelOffset).toBe(homeOffset);
-    expect(afterTravelOffset).toBe(540);
+    const homeTz = getPersistedTimezone();
+    // "Travel" — runtime would give different value, but stored stays
+    const afterTravelTz = getPersistedTimezone();
+    expect(afterTravelTz).toBe(homeTz);
+    expect(afterTravelTz).toBe('Asia/Tokyo');
   });
 
   it('falls back gracefully when localStorage throws', () => {
@@ -247,8 +239,9 @@ describe('getPersistedTimezoneOffsetMinutes', () => {
       throw new Error('SecurityError');
     });
 
-    // Should not throw
-    const offset = getPersistedTimezoneOffsetMinutes();
-    expect(typeof offset).toBe('number');
+    // Should not throw, returns runtime timezone
+    const tz = getPersistedTimezone();
+    expect(typeof tz).toBe('string');
+    expect(tz.length).toBeGreaterThan(0);
   });
 });
