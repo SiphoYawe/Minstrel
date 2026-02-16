@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useMidiStore } from '@/stores/midi-store';
 import { useSessionStore } from '@/stores/session-store';
-import { Music, ChevronDown, X } from 'lucide-react';
+import { Music, ChevronDown, X, Check } from 'lucide-react';
+
+const SESSION_STARTED_DISPLAY_MS = 2500;
 
 function getFirstRunDismissed(): boolean {
   if (typeof window === 'undefined') return false;
@@ -23,18 +25,18 @@ function persistFirstRunDismissed() {
 }
 
 /**
- * First-Run Onboarding Empty State (Story 10.1)
+ * First-Run Onboarding (Story 10.1, updated in 22.6)
  *
- * Shown as a centered modal with backdrop blur when user has no active session.
- * Auto-dismisses on first MIDI input via Zustand vanilla subscribe on latestEvent.
- * Persists dismissed state to localStorage so it doesn't re-render on reload.
+ * State-driven transitions:
+ * 1. MIDI not connected → "Connect your instrument to get started"
+ * 2. MIDI connected → "Play your first note"
+ * 3. Note played before prompt renders (race) → "Session started!" (auto-dismiss)
  */
 export function FirstRunPrompt() {
   const connectionStatus = useMidiStore((s) => s.connectionStatus);
   const activeSessionId = useSessionStore((s) => s.activeSessionId);
   const totalNotesPlayed = useSessionStore((s) => s.totalNotesPlayed);
   const [dismissed, setDismissed] = useState(() => getFirstRunDismissed());
-  const unsubRef = useRef<(() => void) | null>(null);
 
   // Auto-dismiss on first MIDI input via vanilla subscribe
   useEffect(() => {
@@ -47,20 +49,24 @@ export function FirstRunPrompt() {
         }
       }
     );
-    unsubRef.current = unsub;
-    return () => {
-      unsub();
-    };
+    return unsub;
   }, []);
 
-  // Don't show if there's an active session, notes have been played, or dismissed
-  if (activeSessionId || totalNotesPlayed > 0 || dismissed) return null;
-
-  function handleDismiss() {
+  const handleDismiss = useCallback(() => {
     setDismissed(true);
     persistFirstRunDismissed();
+  }, []);
+
+  // Already dismissed via localStorage
+  if (dismissed) return null;
+
+  // Race condition: note was played before prompt could render.
+  // Show brief "Session started!" confirmation that auto-dismisses.
+  if (activeSessionId || totalNotesPlayed > 0) {
+    return <SessionStartedConfirmation onDone={handleDismiss} />;
   }
 
+  // State: MIDI connected → "Play your first note"
   if (connectionStatus === 'connected') {
     return (
       <div
@@ -86,17 +92,16 @@ export function FirstRunPrompt() {
             />
             <span className="relative inline-flex h-3 w-3 bg-primary" />
           </div>
-          <p className="font-mono text-sm text-foreground tracking-wide">
-            Connected — start playing whenever you&apos;re ready
-          </p>
+          <p className="font-mono text-sm text-foreground tracking-wide">Play your first note</p>
           <p className="text-xs text-muted-foreground mt-2">
-            I&apos;ll start listening the moment you play a note.
+            I&apos;ll start listening the moment you play.
           </p>
         </div>
       </div>
     );
   }
 
+  // State: MIDI not connected → "Connect your instrument to get started"
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
@@ -124,9 +129,11 @@ export function FirstRunPrompt() {
 
         <h2 className="text-base text-foreground mb-2">Welcome to Minstrel.</h2>
         <p className="font-mono text-sm text-primary mb-3">
-          Connect your MIDI instrument and play something
+          Connect your instrument to get started
         </p>
-        <p className="text-xs text-muted-foreground mb-6">I&apos;ll start listening.</p>
+        <p className="text-xs text-muted-foreground mb-6">
+          Plug in a MIDI device and I&apos;ll start listening.
+        </p>
 
         {/* Status line with connection indicator */}
         <div className="inline-flex items-center gap-2 border border-border bg-background px-4 py-2">
@@ -171,6 +178,36 @@ export function FirstRunPrompt() {
         >
           Skip for now
         </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Brief "Session started!" confirmation shown when notes were played
+ * before the prompt could render (race condition). Auto-dismisses.
+ */
+function SessionStartedConfirmation({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onDone, SESSION_STARTED_DISPLAY_MS);
+    return () => clearTimeout(timer);
+  }, [onDone]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+      role="status"
+      aria-live="assertive"
+      data-testid="session-started-confirmation"
+    >
+      <div className="text-center border border-border bg-card px-10 py-6 max-w-xs">
+        <div className="relative inline-flex items-center justify-center mb-4">
+          <span className="inline-flex h-8 w-8 items-center justify-center border border-accent-success/30 bg-accent-success/10">
+            <Check className="w-4 h-4 text-accent-success" strokeWidth={2} />
+          </span>
+        </div>
+        <p className="font-mono text-sm text-foreground tracking-wide">Session started</p>
+        <p className="text-xs text-muted-foreground mt-1">Listening to your playing.</p>
       </div>
     </div>
   );
