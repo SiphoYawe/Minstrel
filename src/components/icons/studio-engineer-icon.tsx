@@ -2,7 +2,7 @@
  * Studio Engineer avatar icon — a waveform/audio mixing motif
  * representing the AI coaching persona.
  */
-export function StudioEngineerIcon({ size = 28 }: { size?: number }) {
+export function StudioEngineerIcon({ size = 40 }: { size?: number }) {
   return (
     <svg
       width={size}

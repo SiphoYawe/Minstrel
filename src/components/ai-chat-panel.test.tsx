@@ -206,6 +206,38 @@ describe('AIChatPanel', () => {
     expect(screen.getByText(/developing/)).toBeInTheDocument();
   });
 
+  it('has descriptive placeholder text in the input', () => {
+    renderPanel();
+    const textarea = screen.getByLabelText('Ask your coach');
+    expect(textarea).toHaveAttribute(
+      'placeholder',
+      'Ask about your playing, request a drill, or get coaching tips'
+    );
+  });
+
+  it('renders Studio Engineer icon at 40px for assistant messages', () => {
+    renderPanel({ messages: createMockMessages() });
+    const svgs = document.querySelectorAll('svg[aria-hidden="true"]');
+    const iconSvgs = Array.from(svgs).filter(
+      (svg) => svg.getAttribute('width') === '40' && svg.getAttribute('height') === '40'
+    );
+    expect(iconSvgs.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows actionable error with Settings link for INVALID_KEY', () => {
+    renderPanel({
+      error: {
+        code: 'INVALID_KEY',
+        message: 'API key may have expired or is invalid — check Settings to update it.',
+        actionUrl: '/settings#api-keys',
+      } as never,
+    });
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveTextContent(/check Settings to update it/);
+    const link = alert.querySelector('a');
+    expect(link).toHaveAttribute('href', '/settings#api-keys');
+  });
+
   it('does not announce when textarea height stays the same or decreases', () => {
     const onInputChange = vi.fn();
     renderPanel({ onInputChange });

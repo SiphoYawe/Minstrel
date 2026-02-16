@@ -216,7 +216,9 @@ export function AIChatPanel({
       {/* Chat header with token counter */}
       {messages.length > 0 && (
         <div className="flex items-center justify-between px-3 py-1.5 border-b border-surface-light shrink-0">
-          <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Chat</span>
+          <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+            Chat
+          </span>
           <span
             className="font-mono text-[10px] text-muted-foreground"
             aria-label={`Approximate tokens used: ${estimatedTokens}`}
@@ -235,7 +237,7 @@ export function AIChatPanel({
           {messages.length === 0 && !error && (
             <div className="flex gap-2 self-start max-w-[85%]">
               <div className="flex-shrink-0 mt-1">
-                <StudioEngineerIcon size={28} />
+                <StudioEngineerIcon size={40} />
               </div>
               <div className="border-l-2 border-primary pl-3 py-2 bg-card text-sm text-foreground font-mono">
                 Studio Engineer online. What are you working on?
@@ -246,7 +248,7 @@ export function AIChatPanel({
             msg.role === 'assistant' ? (
               <div key={msg.id} className="flex gap-2 self-start max-w-[85%]">
                 <div className="flex-shrink-0 mt-1">
-                  <StudioEngineerIcon size={28} />
+                  <StudioEngineerIcon size={40} />
                 </div>
                 <div className="border-l-2 border-primary pl-3 py-2 bg-card text-foreground font-mono text-sm">
                   <HighlightedMessage parts={msg.parts} />
@@ -314,7 +316,7 @@ export function AIChatPanel({
             value={input}
             onChange={handleTextareaChange}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about your playing..."
+            placeholder="Ask about your playing, request a drill, or get coaching tips"
             rows={1}
             disabled={isLoading}
             className="w-full resize-none bg-card border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-sans min-h-[36px] max-h-[120px] md:max-h-[200px] overflow-y-auto"

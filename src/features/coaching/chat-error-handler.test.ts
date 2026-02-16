@@ -14,7 +14,7 @@ describe('parseChatError', () => {
   it('maps RATE_LIMITED error code without action', () => {
     const result = parseChatError(new Error('RATE_LIMITED'));
     expect(result.error.code).toBe('RATE_LIMITED');
-    expect(result.error.message).toContain('Too many requests');
+    expect(result.error.message).toContain('Rate limit reached');
     expect(result.type).toBe('RATE_LIMITED');
     expect(result.action).toBeUndefined();
   });

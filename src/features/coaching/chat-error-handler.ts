@@ -11,25 +11,26 @@ export interface ParsedChatError {
 const ERROR_MESSAGES: Record<string, ChatErrorInfo> = {
   INVALID_KEY: {
     code: 'INVALID_KEY',
-    message: 'Your API key appears to be invalid. Check your key in Settings.',
+    message: 'API key may have expired or is invalid — check Settings to update it.',
     actionUrl: '/settings#api-keys',
   },
   RATE_LIMITED: {
     code: 'RATE_LIMITED',
-    message: 'Too many requests right now. Give it a moment and try again.',
+    message:
+      'Rate limit reached — try again in a moment. Your practice session continues uninterrupted.',
   },
   PROVIDER_DOWN: {
     code: 'PROVIDER_DOWN',
     message:
-      'The AI service is temporarily unavailable. Your MIDI features still work perfectly. Try again in a moment.',
+      'AI service temporarily unavailable — your MIDI features still work perfectly. Try again in a moment.',
   },
   GENERATION_FAILED: {
     code: 'GENERATION_FAILED',
-    message: 'Could not generate a response right now. Try again in a moment.',
+    message: 'Could not generate a response — try rephrasing your question or sending again.',
   },
   VALIDATION_ERROR: {
     code: 'VALIDATION_ERROR',
-    message: 'Request could not be processed. Try sending your message again.',
+    message: 'Message could not be processed — try sending a shorter or simpler message.',
   },
 };
 
