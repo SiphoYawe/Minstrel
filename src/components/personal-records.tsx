@@ -17,10 +17,28 @@ function formatDate(dateStr: string): string {
   });
 }
 
+/** Generates a specific descriptive subtitle for a personal record. */
+function getRecordDescription(record: PersonalRecordWithHistory): string | null {
+  if (record.currentValue <= 0) return null;
+  switch (record.recordType) {
+    case 'CleanTempo':
+      return `Fastest clean tempo — ${record.currentValue} BPM with accurate timing`;
+    case 'TimingAccuracy':
+      return `Best session accuracy — ${record.currentValue}% of notes on beat`;
+    case 'HarmonicComplexity':
+      return `Most diverse session — ${record.currentValue} unique chords played`;
+    case 'PracticeStreak':
+      return `Longest streak — ${record.currentValue} consecutive days practicing`;
+    default:
+      return null;
+  }
+}
+
 function RecordCard({ record, isNew }: { record: PersonalRecordWithHistory; isNew: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const hasValue = record.currentValue > 0;
   const hasHistory = record.history.length > 0;
+  const description = getRecordDescription(record);
 
   const ariaLabel = hasValue
     ? `${record.label} personal record: ${record.currentValue} ${record.unit}`
@@ -47,11 +65,18 @@ function RecordCard({ record, isNew }: { record: PersonalRecordWithHistory; isNe
 
         {/* Value */}
         {hasValue ? (
-          <div className="flex items-baseline gap-1.5">
-            <span className="font-mono text-2xl font-semibold text-white leading-none">
-              {record.currentValue}
-            </span>
-            <span className="text-xs text-muted-foreground">{record.unit}</span>
+          <div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-mono text-2xl font-semibold text-white leading-none">
+                {record.currentValue}
+              </span>
+              <span className="text-xs text-muted-foreground">{record.unit}</span>
+            </div>
+            {description && (
+              <p className="mt-1 text-[10px] text-muted-foreground/70 leading-snug">
+                {description}
+              </p>
+            )}
           </div>
         ) : (
           <span className="font-mono text-2xl text-muted-foreground leading-none">&mdash;</span>

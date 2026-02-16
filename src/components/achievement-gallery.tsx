@@ -64,6 +64,29 @@ function getIcon(definition: AchievementDisplayItem['definition']): LucideIcon {
   return ICON_MAP[definition.icon] ?? CATEGORY_ICONS[definition.category] ?? Star;
 }
 
+/** Human-readable unlock hint for each achievement. */
+const UNLOCK_HINTS: Record<string, string> = {
+  'genre-first-jazz': 'Play a dominant 7th chord',
+  'genre-blues-explorer': 'Play blues patterns',
+  'genre-pop-prodigy': 'Play a I-V-vi-IV progression',
+  'genre-classical-touch': 'Play classical patterns',
+  'genre-rock-solid': 'Play rock patterns with power chords',
+  'technique-perfect-10': 'Hit 10 consecutive notes on the beat',
+  'technique-smooth-operator': 'Transition chords in under 200ms',
+  'technique-accuracy-90': 'Reach 90% timing accuracy in a session',
+  'technique-note-500': 'Play 500 notes in a single session',
+  'technique-drill-master': 'Complete 5 drills successfully',
+  'consistency-first-week': 'Practice 7 days in a row',
+  'consistency-month-strong': 'Practice 30 days in a row',
+  'consistency-century': 'Practice 100 days in a row',
+  'consistency-yearly-devotion': 'Practice 365 days in a row',
+  'consistency-thousand-xp': 'Accumulate 1,000 XP',
+  'consistency-10-sessions': 'Complete 10 practice sessions',
+  'record-speed-demon': 'Set a new tempo personal record',
+  'record-accuracy-king': 'Set a new timing accuracy record',
+  'record-complexity-up': 'Set a new harmonic complexity record',
+};
+
 function formatUnlockedDate(isoDate: string): string {
   const d = new Date(isoDate);
   return d.toLocaleDateString('en-US', {
@@ -254,9 +277,16 @@ export function AchievementGallery() {
                     Earned {formatUnlockedDate(item.unlockedAt)}
                   </span>
                 ) : (
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Not yet earned
-                  </span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Not yet earned
+                    </span>
+                    {UNLOCK_HINTS[item.definition.achievementId] && (
+                      <span className="text-[10px] text-muted-foreground/70 leading-snug">
+                        How to unlock: {UNLOCK_HINTS[item.definition.achievementId]}
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
 

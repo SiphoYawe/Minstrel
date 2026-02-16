@@ -169,6 +169,71 @@ describe('PersonalRecords', () => {
     expect(card).not.toBeNull();
   });
 
+  it('shows specific description for CleanTempo record', () => {
+    mockedHook.mockReturnValue({
+      records: [makeRecord(PersonalRecordType.CleanTempo, 142)],
+      recentNewRecords: [],
+      isLoading: false,
+      checkSessionRecords: vi.fn(),
+      dismissRecentRecords: vi.fn(),
+    });
+
+    render(<PersonalRecords />);
+    expect(screen.getByText(/Fastest clean tempo — 142 BPM with accurate timing/)).toBeDefined();
+  });
+
+  it('shows specific description for TimingAccuracy record', () => {
+    mockedHook.mockReturnValue({
+      records: [makeRecord(PersonalRecordType.TimingAccuracy, 92)],
+      recentNewRecords: [],
+      isLoading: false,
+      checkSessionRecords: vi.fn(),
+      dismissRecentRecords: vi.fn(),
+    });
+
+    render(<PersonalRecords />);
+    expect(screen.getByText(/Best session accuracy — 92% of notes on beat/)).toBeDefined();
+  });
+
+  it('shows specific description for HarmonicComplexity record', () => {
+    mockedHook.mockReturnValue({
+      records: [makeRecord(PersonalRecordType.HarmonicComplexity, 8)],
+      recentNewRecords: [],
+      isLoading: false,
+      checkSessionRecords: vi.fn(),
+      dismissRecentRecords: vi.fn(),
+    });
+
+    render(<PersonalRecords />);
+    expect(screen.getByText(/Most diverse session — 8 unique chords played/)).toBeDefined();
+  });
+
+  it('shows specific description for PracticeStreak record', () => {
+    mockedHook.mockReturnValue({
+      records: [makeRecord(PersonalRecordType.PracticeStreak, 14)],
+      recentNewRecords: [],
+      isLoading: false,
+      checkSessionRecords: vi.fn(),
+      dismissRecentRecords: vi.fn(),
+    });
+
+    render(<PersonalRecords />);
+    expect(screen.getByText(/Longest streak — 14 consecutive days practicing/)).toBeDefined();
+  });
+
+  it('does not show description for zero-value records', () => {
+    mockedHook.mockReturnValue({
+      records: [makeRecord(PersonalRecordType.CleanTempo, 0)],
+      recentNewRecords: [],
+      isLoading: false,
+      checkSessionRecords: vi.fn(),
+      dismissRecentRecords: vi.fn(),
+    });
+
+    render(<PersonalRecords />);
+    expect(screen.queryByText(/Fastest clean tempo/)).toBeNull();
+  });
+
   it('has accessible aria-label for empty record', () => {
     mockedHook.mockReturnValue({
       records: [makeRecord(PersonalRecordType.CleanTempo, 0)],

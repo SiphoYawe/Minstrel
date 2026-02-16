@@ -195,16 +195,17 @@ describe('progress-aggregator', () => {
   });
 
   describe('generateInsightText', () => {
-    it('returns personal best text when current equals best and improving', () => {
+    it('returns personal best text with actionable suggestion when current equals best and improving', () => {
       const points: TrendDataPoint[] = [
         { date: '2026-02-08', value: 70 },
         { date: '2026-02-12', value: 82 },
       ];
       const result = generateInsightText(TrendDimension.TimingAccuracy, points, 82, 12, 82, '%');
-      expect(result).toBe('Timing accuracy at personal best: 82%.');
+      expect(result).toContain('Timing accuracy at personal best: 82%.');
+      expect(result).toContain('Try extending to scales or faster tempos.');
     });
 
-    it('returns peaked text when improving but not at best', () => {
+    it('returns peaked text with actionable suggestion when improving but not at best', () => {
       const points: TrendDataPoint[] = [
         { date: '2026-02-08', value: 70 },
         { date: '2026-02-10', value: 85 },
@@ -212,29 +213,57 @@ describe('progress-aggregator', () => {
       ];
       const result = generateInsightText(TrendDimension.TimingAccuracy, points, 78, 8, 85, '%');
       expect(result).toMatch(/Timing accuracy peaked .* at 85%\./);
+      expect(result).toContain('Keep this momentum');
     });
 
-    it('returns declining text for negative delta', () => {
+    it('returns declining text with actionable suggestion for negative delta', () => {
       const points: TrendDataPoint[] = [
         { date: '2026-02-08', value: 82 },
         { date: '2026-02-12', value: 70 },
       ];
       const result = generateInsightText(TrendDimension.TimingAccuracy, points, 70, -12, 82, '%');
       expect(result).toMatch(/Timing accuracy best was 82%/);
+      expect(result).toContain('Try slowing down 10 BPM');
     });
 
-    it('returns steady text for zero delta', () => {
+    it('returns steady text with actionable suggestion for zero delta', () => {
       const points: TrendDataPoint[] = [
         { date: '2026-02-08', value: 75 },
         { date: '2026-02-12', value: 75 },
       ];
       const result = generateInsightText(TrendDimension.Speed, points, 75, 0, 75, ' BPM');
-      expect(result).toBe('Speed steady at 75 BPM.');
+      expect(result).toContain('Speed steady at 75 BPM.');
+      expect(result).toContain('Try a speed drill');
     });
 
     it('returns not enough data for empty points', () => {
       const result = generateInsightText(TrendDimension.Speed, [], 0, 0, 0, ' BPM');
       expect(result).toBe('Not enough data yet.');
+    });
+
+    it('includes actionable suggestion for harmonic complexity at best', () => {
+      const points: TrendDataPoint[] = [
+        { date: '2026-02-08', value: 3 },
+        { date: '2026-02-12', value: 8 },
+      ];
+      const result = generateInsightText(
+        TrendDimension.HarmonicComplexity,
+        points,
+        8,
+        5,
+        8,
+        ' chords'
+      );
+      expect(result).toContain('Explore a new genre');
+    });
+
+    it('includes actionable suggestion for consistency declining', () => {
+      const points: TrendDataPoint[] = [
+        { date: '2026-02-08', value: 30 },
+        { date: '2026-02-12', value: 10 },
+      ];
+      const result = generateInsightText(TrendDimension.Consistency, points, 10, -20, 30, ' min');
+      expect(result).toContain('Even 10 minutes counts');
     });
   });
 

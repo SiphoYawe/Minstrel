@@ -140,6 +140,28 @@ describe('AchievementGallery', () => {
       screen.getByText('10 consecutive notes within beat grid tolerance.')
     ).toBeInTheDocument();
   });
+
+  it('shows unlock hints for locked achievements', async () => {
+    render(<AchievementGallery />);
+
+    await screen.findAllByRole('listitem');
+
+    // technique-perfect-10 should show unlock hint
+    expect(
+      screen.getByText(/How to unlock: Hit 10 consecutive notes on the beat/)
+    ).toBeInTheDocument();
+    // consistency-first-week should show unlock hint
+    expect(screen.getByText(/How to unlock: Practice 7 days in a row/)).toBeInTheDocument();
+  });
+
+  it('does not show unlock hints for unlocked achievements', async () => {
+    render(<AchievementGallery />);
+
+    await screen.findAllByRole('listitem');
+
+    // genre-first-jazz is unlocked — should not show "How to unlock" for it
+    expect(screen.queryByText(/How to unlock: Play a dominant 7th chord/)).not.toBeInTheDocument();
+  });
 });
 
 describe('AchievementGallery pagination (UI-M11)', () => {

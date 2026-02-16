@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { Music, Crosshair, CalendarDays, TrendingUp } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -17,7 +18,7 @@ interface AchievementToastProps {
   onDismiss: () => void;
 }
 
-const DISMISS_MS = 4000;
+const DISMISS_MS = 8000;
 const STAGGER_MS = 300;
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
@@ -114,6 +115,15 @@ export function AchievementToast({ achievements, onDismiss }: AchievementToastPr
                   {achievement.description}
                 </p>
               </div>
+
+              {/* View button */}
+              <Link
+                href="/dashboard?tab=achievements"
+                className="flex-shrink-0 font-mono text-[10px] uppercase tracking-wider
+                  text-primary hover:text-white transition-colors duration-150 self-center"
+              >
+                View
+              </Link>
 
               {/* Progress line */}
               <div className="absolute bottom-0 left-0 right-0 h-px bg-surface-light">

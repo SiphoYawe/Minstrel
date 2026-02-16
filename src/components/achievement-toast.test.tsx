@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { AchievementToast, type AchievementToastItem } from './achievement-toast';
 
-const DISMISS_MS = 4000;
+const DISMISS_MS = 8000;
 const STAGGER_MS = 300;
 
 function makeAchievement(overrides: Partial<AchievementToastItem> = {}): AchievementToastItem {
@@ -187,6 +187,18 @@ describe('AchievementToast', () => {
     );
 
     expect(container.querySelector('svg')).toBeDefined();
+  });
+
+  it('renders "View" link to achievement gallery', () => {
+    render(<AchievementToast achievements={[makeAchievement()]} onDismiss={vi.fn()} />);
+
+    act(() => {
+      vi.advanceTimersByTime(STAGGER_MS);
+    });
+
+    const viewLink = screen.getByText('View');
+    expect(viewLink).toBeDefined();
+    expect(viewLink.closest('a')?.getAttribute('href')).toBe('/dashboard?tab=achievements');
   });
 
   it('cleans up timers on unmount', () => {

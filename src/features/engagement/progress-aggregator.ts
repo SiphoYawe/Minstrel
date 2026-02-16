@@ -177,6 +177,37 @@ function buildTrendLine(
   };
 }
 
+/** Actionable suggestions per trend dimension and direction. */
+const ACTION_SUGGESTIONS: Record<
+  TrendDimension,
+  { atBest: string; improving: string; declining: string; steady: string }
+> = {
+  [TrendDimension.TimingAccuracy]: {
+    atBest: 'Try extending to scales or faster tempos.',
+    improving: 'Keep this momentum — try a drill at the next BPM tier.',
+    declining: 'Try slowing down 10 BPM and focus on accuracy first.',
+    steady: 'Try a new rhythm pattern to push further.',
+  },
+  [TrendDimension.HarmonicComplexity]: {
+    atBest: 'Explore a new genre to expand your chord vocabulary.',
+    improving: 'Try adding 7th or extended chords to your practice.',
+    declining: 'Revisit chord voicings — try a jazz or classical drill.',
+    steady: "Try a progression you haven't played before.",
+  },
+  [TrendDimension.Speed]: {
+    atBest: 'Try maintaining this tempo with a more complex piece.',
+    improving: 'Gradually increase tempo by 5 BPM per session.',
+    declining: 'Focus on clean notes at a comfortable tempo first.',
+    steady: 'Try a speed drill to push your comfortable range.',
+  },
+  [TrendDimension.Consistency]: {
+    atBest: 'Great dedication — longer sessions build muscle memory.',
+    improving: 'Your practice volume is growing — keep it up.',
+    declining: 'Even 10 minutes counts. Try a short warm-up drill.',
+    steady: 'Try varying session length to keep practice fresh.',
+  },
+};
+
 /**
  * Generate factual, Strava-style insight text for a trend dimension.
  */
@@ -197,19 +228,21 @@ export function generateInsightText(
   );
   const bestDay = formatDayName(bestPoint.date);
 
+  const suggestion = ACTION_SUGGESTIONS[dimension];
+
   if (bestInPeriod === currentValue && delta > 0) {
-    return `${label} at personal best: ${currentValue}${unit}.`;
+    return `${label} at personal best: ${currentValue}${unit}. ${suggestion.atBest}`;
   }
 
   if (delta > 0) {
-    return `${label} peaked ${bestDay} at ${bestInPeriod}${unit}.`;
+    return `${label} peaked ${bestDay} at ${bestInPeriod}${unit}. ${suggestion.improving}`;
   }
 
   if (delta < 0) {
-    return `${label} best was ${bestInPeriod}${unit} ${bestDay}.`;
+    return `${label} best was ${bestInPeriod}${unit} ${bestDay}. ${suggestion.declining}`;
   }
 
-  return `${label} steady at ${currentValue}${unit}.`;
+  return `${label} steady at ${currentValue}${unit}. ${suggestion.steady}`;
 }
 
 const DIMENSION_LABELS: Record<TrendDimension, string> = {

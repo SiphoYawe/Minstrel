@@ -356,7 +356,7 @@ development_status:
   epic-29: in-progress
   29-1-add-replay-error-recovery-and-edge-case-handling: done # 2026-02-16
   29-2-fix-replay-timestamp-alignment-and-chat-context: done # 2026-02-16
-  29-3-improve-achievement-gallery-and-progress-feedback: ready-for-dev
+  29-3-improve-achievement-gallery-and-progress-feedback: done # 2026-02-16
   29-4-fix-hardcoded-colors-and-design-system-violations: ready-for-dev
   29-5-fix-responsive-breakdowns-across-viewports: ready-for-dev
   29-6-improve-replay-export-session-history-and-provider-ux: ready-for-dev
