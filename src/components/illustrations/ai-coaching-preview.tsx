@@ -19,9 +19,9 @@ export function AiCoachingPreview({ className }: { className?: string }) {
         y="8"
         width="72"
         height="24"
-        stroke="#7CB9E8"
+        stroke="hsl(var(--primary))"
         strokeOpacity="0.3"
-        fill="#7CB9E8"
+        fill="hsl(var(--primary))"
         fillOpacity="0.05"
       />
       {/* Waveform inside bubble */}
@@ -30,7 +30,7 @@ export function AiCoachingPreview({ className }: { className?: string }) {
         y1="20"
         x2="18"
         y2="14"
-        stroke="#7CB9E8"
+        stroke="hsl(var(--primary))"
         strokeOpacity="0.5"
         strokeWidth="1.5"
       />
@@ -39,7 +39,7 @@ export function AiCoachingPreview({ className }: { className?: string }) {
         y1="14"
         x2="24"
         y2="24"
-        stroke="#7CB9E8"
+        stroke="hsl(var(--primary))"
         strokeOpacity="0.5"
         strokeWidth="1.5"
       />
@@ -48,7 +48,7 @@ export function AiCoachingPreview({ className }: { className?: string }) {
         y1="24"
         x2="30"
         y2="16"
-        stroke="#7CB9E8"
+        stroke="hsl(var(--primary))"
         strokeOpacity="0.5"
         strokeWidth="1.5"
       />
@@ -57,7 +57,7 @@ export function AiCoachingPreview({ className }: { className?: string }) {
         y1="16"
         x2="36"
         y2="22"
-        stroke="#7CB9E8"
+        stroke="hsl(var(--primary))"
         strokeOpacity="0.5"
         strokeWidth="1.5"
       />
@@ -66,13 +66,13 @@ export function AiCoachingPreview({ className }: { className?: string }) {
         y1="22"
         x2="42"
         y2="18"
-        stroke="#7CB9E8"
+        stroke="hsl(var(--primary))"
         strokeOpacity="0.5"
         strokeWidth="1.5"
       />
       {/* Text line placeholders */}
-      <rect x="48" y="16" width="20" height="2" fill="#7CB9E8" fillOpacity="0.2" />
-      <rect x="48" y="22" width="14" height="2" fill="#7CB9E8" fillOpacity="0.15" />
+      <rect x="48" y="16" width="20" height="2" fill="hsl(var(--primary))" fillOpacity="0.2" />
+      <rect x="48" y="22" width="14" height="2" fill="hsl(var(--primary))" fillOpacity="0.15" />
 
       {/* User message bubble */}
       <rect
@@ -89,7 +89,7 @@ export function AiCoachingPreview({ className }: { className?: string }) {
       <rect x="86" y="49" width="18" height="2" fill="currentColor" fillOpacity="0.08" />
 
       {/* Accent dot — API key hint */}
-      <circle cx="16" y="68" r="3" fill="#7CB9E8" fillOpacity="0.25" />
+      <circle cx="16" y="68" r="3" fill="hsl(var(--primary))" fillOpacity="0.25" />
       <rect x="24" y="66" width="40" height="2" fill="currentColor" fillOpacity="0.08" />
     </svg>
   );

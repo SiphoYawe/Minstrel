@@ -4,12 +4,12 @@ import { useEffect, useReducer } from 'react';
 import { useSessionStore } from '@/stores/session-store';
 import type { ChordQuality, DetectedChord } from '@/features/analysis/analysis-types';
 
-/** Harmonic function color mapping */
+/** Harmonic function color mapping — uses design-system CSS custom properties */
 const FUNCTION_COLORS = {
-  tonic: '#7CB9E8',
-  dominant: '#E8C77B',
-  subdominant: '#B4A7D6',
-  default: '#666666',
+  tonic: 'hsl(var(--primary))',
+  dominant: 'hsl(var(--accent-warm))',
+  subdominant: 'hsl(var(--accent-violet))',
+  default: 'hsl(var(--muted-foreground))',
 } as const;
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -159,12 +159,7 @@ export function ChordHud() {
         aria-label="Waiting for chord detection"
       >
         <div className="flex items-center justify-center min-w-[44px] h-[28px] px-2.5">
-          <span
-            className="font-mono text-[12px] leading-none"
-            style={{ color: 'rgba(255, 255, 255, 0.3)' }}
-          >
-            Play a chord...
-          </span>
+          <span className="font-mono text-[12px] leading-none text-white/30">Play a chord...</span>
         </div>
       </div>
     );
@@ -198,17 +193,12 @@ export function ChordHud() {
           boxShadow: hud.justDetected ? `0 0 12px ${color}80` : 'none',
         }}
       >
-        <span
-          className="font-mono text-[13px] leading-none"
-          style={{ color: 'rgba(255, 255, 255, 0.85)' }}
-        >
-          {label}
-        </span>
+        <span className="font-mono text-[13px] leading-none text-white/85">{label}</span>
       </div>
 
       {/* Roman numeral */}
       {harmonicFunction && (
-        <div className="px-1.5 py-0.5" style={{ backgroundColor: 'rgba(15, 15, 15, 0.7)' }}>
+        <div className="px-1.5 py-0.5 bg-background/70">
           <span className="font-mono text-[11px] leading-none" style={{ color: `${color}cc` }}>
             {harmonicFunction.romanNumeral}
           </span>
@@ -217,12 +207,7 @@ export function ChordHud() {
 
       {/* Idle indicator */}
       {hud.isIdle && (
-        <span
-          className="font-mono text-[10px] leading-none"
-          style={{ color: 'rgba(255, 255, 255, 0.25)' }}
-        >
-          (last detected)
-        </span>
+        <span className="font-mono text-[10px] leading-none text-white/25">(last detected)</span>
       )}
     </div>
   );

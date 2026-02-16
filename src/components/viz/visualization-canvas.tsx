@@ -27,6 +27,7 @@ import type {
   ChordQuality,
 } from '@/features/analysis/analysis-types';
 import type { SessionMode } from '@/features/modes/mode-types';
+import { VIZ_BACKGROUND_RGB, VIZ_PRIMARY_RGB, VIZ_WARM_RGB, vizRgba } from '@/lib/viz-colors';
 
 export function VisualizationCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -463,7 +464,7 @@ export function VisualizationCanvas() {
           const fadeAlpha = Math.min(fadeElapsed / SESSION_END_FADE_MS, 1);
 
           c.save();
-          c.fillStyle = `rgba(15, 15, 15, ${fadeAlpha})`;
+          c.fillStyle = vizRgba(VIZ_BACKGROUND_RGB, fadeAlpha);
           c.fillRect(0, 0, logicalW, logicalH);
           c.restore();
 
@@ -474,10 +475,10 @@ export function VisualizationCanvas() {
         } else if (sessionEndStateRef.current === 'complete') {
           // Dark background + "Session complete" centered text
           c.save();
-          c.fillStyle = '#0F0F0F';
+          c.fillStyle = vizRgba(VIZ_BACKGROUND_RGB, 1);
           c.fillRect(0, 0, logicalW, logicalH);
           c.font = '500 18px "Inter", sans-serif';
-          c.fillStyle = 'rgba(124, 185, 232, 0.6)';
+          c.fillStyle = vizRgba(VIZ_PRIMARY_RGB, 0.6);
           c.textAlign = 'center';
           c.textBaseline = 'middle';
           c.fillText('Session complete', logicalW / 2, logicalH / 2);
@@ -490,7 +491,7 @@ export function VisualizationCanvas() {
           c.save();
           c.font = 'bold 14px Inter, sans-serif';
           c.letterSpacing = '2px';
-          c.fillStyle = 'rgba(255, 191, 0, 0.4)'; // Amber at 40%
+          c.fillStyle = vizRgba(VIZ_WARM_RGB, 0.4);
           c.fillText('REPLAY', 16, 28);
           c.restore();
 
@@ -508,7 +509,7 @@ export function VisualizationCanvas() {
             }
 
             c.save();
-            c.strokeStyle = `rgba(255, 191, 0, ${headAlpha})`;
+            c.strokeStyle = vizRgba(VIZ_WARM_RGB, headAlpha);
             c.lineWidth = 1.5;
             c.beginPath();
             c.moveTo(headX, 0);

@@ -5,16 +5,17 @@ import type {
   ChordQuality,
 } from '@/features/analysis/analysis-types';
 import { noteNumberToY } from './canvas-utils';
+import { VIZ_HARMONIC_RGB, VIZ_BACKGROUND_RGB, vizRgba } from '@/lib/viz-colors';
 
-const CHORD_TONE_COLOR = { r: 180, g: 167, b: 214 }; // #B4A7D6
+const CHORD_TONE_COLOR = VIZ_HARMONIC_RGB;
 const CHORD_TONE_ALPHA = 0.8;
 const PASSING_TONE_ALPHA = 0.45;
 const KEY_LABEL_FONT = '20px "Inter", sans-serif';
-const KEY_LABEL_COLOR = 'rgba(180, 167, 214, 0.85)';
-const LABEL_BG_COLOR = 'rgba(15, 15, 15, 0.7)';
+const KEY_LABEL_COLOR = vizRgba(VIZ_HARMONIC_RGB, 0.85);
+const LABEL_BG_COLOR = vizRgba(VIZ_BACKGROUND_RGB, 0.7);
 const TONE_MARKER_SIZE = 10;
 const QUALITY_LABEL_FONT = '11px "JetBrains Mono", monospace';
-const QUALITY_LABEL_COLOR = 'rgba(180, 167, 214, 0.7)';
+const QUALITY_LABEL_COLOR = vizRgba(VIZ_HARMONIC_RGB, 0.7);
 
 /** Map chord quality to a short accessible text label. */
 function qualityLabel(q: ChordQuality): string {

@@ -78,8 +78,8 @@ export function ScaleDisplay({ scaleName }: ScaleDisplayProps) {
               y={0}
               width={keyWidth - 1}
               height={keyHeight}
-              fill={isHighlighted ? '#7CB9E8' : '#2A2A2A'}
-              stroke="#1A1A1A"
+              fill={isHighlighted ? 'hsl(var(--primary))' : 'hsl(var(--viz-surface-dark))'}
+              stroke="hsl(var(--viz-border-dark))"
               strokeWidth={0.5}
             />
           );
@@ -96,8 +96,8 @@ export function ScaleDisplay({ scaleName }: ScaleDisplayProps) {
               y={0}
               width={blackKeyWidth}
               height={blackKeyHeight}
-              fill={isHighlighted ? '#5A9BD4' : '#0F0F0F'}
-              stroke="#1A1A1A"
+              fill={isHighlighted ? 'var(--viz-primary-dark)' : 'hsl(var(--background))'}
+              stroke="hsl(var(--viz-border-dark))"
               strokeWidth={0.5}
             />
           );

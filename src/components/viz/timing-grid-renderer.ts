@@ -1,5 +1,6 @@
 import type { TimingEvent } from '@/features/analysis/analysis-types';
 import { ON_BEAT_TOLERANCE_MS } from '@/lib/constants';
+import { VIZ_TIMING_RGB, vizRgba } from '@/lib/viz-colors';
 
 const GRID_LINE_ALPHA = 0.15;
 const PREDICTIVE_GRID_ALPHA = 0.1;
@@ -8,7 +9,7 @@ const NOTE_MARKER_SIZE = 6;
 const ON_BEAT_ALPHA = 0.9;
 const OFF_BEAT_ALPHA = 0.5;
 const BPM_LABEL_FONT = '12px "JetBrains Mono", monospace';
-const BPM_LABEL_COLOR = 'rgba(168, 213, 186, 0.6)';
+const BPM_LABEL_COLOR = vizRgba(VIZ_TIMING_RGB, 0.6);
 const BEATS_TO_SHOW = 12;
 const PREDICTIVE_BEATS = 4;
 const MAX_DEVIATION_PX = 40;
@@ -243,10 +244,10 @@ export function renderTimingGrid(
 
     if (isFuture) {
       // Predictive beats: dashed, lower alpha
-      ctx.strokeStyle = `rgba(168, 213, 186, ${PREDICTIVE_GRID_ALPHA})`;
+      ctx.strokeStyle = vizRgba(VIZ_TIMING_RGB, PREDICTIVE_GRID_ALPHA);
       ctx.setLineDash([4, 4]);
     } else {
-      ctx.strokeStyle = `rgba(168, 213, 186, ${GRID_LINE_ALPHA})`;
+      ctx.strokeStyle = vizRgba(VIZ_TIMING_RGB, GRID_LINE_ALPHA);
       ctx.setLineDash([]);
     }
 
@@ -272,7 +273,7 @@ export function renderTimingGrid(
     const onBeat = Math.abs(d.deviationMs) <= ON_BEAT_TOLERANCE_MS;
     const alpha = onBeat ? ON_BEAT_ALPHA : OFF_BEAT_ALPHA;
 
-    ctx.fillStyle = `rgba(168, 213, 186, ${alpha})`;
+    ctx.fillStyle = vizRgba(VIZ_TIMING_RGB, alpha);
     ctx.fillRect(
       x - NOTE_MARKER_SIZE / 2,
       bandCenterY - NOTE_MARKER_SIZE / 2,

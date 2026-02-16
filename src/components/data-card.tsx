@@ -173,7 +173,7 @@ export function DataCard({ sessionMode = 'live' }: DataCardProps) {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span
-                    className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    className="inline-block w-1.5 h-1.5 flex-shrink-0"
                     style={{ backgroundColor: getKeyConfidenceColor(summary.keyConfidence) }}
                     aria-hidden="true"
                   />

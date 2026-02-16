@@ -3,18 +3,19 @@
 import { useEffect, useRef } from 'react';
 import { useSessionStore } from '@/stores/session-store';
 import type { ChordQuality } from '@/features/analysis/analysis-types';
+import { VIZ_BACKGROUND_RGB, VIZ_WHITE_RGB, vizRgba } from '@/lib/viz-colors';
 
 const MAX_VISIBLE = 8;
 const BLOCK_W = 48;
 const BLOCK_H = 28;
 const GAP = 4;
 
-/** Harmonic function → color mapping */
+/** Harmonic function → color mapping — design system tokens */
 const FUNCTION_COLORS = {
-  tonic: '#7CB9E8', // accent-blue
-  dominant: '#E8C77B', // accent-warm
-  subdominant: '#B4A7D6', // lavender
-  default: '#666666', // neutral grey when no key
+  tonic: 'hsl(206, 70%, 70%)',
+  dominant: 'hsl(42, 70%, 70%)',
+  subdominant: 'hsl(257, 36%, 75%)',
+  default: 'hsl(0, 0%, 40%)',
 } as const;
 
 type HarmonicRole = keyof typeof FUNCTION_COLORS;
@@ -174,15 +175,15 @@ export function ChordProgressionStrip() {
     ctx.clearRect(0, 0, w, h);
 
     // Background
-    ctx.fillStyle = 'rgba(15, 15, 15, 0.85)';
+    ctx.fillStyle = vizRgba(VIZ_BACKGROUND_RGB, 0.85);
     ctx.fillRect(0, 0, w, h);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+    ctx.strokeStyle = vizRgba(VIZ_WHITE_RGB, 0.06);
     ctx.lineWidth = 1;
     ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
 
     if (chords.length === 0) {
       ctx.font = '10px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.fillStyle = vizRgba(VIZ_WHITE_RGB, 0.2);
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('chords', w / 2, h / 2);
@@ -222,7 +223,7 @@ export function ChordProgressionStrip() {
       const label = `${chord.root}${shortQuality}`;
 
       ctx.font = '10px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+      ctx.fillStyle = vizRgba(VIZ_WHITE_RGB, 0.55);
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.fillText(label, bx + BLOCK_W / 2, by + BLOCK_H + 2);

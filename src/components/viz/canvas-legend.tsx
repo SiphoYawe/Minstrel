@@ -61,10 +61,24 @@ export function CanvasLegend() {
           <div className="flex gap-8">
             {/* Notes area */}
             <div className="flex flex-col items-center gap-2">
-              <div className="bg-[rgba(15,15,15,0.85)] px-4 py-2">
+              <div className="bg-background/85 px-4 py-2">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <rect x="4" y="8" width="16" height="4" fill="#7CB9E8" opacity={0.7} />
-                  <rect x="6" y="14" width="12" height="3" fill="#7CB9E8" opacity={0.5} />
+                  <rect
+                    x="4"
+                    y="8"
+                    width="16"
+                    height="4"
+                    fill="hsl(var(--primary))"
+                    opacity={0.7}
+                  />
+                  <rect
+                    x="6"
+                    y="14"
+                    width="12"
+                    height="3"
+                    fill="hsl(var(--primary))"
+                    opacity={0.5}
+                  />
                 </svg>
                 <p className="text-xs text-primary font-mono mt-1 text-center">Notes</p>
                 <p className="text-[9px] text-muted-foreground text-center">Piano roll</p>
@@ -73,18 +87,18 @@ export function CanvasLegend() {
 
             {/* Timing area */}
             <div className="flex flex-col items-center gap-2">
-              <div className="bg-[rgba(15,15,15,0.85)] px-4 py-2">
+              <div className="bg-background/85 px-4 py-2">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <line
                     x1="12"
                     y1="2"
                     x2="12"
                     y2="22"
-                    stroke="#7CB9E8"
+                    stroke="hsl(var(--primary))"
                     strokeWidth="1"
                     opacity={0.5}
                   />
-                  <circle cx="12" cy="12" r="3" fill="#7CB9E8" opacity={0.7} />
+                  <circle cx="12" cy="12" r="3" fill="hsl(var(--primary))" opacity={0.7} />
                 </svg>
                 <p className="text-xs text-primary font-mono mt-1 text-center">Timing</p>
                 <p className="text-[9px] text-muted-foreground text-center">Beat accuracy</p>
@@ -93,13 +107,13 @@ export function CanvasLegend() {
 
             {/* Key area */}
             <div className="flex flex-col items-center gap-2">
-              <div className="bg-[rgba(15,15,15,0.85)] px-4 py-2">
+              <div className="bg-background/85 px-4 py-2">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <text
                     x="12"
                     y="16"
                     textAnchor="middle"
-                    fill="#B4A7D6"
+                    fill="hsl(var(--accent-violet))"
                     fontSize="12"
                     fontFamily="monospace"
                   >

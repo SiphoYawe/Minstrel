@@ -1,9 +1,10 @@
 import type { MidiEvent } from '@/features/midi/midi-types';
 import { noteNumberToY, velocityToAlpha, velocityToSize } from './canvas-utils';
+import { VIZ_PRIMARY_RGB, vizRgba } from '@/lib/viz-colors';
 
-const ACCENT_COLOR = { r: 124, g: 185, b: 232 }; // #7CB9E8
-const LABEL_COLOR = 'rgba(124, 185, 232, 0.7)';
-const CHORD_LABEL_COLOR = '#7CB9E8';
+const ACCENT_COLOR = VIZ_PRIMARY_RGB;
+const LABEL_COLOR = vizRgba(VIZ_PRIMARY_RGB, 0.7);
+const CHORD_LABEL_COLOR = 'hsl(206, 70%, 70%)';
 const BASE_NOTE_WIDTH = 24;
 const BASE_NOTE_HEIGHT = 10; // increased ~30% from 8 for better visibility
 const NOTE_LABEL_OFFSET_X = 20;
