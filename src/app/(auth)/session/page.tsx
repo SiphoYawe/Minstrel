@@ -10,6 +10,7 @@ import { SessionSummary } from '@/components/session-summary';
 import { WarmUpPrompt } from '@/components/warm-up-prompt';
 import { AchievementToast } from '@/components/achievement-toast';
 import type { AchievementToastItem } from '@/components/achievement-toast';
+import { ErrorBanner } from '@/components/error-banner';
 import { SilentCoach } from '@/features/modes/silent-coach';
 import { DashboardChat } from '@/features/modes/dashboard-chat';
 import { ReplayStudio } from '@/features/modes/replay-studio';
@@ -103,6 +104,9 @@ export default function SessionPage() {
 
   return (
     <>
+      {/* Centralized error banner — visible across all modes */}
+      <ErrorBanner />
+
       {/* Mode-specific layout */}
       <div className="relative">
         <FirstRunPrompt />

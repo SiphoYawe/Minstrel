@@ -274,8 +274,8 @@ development_status:
 
   # Epic 22: Error Visibility & MIDI Connection Feedback (P0 — Launch Blocker)
   # Source: adversarial-ux-review-2026-02-16.md — MIDI-C1-C9, SET-C8, NAV-C5, Theme 1/3
-  epic-22: backlog
-  22-1-create-centralized-error-banner-and-surface-midi-errors: ready-for-dev
+  epic-22: in-progress
+  22-1-create-centralized-error-banner-and-surface-midi-errors: done
   22-2-add-midi-connection-loading-indicator-and-timeout: ready-for-dev
   22-3-fix-troubleshooting-panel-behavior-and-persistence: ready-for-dev
   22-4-add-audio-mode-limitations-explainer-and-permission-error: ready-for-dev
