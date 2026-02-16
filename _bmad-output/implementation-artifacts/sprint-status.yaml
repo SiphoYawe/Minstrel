@@ -271,3 +271,93 @@ development_status:
   21-7-expand-growth-mindset-rules: done
   21-8-fix-ui-edge-cases-limits-magic-numbers-localstorage: done
   epic-21-retrospective: optional
+
+  # Epic 22: Error Visibility & MIDI Connection Feedback (P0 — Launch Blocker)
+  # Source: adversarial-ux-review-2026-02-16.md — MIDI-C1-C9, SET-C8, NAV-C5, Theme 1/3
+  epic-22: backlog
+  22-1-create-centralized-error-banner-and-surface-midi-errors: ready-for-dev
+  22-2-add-midi-connection-loading-indicator-and-timeout: ready-for-dev
+  22-3-fix-troubleshooting-panel-behavior-and-persistence: ready-for-dev
+  22-4-add-audio-mode-limitations-explainer-and-permission-error: ready-for-dev
+  22-5-fix-drum-channel-warning-messaging: ready-for-dev
+  22-6-fix-first-run-prompt-timing-and-midi-coordination: ready-for-dev
+  22-7-add-session-expiry-ui-response: ready-for-dev
+  epic-22-retrospective: optional
+
+  # Epic 23: Canvas Visualization Overhaul (P0 — Launch Blocker)
+  # Source: adversarial-ux-review-2026-02-16.md — VIZ-C1-C8, VIZ HIGH findings
+  epic-23: in-progress
+  23-1-verify-and-fix-piano-roll-note-mapping-direction: done
+  23-2-fix-timing-feedback-visibility-pulses-and-flow-glow: ready-for-dev
+  23-3-fix-harmonic-overlay-markers-and-chord-quality-distinction: ready-for-dev
+  23-4-add-chord-hud-empty-and-waiting-states: ready-for-dev
+  23-5-fix-canvas-clearing-and-idle-frame-handling: ready-for-dev
+  23-6-fix-snapshot-and-label-text-readability: ready-for-dev
+  23-7-fix-timing-grid-model-and-velocity-rendering: ready-for-dev
+  epic-23-retrospective: optional
+
+  # Epic 24: Session Lifecycle & Data Integrity (P0 — Launch Blocker)
+  # Source: adversarial-ux-review-2026-02-16.md — MIDI-C10-C18, Theme 4
+  epic-24: backlog
+  24-1-fix-session-end-vs-session-summary-lifecycle: ready-for-dev
+  24-2-add-multi-store-state-coordination: ready-for-dev
+  24-3-fix-audio-midi-switch-note-state-loss: ready-for-dev
+  24-4-add-indexeddb-write-error-handling-and-feedback: ready-for-dev
+  24-5-fix-navigation-duplicate-handlers-and-device-hotplug: ready-for-dev
+  24-6-fix-migration-indicator-and-localstorage-safety: ready-for-dev
+  epic-24-retrospective: optional
+
+  # Epic 25: Drill System UX Overhaul (P0/P1)
+  # Source: adversarial-ux-review-2026-02-16.md — DRILL-C1-C5, DRILL HIGH findings
+  epic-25: backlog
+  25-1-display-success-criteria-during-drill-execution: ready-for-dev
+  25-2-add-difficulty-change-explanations: ready-for-dev
+  25-3-add-attempt-phase-countdown-timer-and-done-button: ready-for-dev
+  25-4-streamline-drill-creation-flow: ready-for-dev
+  25-5-keep-instructions-visible-and-add-real-time-feedback: ready-for-dev
+  25-6-fix-warm-up-prompt-timing-and-add-drill-pause-resume: ready-for-dev
+  epic-25-retrospective: optional
+
+  # Epic 26: Dashboard & AI Coaching UX (P0/P1)
+  # Source: adversarial-ux-review-2026-02-16.md — DASH-C1-C3, ENG-C1, Theme 2
+  epic-26: backlog
+  26-1-add-progressive-disclosure-to-dashboard: ready-for-dev
+  26-2-fix-growth-mindset-streaming-pre-filter-before-ui: ready-for-dev
+  26-3-fix-chat-input-overflow-and-mobile-ux: ready-for-dev
+  26-4-improve-data-card-values-empty-states-and-streak-messaging: ready-for-dev
+  26-5-improve-skill-radar-token-usage-and-difficulty-display: ready-for-dev
+  26-6-improve-ai-chat-error-messages-and-feedback: ready-for-dev
+  epic-26-retrospective: optional
+
+  # Epic 27: Auth & BYOK Settings Overhaul (P0/P1)
+  # Source: adversarial-ux-review-2026-02-16.md — SET-C1-C7, AUTH-C1-C3
+  epic-27: backlog
+  27-1-add-step-by-step-byok-setup-guide: ready-for-dev
+  27-2-improve-api-key-validation-feedback: ready-for-dev
+  27-3-add-mid-session-key-expiry-detection: ready-for-dev
+  27-4-redesign-settings-page-navigation: ready-for-dev
+  27-5-add-logout-confirmation-dialog: ready-for-dev
+  27-6-fix-auth-loading-states-and-password-hints: ready-for-dev
+  27-7-resolve-duplicate-auth-pages-and-improve-auth-ux: ready-for-dev
+  epic-27-retrospective: optional
+
+  # Epic 28: Navigation & Layout Fixes (P1)
+  # Source: adversarial-ux-review-2026-02-16.md — NAV-C1-C4, NAV HIGH findings
+  epic-28: backlog
+  28-1-fix-z-index-collisions-and-overlay-stacking: ready-for-dev
+  28-2-fix-duplicate-main-elements-and-shared-statusbar: ready-for-dev
+  28-3-fix-keyboard-shortcut-suppression-in-text-inputs: ready-for-dev
+  28-4-improve-sign-out-discoverability-and-audio-mode-banner: ready-for-dev
+  28-5-fix-return-session-banner-and-mode-transition-feedback: ready-for-dev
+  epic-28-retrospective: optional
+
+  # Epic 29: Replay, Engagement & Design Polish (P1/P2)
+  # Source: adversarial-ux-review-2026-02-16.md — REPLAY-C1-C4, DS-C1-C2, Theme 5
+  epic-29: backlog
+  29-1-add-replay-error-recovery-and-edge-case-handling: ready-for-dev
+  29-2-fix-replay-timestamp-alignment-and-chat-context: ready-for-dev
+  29-3-improve-achievement-gallery-and-progress-feedback: ready-for-dev
+  29-4-fix-hardcoded-colors-and-design-system-violations: ready-for-dev
+  29-5-fix-responsive-breakdowns-across-viewports: ready-for-dev
+  29-6-improve-replay-export-session-history-and-provider-ux: ready-for-dev
+  epic-29-retrospective: optional

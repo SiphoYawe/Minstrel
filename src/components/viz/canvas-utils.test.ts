@@ -43,6 +43,31 @@ describe('noteNumberToY', () => {
     expect(y).toBeGreaterThan(200);
     expect(y).toBeLessThan(400);
   });
+
+  // Story 23.1: Verify piano roll convention (low notes bottom, high notes top)
+  it('maps C2 (MIDI 36) below C6 (MIDI 84) — standard piano roll convention', () => {
+    const yC2 = noteNumberToY(36, 600);
+    const yC6 = noteNumberToY(84, 600);
+    expect(yC2).toBeGreaterThan(yC6); // C2 has larger Y (lower on screen)
+  });
+
+  it('ascending scale C3→C4→C5 moves upward (decreasing Y)', () => {
+    const yC3 = noteNumberToY(48, 600);
+    const yC4 = noteNumberToY(60, 600);
+    const yC5 = noteNumberToY(72, 600);
+    expect(yC3).toBeGreaterThan(yC4);
+    expect(yC4).toBeGreaterThan(yC5);
+  });
+
+  it('works consistently across different canvas heights', () => {
+    for (const h of [400, 600, 800, 1080]) {
+      const low = noteNumberToY(36, h);
+      const high = noteNumberToY(84, h);
+      expect(low).toBeGreaterThan(high);
+      expect(low).toBeLessThanOrEqual(h);
+      expect(high).toBeGreaterThanOrEqual(0);
+    }
+  });
 });
 
 describe('velocityToAlpha', () => {
