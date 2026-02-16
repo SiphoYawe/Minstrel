@@ -9,8 +9,8 @@ import {
 } from './growth-mindset-rules';
 
 describe('constants', () => {
-  it('PROHIBITED_WORDS has 10 entries', () => {
-    expect(PROHIBITED_WORDS).toHaveLength(10);
+  it('PROHIBITED_WORDS has 13 entries', () => {
+    expect(PROHIBITED_WORDS).toHaveLength(13);
   });
 
   it('every prohibited word has a growth reframe', () => {
@@ -85,7 +85,7 @@ describe('validateGrowthMindset', () => {
 });
 
 describe('replaceProhibitedWords', () => {
-  it('replaces all 10 prohibited words with growth reframes', () => {
+  it('replaces all 13 prohibited words with growth reframes', () => {
     for (const word of PROHIBITED_WORDS) {
       const input = `That was ${word} playing.`;
       const result = replaceProhibitedWords(input);
@@ -164,6 +164,39 @@ describe('replaceProhibitedWords', () => {
 
   it('handles empty string', () => {
     expect(replaceProhibitedWords('')).toBe('');
+  });
+
+  // AI-L6: New prohibited words
+  it('replaces "can\'t" with "haven\'t yet"', () => {
+    expect(replaceProhibitedWords("You can't do this yet.")).toBe("You haven't yet do this yet.");
+  });
+
+  it('replaces "never" with "not yet"', () => {
+    expect(replaceProhibitedWords('You will never master this.')).toBe(
+      'You will not yet master this.'
+    );
+  });
+
+  it('replaces "impossible" with "challenging"', () => {
+    expect(replaceProhibitedWords('That tempo is impossible.')).toBe('That tempo is challenging.');
+  });
+
+  it('does not match "never" inside "whenever"', () => {
+    const result = replaceProhibitedWords('Whenever you play, practice scales.');
+    expect(result).toBe('Whenever you play, practice scales.');
+  });
+
+  it('does not match "impossible" inside "impossibility"', () => {
+    // \b won't match inside a longer word
+    const result = replaceProhibitedWords('The impossibility of this task is overstated.');
+    expect(result).toBe('The impossibility of this task is overstated.');
+  });
+
+  it('does not false-positive on music terms containing prohibited substrings', () => {
+    // "bass" contains "bad" as a different word, but \b prevents matching
+    // "counterpoint" doesn't contain any prohibited words
+    const musicTerms = 'The bass line has great counterpoint with the cantabile melody.';
+    expect(replaceProhibitedWords(musicTerms)).toBe(musicTerms);
   });
 
   it('performance: processes 1000 chars under 5ms', () => {

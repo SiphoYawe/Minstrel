@@ -9,6 +9,9 @@ export const PROHIBITED_WORDS = [
   'awful',
   'incorrect',
   'failure',
+  "can't",
+  'never',
+  'impossible',
 ] as const;
 
 export const GROWTH_REFRAMES: Record<string, string> = {
@@ -22,6 +25,9 @@ export const GROWTH_REFRAMES: Record<string, string> = {
   awful: 'just starting',
   incorrect: 'not yet aligned',
   failure: 'growth point',
+  "can't": "haven't yet",
+  never: 'not yet',
+  impossible: 'challenging',
 };
 
 export const TRAJECTORY_TEMPLATES = [
@@ -40,11 +46,17 @@ export interface GrowthMindsetValidation {
 /**
  * Replace prohibited words with growth mindset alternatives.
  * Uses word-boundary-aware regex to avoid partial matches.
+ * AI-L6: Handles contractions (e.g. "can't") by escaping special regex
+ * characters and using appropriate boundary patterns.
  */
 export function replaceProhibitedWords(text: string): string {
   let result = text;
   for (const [word, reframe] of Object.entries(GROWTH_REFRAMES)) {
-    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    // Escape special regex characters (e.g. apostrophe in "can't")
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Use \b for word boundary. For words with apostrophes, \b still works
+    // because the word boundary is at the start letter before the apostrophe.
+    const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
     result = result.replace(regex, (match) => {
       // Preserve original casing pattern
       if (match === match.toUpperCase()) return reframe.toUpperCase();
@@ -114,7 +126,8 @@ export function validateGrowthMindset(text: string): GrowthMindsetValidation {
 
   for (const word of PROHIBITED_WORDS) {
     // Match whole words only to avoid false positives (e.g. "errors" in "errorStatus")
-    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
     const matches = lower.match(regex);
     if (matches) {
       const reframe = GROWTH_REFRAMES[word];
