@@ -251,7 +251,7 @@ export function SessionSummary({
               onClick={onContinuePracticing}
               className="w-full border border-primary bg-primary/10 px-4 py-2.5 font-mono text-xs uppercase tracking-wider text-primary hover:bg-primary/20 transition-colors"
             >
-              Continue Playing
+              Start New Session
             </button>
           )}
           {onViewReplay && activeSessionId && (

@@ -253,6 +253,12 @@ export function useAnalysisPipeline() {
         const s = useSessionStore.getState();
         if (s.totalNotesPlayed > 0 && s.sessionStartTimestamp !== null) {
           s.setShowSessionSummary(true);
+          // Story 24.1: End session immediately when summary triggers
+          stopRecording().catch((err) => {
+            console.warn('Failed to stop recording on session end:', err);
+          });
+          resetSessionManager();
+          s.endSession();
         }
         sessionEndTimerRef.current = null;
       }, SESSION_END_SILENCE_MS);

@@ -589,4 +589,87 @@ describe('useSessionStore', () => {
     expect(state.currentSnapshot).toBeNull();
     expect(state.snapshots).toEqual([]);
   });
+
+  describe('endSession (Story 24.1)', () => {
+    it('resets session state to initial values', () => {
+      useSessionStore.getState().setSessionStartTimestamp(12345);
+      useSessionStore.getState().setActiveSessionId(42);
+      useSessionStore.getState().setSessionType('freeform');
+      useSessionStore.getState().incrementNotesPlayed(10);
+
+      useSessionStore.getState().endSession();
+
+      const state = useSessionStore.getState();
+      expect(state.sessionStartTimestamp).toBeNull();
+      expect(state.activeSessionId).toBeNull();
+      expect(state.sessionType).toBeNull();
+      expect(state.totalNotesPlayed).toBe(0);
+    });
+
+    it('preserves currentMode across endSession', () => {
+      useSessionStore.getState().setCurrentMode('dashboard-chat');
+      useSessionStore.getState().setSessionStartTimestamp(99999);
+      useSessionStore.getState().endSession();
+
+      expect(useSessionStore.getState().currentMode).toBe('dashboard-chat');
+    });
+
+    it('preserves recentSessions across endSession', () => {
+      const sessions = [
+        {
+          id: 1,
+          date: '2026-02-16',
+          durationMs: 60000,
+          detectedKey: 'C major',
+          averageTempo: 120,
+          timingAccuracy: 85,
+          chordsUsed: [],
+          drillsCompleted: 0,
+          keyInsight: null,
+          weaknessAreas: [],
+          snapshotCount: 1,
+        },
+      ];
+      useSessionStore.getState().setRecentSessions(sessions);
+      useSessionStore.getState().setSessionStartTimestamp(12345);
+      useSessionStore.getState().endSession();
+
+      expect(useSessionStore.getState().recentSessions).toEqual(sessions);
+    });
+
+    it('preserves showSessionSummary across endSession', () => {
+      useSessionStore.getState().setShowSessionSummary(true);
+      useSessionStore.getState().setSessionStartTimestamp(12345);
+      useSessionStore.getState().endSession();
+
+      expect(useSessionStore.getState().showSessionSummary).toBe(true);
+    });
+
+    it('clears analysis data on endSession', () => {
+      useSessionStore.getState().setKeyCenter({ root: 'C', mode: 'major', confidence: 0.9 });
+      useSessionStore.getState().addDetectedChord(
+        {
+          root: 'C',
+          quality: 'Major',
+          notes: [{ name: 'C', octave: 4, midiNumber: 60, velocity: 100, timestamp: 1000 }],
+          timestamp: 1000,
+        },
+        'Cmaj'
+      );
+      useSessionStore.getState().setTimingData({
+        tempo: 120,
+        accuracy: 85,
+        deviations: [],
+        tempoHistory: [],
+      });
+
+      useSessionStore.getState().endSession();
+
+      const state = useSessionStore.getState();
+      expect(state.currentKey).toBeNull();
+      expect(state.detectedChords).toEqual([]);
+      expect(state.currentTempo).toBeNull();
+      expect(state.timingAccuracy).toBe(100);
+    });
+  });
 });

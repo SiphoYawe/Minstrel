@@ -298,8 +298,8 @@ development_status:
 
   # Epic 24: Session Lifecycle & Data Integrity (P0 — Launch Blocker)
   # Source: adversarial-ux-review-2026-02-16.md — MIDI-C10-C18, Theme 4
-  epic-24: backlog
-  24-1-fix-session-end-vs-session-summary-lifecycle: ready-for-dev
+  epic-24: in-progress
+  24-1-fix-session-end-vs-session-summary-lifecycle: done # 2026-02-16
   24-2-add-multi-store-state-coordination: ready-for-dev
   24-3-fix-audio-midi-switch-note-state-loss: ready-for-dev
   24-4-add-indexeddb-write-error-handling-and-feedback: ready-for-dev

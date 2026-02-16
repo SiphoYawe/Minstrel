@@ -149,6 +149,7 @@ interface SessionActions {
   setReplaySpeed: (speed: number) => void;
   addTokenUsage: (tokens: number) => void;
   setShowSessionSummary: (show: boolean) => void;
+  endSession: () => void;
   resetReplay: () => void;
   resetAnalysis: () => void;
 }
@@ -397,6 +398,16 @@ export const useSessionStore = create<SessionStore>()(
     setReplayState: (state) => set({ replayState: state }),
     setReplaySpeed: (speed) => set({ replaySpeed: speed }),
     setShowSessionSummary: (show) => set({ showSessionSummary: show }),
+
+    endSession: () =>
+      set((state) => ({
+        ...initialState,
+        // Preserve UI mode and cross-session data
+        currentMode: state.currentMode,
+        recentSessions: state.recentSessions,
+        // Keep summary visible until explicitly dismissed
+        showSessionSummary: state.showSessionSummary,
+      })),
 
     resetReplay: () =>
       set({
