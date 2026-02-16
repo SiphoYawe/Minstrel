@@ -162,10 +162,10 @@ export function renderSnapshotOverlay(
     ctx.arc(textX + 4, y + 7, 3, 0, Math.PI * 2);
     ctx.fill();
 
-    // Insight text
+    // Insight text — 16px minimum for reading distance (Story 23.6)
     ctx.fillStyle = TEXT_PRIMARY;
-    ctx.font = `400 13px ${FONT_SANS}`;
-    const insightY = wrapText(ctx, insight.text, textX + 14, y, contentW - 14, 18);
+    ctx.font = `400 16px ${FONT_SANS}`;
+    const insightY = wrapText(ctx, insight.text, textX + 14, y, contentW - 14, 22);
     y = insightY + 10;
   }
 

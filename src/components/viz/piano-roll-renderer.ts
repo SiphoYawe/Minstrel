@@ -1,5 +1,5 @@
 import type { MidiEvent } from '@/features/midi/midi-types';
-import { clearCanvas, noteNumberToY, velocityToAlpha, velocityToSize } from './canvas-utils';
+import { noteNumberToY, velocityToAlpha, velocityToSize } from './canvas-utils';
 
 const ACCENT_COLOR = { r: 124, g: 185, b: 232 }; // #7CB9E8
 const LABEL_COLOR = 'rgba(124, 185, 232, 0.7)';
@@ -7,10 +7,12 @@ const CHORD_LABEL_COLOR = '#7CB9E8';
 const BASE_NOTE_WIDTH = 24;
 const BASE_NOTE_HEIGHT = 10; // increased ~30% from 8 for better visibility
 const NOTE_LABEL_OFFSET_X = 20;
-const NOTE_LABEL_FONT = '10px "JetBrains Mono", monospace';
+const NOTE_LABEL_FONT = '12px "JetBrains Mono", monospace';
 const CHORD_LABEL_FONT = '16px "Inter", sans-serif';
 const GLOW_PADDING = 4;
 const GLOW_ALPHA = 0.15;
+const CHORD_LABEL_BASE_Y = 24;
+const CHORD_LABEL_COLLISION_ZONE = 44; // notes within this Y trigger repositioning
 
 export interface FadingNote {
   note: number;
@@ -31,8 +33,6 @@ export function renderNotes(
   now: number,
   chordLabel?: string | null
 ): FadingNote[] {
-  clearCanvas(ctx, canvasWidth, canvasHeight);
-
   const centerX = canvasWidth / 2;
 
   // Render fading notes, remove expired ones
@@ -86,13 +86,23 @@ export function renderNotes(
     }
   }
 
-  // Render chord label in the upper area
+  // Render chord label in the upper area, repositioning if high notes collide
   if (chordLabel) {
+    let chordY = CHORD_LABEL_BASE_Y;
+    if (noteEntries.length > 0) {
+      let minNoteY = canvasHeight;
+      for (const event of noteEntries) {
+        minNoteY = Math.min(minNoteY, noteNumberToY(event.note, canvasHeight));
+      }
+      if (minNoteY < CHORD_LABEL_COLLISION_ZONE) {
+        chordY = minNoteY + 28;
+      }
+    }
     ctx.font = CHORD_LABEL_FONT;
     ctx.fillStyle = CHORD_LABEL_COLOR;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText(chordLabel, centerX, 24);
+    ctx.fillText(chordLabel, centerX, chordY);
     ctx.textAlign = 'start'; // reset
   }
 

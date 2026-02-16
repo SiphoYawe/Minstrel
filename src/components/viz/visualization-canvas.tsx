@@ -363,6 +363,22 @@ export function VisualizationCanvas() {
       if (logicalW > 0 && logicalH > 0) {
         const now = performance.now();
 
+        // Clear canvas once at frame start (Story 23.6 — moved from renderNotes for z-order control)
+        clearCanvas(c, logicalW, logicalH);
+
+        // Render harmonic overlay FIRST (key label, quality label, tone markers)
+        // so active notes render on top (Story 23.6 z-order fix)
+        renderHarmonicOverlay(
+          c,
+          logicalW,
+          logicalH,
+          keyRef.current,
+          harmonicFnRef.current,
+          noteAnalysesRef.current,
+          chordLabelRef.current,
+          chordQualityRef.current
+        );
+
         fadingNotesRef.current = renderNotes(
           c,
           activeNotesRef.current,
@@ -396,18 +412,6 @@ export function VisualizationCanvas() {
           renderFlowGlow(c, logicalW, logicalH, now, prefersReducedMotionRef.current);
           dirtyRef.current = true; // Keep animating glow pulse
         }
-
-        // Render harmonic overlay (key label, chord block, roman numeral, chord-tone markers)
-        renderHarmonicOverlay(
-          c,
-          logicalW,
-          logicalH,
-          keyRef.current,
-          harmonicFnRef.current,
-          noteAnalysesRef.current,
-          chordLabelRef.current,
-          chordQualityRef.current
-        );
 
         // Snapshot transition animation (instant if reduced motion)
         if (snapshotTransitionRef.current !== 'none') {

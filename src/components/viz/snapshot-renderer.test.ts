@@ -130,6 +130,25 @@ describe('renderSnapshotOverlay', () => {
     expect(hasInsight).toBe(true);
   });
 
+  it('renders insight text at 16px minimum for readability', () => {
+    renderSnapshotOverlay(ctx, 800, 600, createSnapshot(), 1);
+    // Track font assignments to find insight text font
+    const fontAssignments: string[] = [];
+    const origCtx = createMockCtx();
+    let fontValue = '';
+    Object.defineProperty(origCtx, 'font', {
+      get: () => fontValue,
+      set: (v: string) => {
+        fontValue = v;
+        fontAssignments.push(v);
+      },
+    });
+    renderSnapshotOverlay(origCtx, 800, 600, createSnapshot(), 1);
+    // The insight text font should contain 16px
+    const insightFont = fontAssignments.find((f) => f.includes('16px') && f.includes('Inter'));
+    expect(insightFont).toBeDefined();
+  });
+
   it('wraps long insight text across multiple fillText calls', () => {
     const longInsight =
       'This is a very long insight text that should wrap across multiple lines when rendered on the canvas overlay card';

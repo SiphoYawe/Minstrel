@@ -110,7 +110,7 @@ function createMockCtx(): CanvasRenderingContext2D {
 }
 
 describe('renderNotes', () => {
-  it('clears canvas and renders active notes', () => {
+  it('renders active notes with glow and label', () => {
     const ctx = createMockCtx();
     const activeNotes: Record<number, MidiEvent> = {
       60: {
@@ -126,8 +126,8 @@ describe('renderNotes', () => {
 
     const result = renderNotes(ctx, activeNotes, [], 800, 600, 1000);
 
-    // fillRect called: once for clearCanvas, once for glow, once for the active note
-    expect(ctx.fillRect).toHaveBeenCalledTimes(3);
+    // fillRect called: once for glow, once for the active note (clearCanvas moved to frame)
+    expect(ctx.fillRect).toHaveBeenCalledTimes(2);
     // fillText called for note name label
     expect(ctx.fillText).toHaveBeenCalledTimes(1);
     expect(ctx.fillText).toHaveBeenCalledWith('C4', expect.any(Number), expect.any(Number));
@@ -147,8 +147,8 @@ describe('renderNotes', () => {
     // now=1000, fadeStart=900 → elapsed=100ms, still within 200ms fade duration
     const result = renderNotes(ctx, {}, [fadingNote], 800, 600, 1000);
 
-    // fillRect: clearCanvas + fading note
-    expect(ctx.fillRect).toHaveBeenCalledTimes(2);
+    // fillRect: fading note only (clearCanvas moved to frame)
+    expect(ctx.fillRect).toHaveBeenCalledTimes(1);
     expect(result).toHaveLength(1);
   });
 
@@ -165,8 +165,8 @@ describe('renderNotes', () => {
     // now=1000, fadeStart=700 → elapsed=300ms, past 200ms fade duration
     const result = renderNotes(ctx, {}, [expired], 800, 600, 1000);
 
-    // Only clearCanvas, no fading note rendered
-    expect(ctx.fillRect).toHaveBeenCalledTimes(1);
+    // No fillRect calls (clearCanvas moved to frame, expired note not rendered)
+    expect(ctx.fillRect).not.toHaveBeenCalled();
     expect(result).toHaveLength(0);
   });
 
@@ -195,18 +195,42 @@ describe('renderNotes', () => {
 
     renderNotes(ctx, activeNotes, [], 800, 600, 1000);
 
-    // clearCanvas + 2 active notes (each with glow + main bar = 2 fillRect per note)
-    expect(ctx.fillRect).toHaveBeenCalledTimes(5);
+    // 2 active notes × (glow + main bar) = 4 fillRect calls
+    expect(ctx.fillRect).toHaveBeenCalledTimes(4);
     // fillText called for each note name label
     expect(ctx.fillText).toHaveBeenCalledTimes(2);
   });
 
-  it('renders chord label when provided', () => {
+  it('renders chord label at default y=24 when no collision', () => {
     const ctx = createMockCtx();
     renderNotes(ctx, {}, [], 800, 600, 1000, 'Cmaj');
-    // fillText called once for chord label
+    // fillText called once for chord label at default position
     expect(ctx.fillText).toHaveBeenCalledTimes(1);
     expect(ctx.fillText).toHaveBeenCalledWith('Cmaj', 400, 24);
+  });
+
+  it('repositions chord label when high notes collide at y=24', () => {
+    const ctx = createMockCtx();
+    // MIDI 125 → Y ≈ (1 - 125/127) * 600 ≈ 9.4 — well within collision zone (< 44)
+    const activeNotes: Record<number, MidiEvent> = {
+      125: {
+        type: 'note-on',
+        note: 125,
+        noteName: 'F9',
+        velocity: 100,
+        channel: 0,
+        timestamp: 1000,
+        source: 'midi',
+      },
+    };
+    renderNotes(ctx, activeNotes, [], 800, 600, 1000, 'Cmaj');
+
+    // Chord label should be repositioned below the note (not at y=24)
+    const chordLabelCall = (ctx.fillText as ReturnType<typeof vi.fn>).mock.calls.find(
+      (call: unknown[]) => call[0] === 'Cmaj'
+    );
+    expect(chordLabelCall).toBeDefined();
+    expect(chordLabelCall![2]).toBeGreaterThan(24);
   });
 
   it('does not render chord label when null', () => {
