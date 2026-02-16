@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect, memo } from 'react';
 import Link from 'next/link';
-import { ChevronUp, Settings } from 'lucide-react';
+import { ChevronUp, Copy, Check, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
 import { TimelineScrubber } from '@/components/timeline-scrubber';
 import type { TimelineMarker } from '@/components/timeline-scrubber';
@@ -391,6 +392,25 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
 
 // --- Insights Panel ---
 
+function generateReplaySummary(
+  session: NonNullable<ReturnType<typeof useSessionStore.getState>['replaySession']>,
+  eventCount: number
+): string {
+  const lines: string[] = [];
+  lines.push('# Minstrel Session Summary');
+  lines.push('');
+  lines.push(`**Date:** ${formatDate(session.startedAt)}`);
+  lines.push(`**Duration:** ${formatDuration(session.duration)}`);
+  if (session.key) lines.push(`**Key:** ${session.key}`);
+  if (session.tempo) lines.push(`**Tempo:** ${Math.round(session.tempo)} BPM`);
+  lines.push(`**Notes Played:** ${eventCount}`);
+  lines.push(`**Type:** ${session.sessionType ?? 'freeform'}`);
+  lines.push('');
+  lines.push('---');
+  lines.push('*Exported from Minstrel*');
+  return lines.join('\n');
+}
+
 const InsightsPanel = memo(function InsightsPanel({
   session,
   eventCount,
@@ -398,6 +418,17 @@ const InsightsPanel = memo(function InsightsPanel({
   session: ReturnType<typeof useSessionStore.getState>['replaySession'];
   eventCount: number;
 }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleExport = useCallback(() => {
+    if (!session) return;
+    const summary = generateReplaySummary(session, eventCount);
+    navigator.clipboard.writeText(summary).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [session, eventCount]);
+
   if (!session) return null;
 
   const metrics = [
@@ -453,6 +484,27 @@ const InsightsPanel = memo(function InsightsPanel({
           </div>
         ))}
       </div>
+
+      {/* Export button */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleExport}
+        className="mt-3 w-full font-mono text-[11px] uppercase tracking-[0.1em]"
+        aria-label={copied ? 'Summary copied to clipboard' : 'Export session summary'}
+      >
+        {copied ? (
+          <>
+            <Check className="w-3.5 h-3.5 mr-1.5" strokeWidth={1.5} />
+            Copied
+          </>
+        ) : (
+          <>
+            <Copy className="w-3.5 h-3.5 mr-1.5" strokeWidth={1.5} />
+            Export Summary
+          </>
+        )}
+      </Button>
     </div>
   );
 });
@@ -678,6 +730,8 @@ const SessionsListPanel = memo(function SessionsListPanel() {
   const [loadingList, setLoadingList] = useState(true);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollHeightBeforeLoad = useRef<number>(0);
 
   useEffect(() => {
     import('@/lib/dexie/db').then(({ db }) => {
@@ -705,6 +759,10 @@ const SessionsListPanel = memo(function SessionsListPanel() {
 
   function loadMore() {
     if (loadingMore || !hasMore || sessions.length === 0) return;
+    // Capture scroll height before loading to preserve position
+    if (scrollContainerRef.current) {
+      scrollHeightBeforeLoad.current = scrollContainerRef.current.scrollHeight;
+    }
     setLoadingMore(true);
     const lastTimestamp = sessions[sessions.length - 1].startedAt;
     import('@/lib/dexie/db').then(({ db }) => {
@@ -727,6 +785,15 @@ const SessionsListPanel = memo(function SessionsListPanel() {
               tempo: r.tempo,
             })),
           ]);
+          // Restore scroll position after new items are added
+          requestAnimationFrame(() => {
+            const container = scrollContainerRef.current;
+            if (container && scrollHeightBeforeLoad.current > 0) {
+              const newHeight = container.scrollHeight;
+              const addedHeight = newHeight - scrollHeightBeforeLoad.current;
+              container.scrollTop += addedHeight;
+            }
+          });
         })
         .finally(() => setLoadingMore(false));
     });
@@ -761,7 +828,7 @@ const SessionsListPanel = memo(function SessionsListPanel() {
   }
 
   return (
-    <div className="p-2 flex flex-col gap-1">
+    <div ref={scrollContainerRef} className="p-2 flex flex-col gap-1">
       {sessions.map((session) => (
         <button
           key={session.id}

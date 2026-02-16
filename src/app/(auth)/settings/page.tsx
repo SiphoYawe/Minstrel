@@ -7,6 +7,7 @@ import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import { useAuth } from '@/features/auth';
+import { mapSupabaseUser } from '@/features/auth/use-auth';
 import { useAppStore } from '@/stores/app-store';
 import { ApiKeyPrompt } from '@/features/auth/api-key-prompt';
 import { getApiKeyMetadata, submitApiKey, deleteApiKey } from '@/features/auth/api-key-manager';
@@ -15,6 +16,14 @@ import { TokenUsageDisplay } from '@/features/coaching/token-usage-display';
 import { getTotalTokenUsage, getRecentSessionUsage } from '@/features/coaching/token-usage';
 import type { TokenUsageSummary } from '@/features/coaching/token-usage';
 import { exportUserData, downloadExportAsJson } from '@/features/auth/data-export';
+import { LogoutConfirmationDialog } from '@/components/logout-confirmation-dialog';
+
+const SECTIONS = [
+  { id: 'api-keys', label: 'API Keys' },
+  { id: 'profile', label: 'Profile' },
+  { id: 'your-data', label: 'Your Data' },
+  { id: 'account', label: 'Account' },
+] as const;
 
 export default function SettingsPage() {
   const { user, isAuthenticated, isLoading, signOut } = useAuth();
@@ -31,12 +40,51 @@ export default function SettingsPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const hasApiKey = useAppStore((s) => s.hasApiKey);
+  const [activeSection, setActiveSection] = useState<string>('api-keys');
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
       mountedRef.current = false;
     };
   }, []);
+
+  // Track active section based on scroll position using IntersectionObserver
+  useEffect(() => {
+    const observers: IntersectionObserver[] = [];
+    const sections = SECTIONS.map((s) => document.getElementById(s.id)).filter(
+      Boolean
+    ) as HTMLElement[];
+
+    if (sections.length === 0) return;
+
+    const observerOptions = {
+      root: null,
+      rootMargin: '-20% 0px -60% 0px',
+      threshold: 0,
+    };
+
+    sections.forEach((section) => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      }, observerOptions);
+
+      observer.observe(section);
+      observers.push(observer);
+    });
+
+    return () => {
+      observers.forEach((observer) => observer.disconnect());
+    };
+  }, [isAuthenticated]); // Re-run when auth state changes (sections mount)
 
   // Fetch existing key metadata on mount
   useEffect(() => {
@@ -133,6 +181,46 @@ export default function SettingsPage() {
     useAppStore.getState().setApiKeyProvider(null);
   }, []);
 
+  const handleSaveName = useCallback(async () => {
+    const trimmed = editName.trim();
+    if (!trimmed) {
+      setNameError('Display name cannot be empty.');
+      return;
+    }
+    setIsSavingName(true);
+    setNameError(null);
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.updateUser({
+        data: { display_name: trimmed },
+      });
+      if (!mountedRef.current) return;
+      if (error) {
+        setNameError(error.message);
+        return;
+      }
+      if (data.user) {
+        const mapped = mapSupabaseUser(data.user);
+        useAppStore.getState().setUser(mapped);
+      }
+      setIsEditingName(false);
+    } catch (err) {
+      if (mountedRef.current) {
+        setNameError(err instanceof Error ? err.message : 'Could not update name.');
+      }
+    } finally {
+      if (mountedRef.current) setIsSavingName(false);
+    }
+  }, [editName]);
+
+  const scrollToSection = useCallback((sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex min-h-svh items-center justify-center bg-background">
@@ -189,32 +277,75 @@ export default function SettingsPage() {
           <div className="mt-2 h-px w-12 bg-primary" />
         </div>
 
-        {/* Profile section */}
-        <section className="border border-border p-6">
-          <h2 className="font-mono text-caption uppercase tracking-wider text-muted-foreground">
-            Profile
-          </h2>
-          <div className="mt-4 flex flex-col gap-3">
-            <div>
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Email</p>
-              <p className="mt-1 font-mono text-sm text-foreground">{user.email}</p>
-            </div>
-            {user.displayName && (
-              <div>
-                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                  Display Name
-                </p>
-                <p className="mt-1 font-mono text-sm text-foreground">{user.displayName}</p>
-              </div>
-            )}
-          </div>
-        </section>
+        {/* Section Navigation - Sticky */}
+        <nav
+          className="sticky top-0 z-10 -mx-6 mb-6 border-b border-border bg-background/80 px-6 backdrop-blur"
+          aria-label="Settings sections"
+        >
+          <ul className="flex gap-6">
+            {SECTIONS.map((section) => (
+              <li key={section.id}>
+                <button
+                  onClick={() => scrollToSection(section.id)}
+                  className={`relative block py-3 font-mono text-[11px] uppercase tracking-wider transition-colors duration-150 ${
+                    activeSection === section.id
+                      ? 'text-primary'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  aria-current={activeSection === section.id ? 'location' : undefined}
+                >
+                  {section.label}
+                  {activeSection === section.id && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-        {/* API Keys section */}
-        <section id="api-keys" className="mt-4 scroll-mt-8 border border-border p-6">
+        {/* API Keys section - First/Most Prominent */}
+        <section id="api-keys" className="scroll-mt-16 border border-border p-6">
           <h2 className="font-mono text-caption uppercase tracking-wider text-muted-foreground">
             API Keys
           </h2>
+
+          {/* Provider list with status indicators */}
+          {keyMetadata && !isKeyLoading && !fetchError && (
+            <div className="mt-4 border border-border bg-surface-light p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-foreground">
+                    {keyMetadata.provider === 'openai'
+                      ? 'OpenAI'
+                      : keyMetadata.provider === 'anthropic'
+                        ? 'Anthropic'
+                        : 'Other'}
+                  </span>
+                  <span className="font-mono text-[10px] text-muted-foreground">
+                    ****{keyMetadata.lastFour}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`font-mono text-[10px] uppercase tracking-wider ${
+                      keyMetadata.status === 'active'
+                        ? 'text-accent-success'
+                        : keyMetadata.status === 'validating'
+                          ? 'text-primary'
+                          : 'text-accent-warm'
+                    }`}
+                  >
+                    {keyMetadata.status}
+                  </span>
+                  <span className="border border-primary/30 bg-primary/5 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-primary">
+                    Default
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="mt-4">
             {isKeyLoading ? (
               <span className="font-mono text-caption text-muted-foreground">Loading...</span>
@@ -260,18 +391,77 @@ export default function SettingsPage() {
           )}
         </section>
 
-        {/* Preferences section */}
-        <section className="mt-4 border border-border p-6">
+        {/* Profile section */}
+        <section id="profile" className="mt-4 scroll-mt-16 border border-border p-6">
           <h2 className="font-mono text-caption uppercase tracking-wider text-muted-foreground">
-            Preferences
+            Profile
           </h2>
-          <p className="mt-3 text-caption text-muted-foreground">
-            Personalization options &mdash; coming soon
-          </p>
+          <div className="mt-4 flex flex-col gap-3">
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Email</p>
+              <p className="mt-1 font-mono text-sm text-foreground">{user.email}</p>
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                Display Name
+              </p>
+              {isEditingName ? (
+                <div className="mt-1 flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSaveName();
+                      if (e.key === 'Escape') setIsEditingName(false);
+                    }}
+                    className="flex-1 bg-surface-light border border-border px-2 py-1 font-mono text-sm text-foreground
+                      focus:outline-none focus:border-primary/30 transition-colors"
+                    aria-label="Display name"
+                    autoFocus
+                  />
+                  <Button
+                    size="sm"
+                    onClick={handleSaveName}
+                    disabled={isSavingName}
+                    className="font-mono text-[11px] uppercase tracking-[0.1em]"
+                  >
+                    {isSavingName ? 'Saving...' : 'Save'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditingName(false)}
+                    disabled={isSavingName}
+                    className="font-mono text-[11px] uppercase tracking-[0.1em]"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-1 flex items-center gap-2">
+                  <p className="font-mono text-sm text-foreground">
+                    {user.displayName || 'Not set'}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setEditName(user.displayName ?? '');
+                      setIsEditingName(true);
+                      setNameError(null);
+                    }}
+                    className="font-mono text-[10px] uppercase tracking-wider text-primary hover:text-white transition-colors"
+                  >
+                    Edit
+                  </button>
+                </div>
+              )}
+              {nameError && <p className="mt-1 text-xs text-accent-warm">{nameError}</p>}
+            </div>
+          </div>
         </section>
 
         {/* Your Data section — GDPR export */}
-        <section className="mt-4 border border-border p-6">
+        <section id="your-data" className="mt-4 scroll-mt-16 border border-border p-6">
           <h2 className="font-mono text-caption uppercase tracking-wider text-muted-foreground">
             Your Data
           </h2>
@@ -292,9 +482,9 @@ export default function SettingsPage() {
           {exportError && <p className="mt-2 text-xs text-accent-warm">{exportError}</p>}
         </section>
 
-        {/* Actions */}
-        <section className="mt-8 flex flex-col gap-4">
-          <Button variant="outline" className="w-full" onClick={signOut}>
+        {/* Account Actions */}
+        <section id="account" className="mt-8 scroll-mt-16 flex flex-col gap-4">
+          <Button variant="outline" className="w-full" onClick={() => setShowLogoutDialog(true)}>
             Sign Out
           </Button>
 
@@ -315,6 +505,12 @@ export default function SettingsPage() {
           </div>
         </section>
       </div>
+
+      <LogoutConfirmationDialog
+        open={showLogoutDialog}
+        onOpenChange={setShowLogoutDialog}
+        onConfirm={signOut}
+      />
     </div>
   );
 }

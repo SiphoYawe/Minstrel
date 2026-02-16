@@ -353,11 +353,11 @@ development_status:
 
   # Epic 29: Replay, Engagement & Design Polish (P1/P2)
   # Source: adversarial-ux-review-2026-02-16.md — REPLAY-C1-C4, DS-C1-C2, Theme 5
-  epic-29: in-progress
+  epic-29: done
   29-1-add-replay-error-recovery-and-edge-case-handling: done # 2026-02-16
   29-2-fix-replay-timestamp-alignment-and-chat-context: done # 2026-02-16
   29-3-improve-achievement-gallery-and-progress-feedback: done # 2026-02-16
   29-4-fix-hardcoded-colors-and-design-system-violations: done # 2026-02-16
   29-5-fix-responsive-breakdowns-across-viewports: done
-  29-6-improve-replay-export-session-history-and-provider-ux: ready-for-dev
+  29-6-improve-replay-export-session-history-and-provider-ux: done
   epic-29-retrospective: optional
