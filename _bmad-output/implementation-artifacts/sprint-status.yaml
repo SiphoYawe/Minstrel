@@ -267,7 +267,7 @@ development_status:
   21-3-fix-timer-and-subscription-cleanup: done
   21-4-fix-session-cache-and-metadata: done
   21-5-clean-up-dead-code-and-stale-pricing: done
-  21-6-fix-retry-logic-and-export-compression: ready-for-dev
+  21-6-fix-retry-logic-and-export-compression: done
   21-7-expand-growth-mindset-rules: ready-for-dev
   21-8-fix-ui-edge-cases-limits-magic-numbers-localstorage: ready-for-dev
   epic-21-retrospective: optional

@@ -49,6 +49,45 @@ function isRateLimitError(error: unknown): boolean {
 }
 
 /**
+ * AI-L2: Extract Retry-After delay from a 429 error, if available.
+ * Provider SDKs may expose it as error.headers['retry-after'] or error.responseHeaders.
+ * Returns delay in milliseconds, or null if not found.
+ */
+function extractRetryAfterMs(error: unknown): number | null {
+  if (typeof error !== 'object' || error === null) return null;
+
+  // Try common patterns for accessing response headers
+  let retryAfter: string | undefined;
+
+  const errorObj = error as Record<string, unknown>;
+  if (errorObj.headers && typeof errorObj.headers === 'object') {
+    const headers = errorObj.headers as Record<string, string>;
+    retryAfter = headers['retry-after'] ?? headers['Retry-After'];
+  }
+  if (!retryAfter && errorObj.responseHeaders && typeof errorObj.responseHeaders === 'object') {
+    const headers = errorObj.responseHeaders as Record<string, string>;
+    retryAfter = headers['retry-after'] ?? headers['Retry-After'];
+  }
+
+  if (!retryAfter) return null;
+
+  // Retry-After can be seconds (integer) or HTTP-date
+  const seconds = parseInt(retryAfter, 10);
+  if (!isNaN(seconds) && seconds > 0) {
+    return seconds * 1000;
+  }
+
+  // Try parsing as HTTP-date
+  const dateMs = Date.parse(retryAfter);
+  if (!isNaN(dateMs)) {
+    const delayMs = dateMs - Date.now();
+    return delayMs > 0 ? delayMs : null;
+  }
+
+  return null;
+}
+
+/**
  * Stream text with exponential-backoff retry on 429 rate-limit errors.
  * All other errors are re-thrown immediately.
  */
@@ -75,7 +114,9 @@ async function streamWithRetry(
       if (!isRateLimitError(error) || attempt === maxRetries) {
         throw error;
       }
-      const delay = RETRY_BASE_MS * Math.pow(2, attempt);
+      // AI-L2: Respect Retry-After header from provider, fall back to exponential backoff
+      const retryAfter = extractRetryAfterMs(error);
+      const delay = retryAfter ?? RETRY_BASE_MS * Math.pow(2, attempt);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }

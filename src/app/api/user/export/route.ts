@@ -1,5 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { gzipSync } from 'zlib';
+
+/** AI-L5: Threshold for gzip compression — session count above this triggers compression. */
+const GZIP_SESSION_THRESHOLD = 100;
 
 /**
  * GET /api/user/export
@@ -95,8 +99,22 @@ export async function GET() {
   };
 
   const dateStr = new Date().toISOString().split('T')[0];
+  const jsonBody = JSON.stringify(exportData, null, 2);
 
-  return new NextResponse(JSON.stringify(exportData, null, 2), {
+  // AI-L5: Use gzip compression for large exports to stay within response size limits
+  const sessionCount = (sessions.data ?? []).length;
+  if (sessionCount >= GZIP_SESSION_THRESHOLD) {
+    const compressed = gzipSync(Buffer.from(jsonBody, 'utf-8'));
+    return new NextResponse(compressed, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Encoding': 'gzip',
+        'Content-Disposition': `attachment; filename="minstrel-data-export-${dateStr}.json"`,
+      },
+    });
+  }
+
+  return new NextResponse(jsonBody, {
     headers: {
       'Content-Type': 'application/json',
       'Content-Disposition': `attachment; filename="minstrel-data-export-${dateStr}.json"`,

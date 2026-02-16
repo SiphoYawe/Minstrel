@@ -237,6 +237,46 @@ describe('GET /api/user/export', () => {
     expect(openaiGpt35.interactionCount).toBe(1);
   });
 
+  it('uses gzip compression when session count exceeds threshold (AI-L5)', async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: 'user-big', email: 'big@example.com' } },
+      error: null,
+    });
+
+    // Create 150 sessions to exceed GZIP_SESSION_THRESHOLD (100)
+    const manySessions = Array.from({ length: 150 }, (_, i) => ({ id: `s${i}` }));
+    const sessionsChain = createChainMock({ data: manySessions, error: null });
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'sessions') return sessionsChain;
+      return createChainMock({ data: table === 'profiles' ? null : [], error: null });
+    });
+
+    const response = await GET();
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Encoding')).toBe('gzip');
+    expect(response.headers.get('Content-Type')).toBe('application/json');
+  });
+
+  it('does not gzip when session count is below threshold', async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: 'user-small', email: 'small@example.com' } },
+      error: null,
+    });
+
+    const fewSessions = Array.from({ length: 5 }, (_, i) => ({ id: `s${i}` }));
+    const sessionsChain = createChainMock({ data: fewSessions, error: null });
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'sessions') return sessionsChain;
+      return createChainMock({ data: table === 'profiles' ? null : [], error: null });
+    });
+
+    const response = await GET();
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Encoding')).toBeNull();
+  });
+
   it('handles conversations with missing provider/model gracefully', async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: 'user-edge', email: 'edge@example.com' } },
