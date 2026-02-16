@@ -178,6 +178,16 @@ describe('AIChatPanel', () => {
     expect(announcement.textContent).toBe('Input expanded');
   });
 
+  it('shows token counter when messages exist', () => {
+    renderPanel({ messages: createMockMessages() });
+    expect(screen.getByText(/tokens/)).toBeInTheDocument();
+  });
+
+  it('does not show token counter when no messages', () => {
+    renderPanel();
+    expect(screen.queryByText(/tokens/)).not.toBeInTheDocument();
+  });
+
   it('filters prohibited words in assistant messages before rendering', () => {
     const messagesWithProhibited: UIMessage[] = [
       {

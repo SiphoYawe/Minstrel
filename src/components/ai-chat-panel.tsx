@@ -176,6 +176,19 @@ export function AIChatPanel({
     onSubmit(e);
   }
 
+  // Estimate token usage from visible messages (4 chars ~ 1 token)
+  const estimatedTokens = useMemo(() => {
+    let totalChars = 0;
+    for (const msg of messages) {
+      for (const part of msg.parts) {
+        if (part.type === 'text') {
+          totalChars += part.text.length;
+        }
+      }
+    }
+    return Math.ceil(totalChars / 4);
+  }, [messages]);
+
   if (!hasApiKey) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -200,6 +213,18 @@ export function AIChatPanel({
 
   return (
     <div className="flex flex-col h-full bg-background w-full overflow-x-hidden">
+      {/* Chat header with token counter */}
+      {messages.length > 0 && (
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-surface-light shrink-0">
+          <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Chat</span>
+          <span
+            className="font-mono text-[10px] text-muted-foreground"
+            aria-label={`Approximate tokens used: ${estimatedTokens}`}
+          >
+            ~{estimatedTokens.toLocaleString()} tokens
+          </span>
+        </div>
+      )}
       <div ref={scrollAreaRef} className="flex-1 min-h-0 overflow-y-auto">
         <div
           className="flex flex-col gap-3 p-3"

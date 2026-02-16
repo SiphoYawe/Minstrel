@@ -10,6 +10,7 @@ import { PrivateBrowsingBanner } from '@/components/private-browsing-banner';
 import { OfflineIndicator } from '@/components/offline-indicator';
 import { SkipToContent } from '@/components/skip-to-content';
 import { SmallScreenBanner } from '@/components/small-screen-banner';
+import { GuestConversionOverlay } from '@/components/guest-conversion-overlay';
 import './globals.css';
 
 const inter = Inter({
@@ -51,6 +52,7 @@ export default function RootLayout({
           <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
           <MigrationOverlay />
           <MigrationIndicator />
+          <GuestConversionOverlay />
         </AuthProvider>
         <Toaster />
       </body>
