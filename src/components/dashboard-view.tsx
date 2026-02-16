@@ -61,6 +61,51 @@ const MAX_RECENT_ACHIEVEMENTS = 5;
 const MAX_DISPLAYED_GENRES = 5;
 const MAX_TOP_ITEMS = 3;
 
+/** Collapsible section wrapper for below-fold dashboard content */
+function CollapsibleSection({
+  title,
+  defaultOpen = false,
+  children,
+  hasData,
+}: {
+  title: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+  hasData: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  if (!hasData) return null;
+
+  return (
+    <section>
+      <button
+        onClick={() => setIsOpen((v) => !v)}
+        aria-expanded={isOpen}
+        className="w-full flex items-center justify-between py-2 mb-3 group"
+      >
+        <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{title}</p>
+        <span
+          className="font-mono text-[10px] text-muted-foreground group-hover:text-foreground transition-colors"
+          aria-hidden="true"
+        >
+          {isOpen ? '−' : '+'}
+        </span>
+      </button>
+      {isOpen && children}
+    </section>
+  );
+}
+
+const DIFFICULTY_PARAM_LABELS: Record<string, string> = {
+  tempo: 'Tempo',
+  harmonicComplexity: 'Harmonic Complexity',
+  keyDifficulty: 'Key Difficulty',
+  rhythmicDensity: 'Rhythmic Density',
+  noteRange: 'Note Range',
+  tempoVariability: 'Tempo Variation',
+};
+
 const ZONE_LABELS: Record<GrowthZoneStatus, { label: string; color: string }> = {
   [GrowthZoneStatus.TooEasy]: {
     label: 'Comfort Zone',
@@ -187,8 +232,8 @@ function DifficultyCard({ difficultyState }: { difficultyState: DifficultyState 
       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
         {Object.entries(currentParameters).map(([key, value]) => (
           <div key={key} className="flex items-center justify-between">
-            <span className="text-[10px] text-muted-foreground capitalize">
-              {key.replace(/([A-Z])/g, ' $1').trim()}
+            <span className="text-[10px] text-muted-foreground">
+              {DIFFICULTY_PARAM_LABELS[key] ?? key}
             </span>
             <span className="font-mono text-[11px] text-white">
               {typeof value === 'number'
@@ -423,6 +468,11 @@ export function DashboardView() {
 
   const unlockedCount = achievementItems.filter((a) => a.unlocked).length;
 
+  const hasSessionData = !!(stats && stats.totalSessions > 0);
+  const hasSkillData = !!skillProfile;
+  const hasDifficultyData = !!difficultyState;
+  const hasAchievementData = achievementItems.some((a) => a.unlocked);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24" role="status" aria-live="polite">
@@ -435,9 +485,9 @@ export function DashboardView() {
 
   return (
     <div className="w-full space-y-8">
-      {/* Section: Progress Summary (always visible) */}
+      {/* Hero Metrics: max 4 key cards (always visible) */}
       <section>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {/* Streak */}
           <Link
             href="/achievements"
@@ -456,11 +506,11 @@ export function DashboardView() {
               </span>
             </div>
             <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
-              {streak.currentStreak > 0 ? 'Day streak' : 'Play today to start!'}
+              {streak.currentStreak > 0 ? 'Day streak' : 'Ready for today\u2019s session?'}
             </p>
           </Link>
 
-          {/* XP */}
+          {/* XP Level */}
           <Link
             href="/achievements"
             className="border border-surface-light bg-card px-4 py-3 hover:border-primary/30 transition-colors"
@@ -479,6 +529,32 @@ export function DashboardView() {
               {lifetimeXp} XP
             </p>
           </Link>
+
+          {/* Session count or AI suggestion */}
+          {hasSessionData ? (
+            <div className="border border-surface-light bg-card px-4 py-3">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp className="w-4 h-4 text-primary" strokeWidth={1.5} aria-hidden="true" />
+                <span className="font-mono text-lg text-white">{stats!.totalSessions}</span>
+              </div>
+              <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+                Sessions
+              </p>
+            </div>
+          ) : (
+            <Link
+              href="/session"
+              className="border border-surface-light bg-card px-4 py-3 hover:border-primary/30 transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <PlayIcon className="w-4 h-4 text-primary" strokeWidth={1.5} aria-hidden="true" />
+                <span className="font-mono text-lg text-white">Go</span>
+              </div>
+              <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+                Start your first session
+              </p>
+            </Link>
+          )}
 
           {/* Achievements */}
           <Link
@@ -500,11 +576,30 @@ export function DashboardView() {
         </div>
       </section>
 
-      {/* Section: Session Stats Summary */}
+      {/* Warm-Up CTA (always visible) */}
       <section>
-        <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-3">
-          Session Stats
-        </p>
+        <div className="border border-surface-light bg-card px-5 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-foreground">Quick Warm-Up</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {hasSessionData
+                  ? 'Loosen up before your session'
+                  : 'Start with a basic warm-up to calibrate your skill profile'}
+              </p>
+            </div>
+            <Link
+              href="/session"
+              className="h-8 px-4 inline-flex items-center bg-primary text-background hover:brightness-90 font-mono text-xs uppercase tracking-wider"
+            >
+              Start
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Collapsible: Session Stats (only if has data) */}
+      <CollapsibleSection title="Session Stats" hasData={hasSessionData} defaultOpen={true}>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-surface-light">
           <StatCard
             value={stats ? formatDuration(stats.totalPracticeMs) : '0m'}
@@ -527,52 +622,35 @@ export function DashboardView() {
             label="Avg Session"
           />
         </div>
-      </section>
+      </CollapsibleSection>
 
-      {/* Section: Warm-Up */}
-      <section>
-        <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-3">
-          Warm-Up
-        </p>
-        <div className="border border-surface-light bg-card px-5 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-foreground">Quick Warm-Up</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {stats && stats.totalSessions > 0
-                  ? 'Loosen up before your session'
-                  : 'Start with a basic warm-up to calibrate your skill profile'}
-              </p>
-            </div>
-            <Link
-              href="/session"
-              className="h-8 px-4 inline-flex items-center bg-primary text-background hover:brightness-90 font-mono text-xs uppercase tracking-wider"
-            >
-              Start
-            </Link>
-          </div>
+      {/* Collapsible: Skill Profile + Difficulty Level */}
+      <CollapsibleSection
+        title="Skill & Difficulty"
+        hasData={hasSkillData || hasDifficultyData}
+        defaultOpen={true}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SkillProfileSection skillProfile={skillProfile} />
+          <DifficultyCard difficultyState={difficultyState} />
         </div>
-      </section>
+      </CollapsibleSection>
 
-      {/* Section: Skill Profile + Difficulty Level */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SkillProfileSection skillProfile={skillProfile} />
-        <DifficultyCard difficultyState={difficultyState} />
-      </section>
-
-      {/* Section: Improvement Trends */}
-      <section>
-        <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-3">
-          Improvement Trends
-        </p>
+      {/* Collapsible: Improvement Trends */}
+      <CollapsibleSection title="Improvement Trends" hasData={hasSessionData}>
         <ProgressTrends />
-      </section>
+      </CollapsibleSection>
 
-      {/* Section: Recent Achievements + Playing Style */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <RecentAchievements achievements={achievementItems} isLoading={achievementsLoading} />
-        <PlayingStyleCard />
-      </section>
+      {/* Collapsible: Achievements + Playing Style */}
+      <CollapsibleSection
+        title="Achievements & Style"
+        hasData={hasAchievementData || hasSessionData}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <RecentAchievements achievements={achievementItems} isLoading={achievementsLoading} />
+          <PlayingStyleCard />
+        </div>
+      </CollapsibleSection>
     </div>
   );
 }
