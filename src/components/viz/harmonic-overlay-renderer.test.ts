@@ -153,8 +153,7 @@ describe('renderHarmonicOverlay', () => {
       },
     ];
     const fillStyles: string[] = [];
-    const origFill = ctx.fill;
-    (ctx as unknown as { fill: typeof origFill }).fill = vi.fn(() => {
+    (ctx as unknown as { fill: () => void }).fill = vi.fn(() => {
       fillStyles.push(ctx.fillStyle as string);
     });
 
