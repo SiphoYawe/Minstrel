@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@/test-utils/render';
 import { WarmUpPrompt } from './warm-up-prompt';
 import { useSessionStore } from '@/stores/session-store';
 import { useAppStore } from '@/stores/app-store';
+import { useMidiStore } from '@/stores/midi-store';
 
 describe('WarmUpPrompt', () => {
   const onStartWarmUp = vi.fn();
@@ -12,6 +13,9 @@ describe('WarmUpPrompt', () => {
     onStartWarmUp.mockClear();
     onSkip.mockClear();
     localStorage.removeItem('minstrel:warmup-dismissed');
+
+    // Set MIDI as connected so warm-up prompt can display
+    useMidiStore.setState({ connectionStatus: 'connected' });
 
     // Set up a returning authenticated user with skill profile and recent sessions
     useAppStore.setState({ isAuthenticated: true });
@@ -114,5 +118,23 @@ describe('WarmUpPrompt', () => {
     // recentSessions[0].date is 2 days ago (from beforeEach)
     render(<WarmUpPrompt onStartWarmUp={onStartWarmUp} onSkip={onSkip} />);
     expect(screen.queryByText(/It's been a while/)).not.toBeInTheDocument();
+  });
+
+  it('does not render when MIDI is not connected', () => {
+    useMidiStore.setState({ connectionStatus: 'disconnected', inputSource: 'none' });
+    render(<WarmUpPrompt onStartWarmUp={onStartWarmUp} onSkip={onSkip} />);
+    expect(screen.queryByText('Warm up first?')).not.toBeInTheDocument();
+  });
+
+  it('renders when MIDI is connected (event-driven)', () => {
+    useMidiStore.setState({ connectionStatus: 'connected' });
+    render(<WarmUpPrompt onStartWarmUp={onStartWarmUp} onSkip={onSkip} />);
+    expect(screen.getByText('Warm up first?')).toBeInTheDocument();
+  });
+
+  it('renders when in audio mode (event-driven)', () => {
+    useMidiStore.setState({ connectionStatus: 'disconnected', inputSource: 'audio' });
+    render(<WarmUpPrompt onStartWarmUp={onStartWarmUp} onSkip={onSkip} />);
+    expect(screen.getByText('Warm up first?')).toBeInTheDocument();
   });
 });

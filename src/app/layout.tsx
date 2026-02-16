@@ -4,7 +4,9 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/features/auth/auth-provider';
 import { MigrationIndicator } from '@/components/migration-indicator';
+import { MigrationOverlay } from '@/components/migration-overlay';
 import { MobileRedirect } from '@/components/mobile-redirect';
+import { PrivateBrowsingBanner } from '@/components/private-browsing-banner';
 import { OfflineIndicator } from '@/components/offline-indicator';
 import { SkipToContent } from '@/components/skip-to-content';
 import { SmallScreenBanner } from '@/components/small-screen-banner';
@@ -42,10 +44,12 @@ export default function RootLayout({
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <SkipToContent />
         <SmallScreenBanner />
+        <PrivateBrowsingBanner />
         <OfflineIndicator />
         <MobileRedirect />
         <AuthProvider>
           <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+          <MigrationOverlay />
           <MigrationIndicator />
         </AuthProvider>
         <Toaster />

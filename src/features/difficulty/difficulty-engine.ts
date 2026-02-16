@@ -6,6 +6,7 @@ import {
   SkillDimension,
 } from './difficulty-types';
 import { GROWTH_ZONE } from './growth-zone-detector';
+import type { DrillSuccessCriteria } from '@/features/drills/drill-types';
 
 export const DEFAULT_DIFFICULTY: DifficultyParameters = {
   tempo: 80,
@@ -155,4 +156,89 @@ export function applyAdjustment(
   }
 
   return newParams;
+}
+
+// --- Human-readable parameter labels ---
+
+const PARAM_LABELS: Record<keyof DifficultyParameters, string> = {
+  tempo: 'tempo',
+  harmonicComplexity: 'harmonic complexity',
+  keyDifficulty: 'key difficulty',
+  rhythmicDensity: 'rhythmic density',
+  noteRange: 'note range',
+};
+
+/**
+ * Generate a human-readable explanation for a difficulty adjustment.
+ * Growth mindset framing: "We noticed X. Adjusting Y to keep you in the growth zone."
+ */
+export function explainAdjustment(
+  adjustment: DifficultyAdjustment | null,
+  zoneStatus: GrowthZoneStatus,
+  averageAccuracy: number
+): string | null {
+  if (!adjustment) return null;
+
+  const paramLabel = PARAM_LABELS[adjustment.parameter];
+  const accuracyPct = Math.round(averageAccuracy * 100);
+
+  if (adjustment.direction === 'increase') {
+    return `We noticed your recent accuracy was ${accuracyPct}%. Increasing ${paramLabel} to keep you in the growth zone.`;
+  }
+
+  if (adjustment.direction === 'decrease') {
+    return `We noticed your recent accuracy was ${accuracyPct}%. Easing ${paramLabel} to keep you in the growth zone.`;
+  }
+
+  return null;
+}
+
+/**
+ * Describe the specific metrics that triggered a difficulty change.
+ */
+export function describeAdjustmentTriggers(
+  adjustment: DifficultyAdjustment,
+  previousParams: DifficultyParameters,
+  newParams: DifficultyParameters
+): string[] {
+  const triggers: string[] = [];
+  const param = adjustment.parameter;
+  const label = PARAM_LABELS[param];
+  const prev = previousParams[param];
+  const next = newParams[param];
+
+  if (param === 'tempo') {
+    triggers.push(`${label}: ${Math.round(prev)} → ${Math.round(next)} BPM`);
+  } else {
+    triggers.push(`${label}: ${(prev * 100).toFixed(0)}% → ${(next * 100).toFixed(0)}%`);
+  }
+
+  return triggers;
+}
+
+/**
+ * Derive success criteria from difficulty parameters.
+ * Ensures that drill success criteria and the difficulty engine share
+ * the same source of truth — no independent hardcoded values.
+ */
+export function deriveSuccessCriteria(params: DifficultyParameters): DrillSuccessCriteria {
+  // Base timing threshold scales inversely with tempo difficulty
+  // At 80 BPM → generous 80ms, at 200 BPM → tight 30ms
+  const tempoNormalized =
+    (params.tempo - PARAMETER_LIMITS.tempo.min) /
+    (PARAMETER_LIMITS.tempo.max - PARAMETER_LIMITS.tempo.min);
+  const timingThresholdMs = Math.round(80 - tempoNormalized * 50);
+
+  // Accuracy target scales with complexity — more complex = slightly lower bar
+  const complexity = (params.harmonicComplexity + params.rhythmicDensity) / 2;
+  const accuracyTarget = Math.max(0.6, Math.min(0.95, 0.9 - complexity * 0.15));
+
+  // Tempo tolerance scales with target tempo
+  const tempoToleranceBpm = Math.round(Math.max(5, 15 - tempoNormalized * 10));
+
+  return {
+    timingThresholdMs: Math.max(20, timingThresholdMs),
+    accuracyTarget: Math.round(accuracyTarget * 100) / 100,
+    tempoToleranceBpm,
+  };
 }

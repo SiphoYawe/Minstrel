@@ -31,16 +31,37 @@ interface WarmUpPromptProps {
 
 /**
  * Compact card that offers a warm-up before freeform play.
+ * Waits for MIDI connection (event-driven) before showing.
  * Auto-dismisses when MIDI input is detected (user starts playing).
  * Persists dismissed state to localStorage so it doesn't re-render on reload.
  */
+function isMidiReady(): boolean {
+  const { connectionStatus, inputSource } = useMidiStore.getState();
+  return connectionStatus === 'connected' || inputSource === 'audio' || inputSource === 'midi';
+}
+
 export function WarmUpPrompt({ onStartWarmUp, onSkip }: WarmUpPromptProps) {
   const [dismissed, setDismissed] = useState(() => getWarmUpDismissed());
+  // Initialize midiReady from current store state (no effect needed for initial check)
+  const [midiReady, setMidiReady] = useState(isMidiReady);
 
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
   const recentSessions = useSessionStore((s) => s.recentSessions);
   const totalNotesPlayed = useSessionStore((s) => s.totalNotesPlayed);
   const isWarmingUp = useSessionStore((s) => s.isWarmingUp);
+
+  // Event-driven: subscribe to MIDI connection state changes
+  useEffect(() => {
+    const unsub = useMidiStore.subscribe(
+      (state) => ({ status: state.connectionStatus, source: state.inputSource }),
+      (val) => {
+        if (val.status === 'connected' || val.source === 'audio' || val.source === 'midi') {
+          setMidiReady(true);
+        }
+      }
+    );
+    return unsub;
+  }, []);
 
   // Auto-dismiss when MIDI input detected
   useEffect(() => {
@@ -56,8 +77,8 @@ export function WarmUpPrompt({ onStartWarmUp, onSkip }: WarmUpPromptProps) {
     return unsub;
   }, []);
 
-  // Don't show for guests, if dismissed, if already playing, or if warm-up active
-  if (!isAuthenticated || dismissed || totalNotesPlayed > 0 || isWarmingUp) {
+  // Don't show for guests, if dismissed, if already playing, if warm-up active, or if MIDI not ready
+  if (!isAuthenticated || dismissed || totalNotesPlayed > 0 || isWarmingUp || !midiReady) {
     return null;
   }
 

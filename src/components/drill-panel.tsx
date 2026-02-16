@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { DrillNoteVisualizer } from '@/components/drill-note-visualizer';
 import { useDrillPreview } from '@/hooks/use-drill-preview';
@@ -12,6 +13,8 @@ interface DrillPanelProps {
   onRetry: () => void;
   onDismiss: () => void;
   onStart?: () => void;
+  difficultyExplanation?: string | null;
+  difficultyTriggers?: string[];
 }
 
 function DifficultyDots({ level }: { level: number }) {
@@ -97,8 +100,54 @@ function ErrorCard({
   );
 }
 
-function DrillCard({ drill, onStart }: { drill: GeneratedDrill; onStart?: () => void }) {
+function DifficultyExplanation({
+  explanation,
+  triggers,
+}: {
+  explanation: string;
+  triggers?: string[];
+}) {
+  return (
+    <div
+      className="border border-accent-blue/20 bg-accent-blue/5 px-3 py-2 mb-3"
+      aria-label="Difficulty adjustment"
+    >
+      <p className="font-sans text-[11px] leading-relaxed text-text-secondary">{explanation}</p>
+      {triggers && triggers.length > 0 && (
+        <ul className="mt-1 list-none space-y-0.5">
+          {triggers.map((t, i) => (
+            <li key={i} className="font-mono text-[10px] text-text-tertiary">
+              {t}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function DrillCard({
+  drill,
+  onStart,
+  difficultyExplanation,
+  difficultyTriggers,
+}: {
+  drill: GeneratedDrill;
+  onStart?: () => void;
+  difficultyExplanation?: string | null;
+  difficultyTriggers?: string[];
+}) {
   const preview = useDrillPreview(drill);
+  const autoStartedRef = useRef(false);
+
+  // Auto-start preview when drill card mounts (streamlined flow: generate → auto-preview)
+  useEffect(() => {
+    if (!autoStartedRef.current && drill) {
+      autoStartedRef.current = true;
+      preview.start();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only auto-start once on mount
+  }, [drill]);
 
   const difficultyLevel = Math.round(
     ((drill.difficultyLevel.harmonicComplexity +
@@ -123,6 +172,11 @@ function DrillCard({ drill, onStart }: { drill: GeneratedDrill; onStart?: () => 
         </span>
       </div>
 
+      {/* Difficulty explanation (when difficulty changed) */}
+      {difficultyExplanation && (
+        <DifficultyExplanation explanation={difficultyExplanation} triggers={difficultyTriggers} />
+      )}
+
       {/* Instructions */}
       <p className="mt-2 font-sans text-[12px] leading-relaxed text-muted-foreground line-clamp-3">
         {drill.instructions}
@@ -136,6 +190,13 @@ function DrillCard({ drill, onStart }: { drill: GeneratedDrill; onStart?: () => 
           previewState={preview.state}
         />
       </div>
+
+      {/* Preview status */}
+      {isPreviewPlaying && (
+        <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.15em] text-primary animate-pulse">
+          Previewing&hellip;
+        </p>
+      )}
 
       {/* Metadata row */}
       <div className="mt-3 flex items-center gap-4">
@@ -176,36 +237,39 @@ function DrillCard({ drill, onStart }: { drill: GeneratedDrill; onStart?: () => 
         </div>
       </div>
 
-      {/* Action buttons */}
+      {/* Streamlined action: single Start button (preview auto-plays above) */}
       <div className="mt-4 flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1 font-mono text-[11px] uppercase tracking-[0.1em]"
-          onClick={isPreviewPlaying ? preview.stop : preview.start}
-          aria-label={isPreviewPlaying ? 'Stop preview' : 'Preview drill'}
-        >
-          {isPreviewPlaying ? 'Stop' : 'Preview'}
-        </Button>
-        <Button
-          size="sm"
-          className="flex-1 font-mono text-[11px] uppercase tracking-[0.1em]"
-          onClick={() => {
-            preview.stop();
-            onStart?.();
-          }}
-        >
-          Start
-        </Button>
+        {isPreviewPlaying ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 font-mono text-[11px] uppercase tracking-[0.1em]"
+            onClick={preview.stop}
+            aria-label="Stop preview"
+          >
+            Stop
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            className="flex-1 font-mono text-[11px] uppercase tracking-[0.1em]"
+            onClick={() => {
+              preview.stop();
+              onStart?.();
+            }}
+          >
+            Start
+          </Button>
+        )}
       </div>
 
-      {/* Repeat demonstration link (shown after preview finishes) */}
+      {/* Replay preview link (shown after preview finishes) */}
       {isPreviewFinished && (
         <button
           onClick={preview.repeat}
           className="mt-3 w-full text-center font-mono text-[10px] uppercase tracking-[0.15em] text-primary/70 hover:text-primary transition-colors duration-150"
         >
-          Repeat Demonstration
+          Replay Preview
         </button>
       )}
     </div>
@@ -219,6 +283,8 @@ export function DrillPanel({
   onRetry,
   onDismiss,
   onStart,
+  difficultyExplanation,
+  difficultyTriggers,
 }: DrillPanelProps) {
   if (isGenerating) {
     return <LoadingSkeleton />;
@@ -229,7 +295,14 @@ export function DrillPanel({
   }
 
   if (drill) {
-    return <DrillCard drill={drill} onStart={onStart} />;
+    return (
+      <DrillCard
+        drill={drill}
+        onStart={onStart}
+        difficultyExplanation={difficultyExplanation}
+        difficultyTriggers={difficultyTriggers}
+      />
+    );
   }
 
   return null;

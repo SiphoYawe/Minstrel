@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { AuthUser } from '@/features/auth/auth-types';
+import { safeGetItem, safeSetItem, isLocalStorageAvailable } from '@/lib/safe-storage';
 
 export type MigrationStatus = 'idle' | 'migrating' | 'complete' | 'partial-failure';
 export type ApiKeyStatus = 'none' | 'active' | 'invalid' | 'validating';
@@ -21,6 +22,7 @@ interface AppState {
   sessionExpired: boolean;
   sidebarCollapsed: boolean;
   legendDismissed: boolean;
+  isPrivateBrowsing: boolean;
   setUser: (user: AuthUser) => void;
   clearUser: () => void;
   setLoading: (loading: boolean) => void;
@@ -32,17 +34,14 @@ interface AppState {
   setSessionExpired: (expired: boolean) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setLegendDismissed: (dismissed: boolean) => void;
+  setPrivateBrowsing: (isPrivate: boolean) => void;
 }
 
 function getInitialSidebarCollapsed(): boolean {
   if (typeof window === 'undefined') return false;
-  try {
-    const stored = localStorage.getItem('minstrel:sidebar-collapsed');
-    if (stored !== null) return stored === 'true';
-    return window.innerWidth < 1024;
-  } catch {
-    return false;
-  }
+  const stored = safeGetItem('minstrel:sidebar-collapsed');
+  if (stored !== null) return stored === 'true';
+  return window.innerWidth < 1024;
 }
 
 export const useAppStore = create<AppState>()((set) => ({
@@ -56,10 +55,8 @@ export const useAppStore = create<AppState>()((set) => ({
   migrationProgress: { synced: 0, total: 0 },
   sessionExpired: false,
   sidebarCollapsed: getInitialSidebarCollapsed(),
-  legendDismissed:
-    typeof window !== 'undefined'
-      ? localStorage.getItem('minstrel:legend-dismissed') === 'true'
-      : false,
+  legendDismissed: safeGetItem('minstrel:legend-dismissed') === 'true',
+  isPrivateBrowsing: typeof window !== 'undefined' ? !isLocalStorageAvailable() : false,
   setUser: (user) => set({ user, isAuthenticated: true, sessionExpired: false }),
   clearUser: () =>
     set({
@@ -85,19 +82,12 @@ export const useAppStore = create<AppState>()((set) => ({
   setMigrationProgress: (migrationProgress) => set({ migrationProgress }),
   setSessionExpired: (sessionExpired) => set({ sessionExpired }),
   setSidebarCollapsed: (sidebarCollapsed) => {
-    try {
-      localStorage.setItem('minstrel:sidebar-collapsed', String(sidebarCollapsed));
-    } catch {
-      /* noop */
-    }
+    safeSetItem('minstrel:sidebar-collapsed', String(sidebarCollapsed));
     set({ sidebarCollapsed });
   },
   setLegendDismissed: (legendDismissed) => {
-    try {
-      localStorage.setItem('minstrel:legend-dismissed', String(legendDismissed));
-    } catch {
-      /* noop */
-    }
+    safeSetItem('minstrel:legend-dismissed', String(legendDismissed));
     set({ legendDismissed });
   },
+  setPrivateBrowsing: (isPrivateBrowsing) => set({ isPrivateBrowsing }),
 }));

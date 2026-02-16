@@ -298,24 +298,24 @@ development_status:
 
   # Epic 24: Session Lifecycle & Data Integrity (P0 — Launch Blocker)
   # Source: adversarial-ux-review-2026-02-16.md — MIDI-C10-C18, Theme 4
-  epic-24: in-progress
+  epic-24: done
   24-1-fix-session-end-vs-session-summary-lifecycle: done # 2026-02-16
   24-2-add-multi-store-state-coordination: done # 2026-02-16
   24-3-fix-audio-midi-switch-note-state-loss: done # 2026-02-16
   24-4-add-indexeddb-write-error-handling-and-feedback: done # 2026-02-16
   24-5-fix-navigation-duplicate-handlers-and-device-hotplug: done # 2026-02-16
-  24-6-fix-migration-indicator-and-localstorage-safety: ready-for-dev
+  24-6-fix-migration-indicator-and-localstorage-safety: done # 2026-02-16
   epic-24-retrospective: optional
 
   # Epic 25: Drill System UX Overhaul (P0/P1)
   # Source: adversarial-ux-review-2026-02-16.md — DRILL-C1-C5, DRILL HIGH findings
-  epic-25: backlog
-  25-1-display-success-criteria-during-drill-execution: ready-for-dev
-  25-2-add-difficulty-change-explanations: ready-for-dev
-  25-3-add-attempt-phase-countdown-timer-and-done-button: ready-for-dev
-  25-4-streamline-drill-creation-flow: ready-for-dev
-  25-5-keep-instructions-visible-and-add-real-time-feedback: ready-for-dev
-  25-6-fix-warm-up-prompt-timing-and-add-drill-pause-resume: ready-for-dev
+  epic-25: done
+  25-1-display-success-criteria-during-drill-execution: done
+  25-2-add-difficulty-change-explanations: done
+  25-3-add-attempt-phase-countdown-timer-and-done-button: done
+  25-4-streamline-drill-creation-flow: done
+  25-5-keep-instructions-visible-and-add-real-time-feedback: done
+  25-6-fix-warm-up-prompt-timing-and-add-drill-pause-resume: done
   epic-25-retrospective: optional
 
   # Epic 26: Dashboard & AI Coaching UX (P0/P1)

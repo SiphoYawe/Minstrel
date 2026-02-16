@@ -1,10 +1,14 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { capture } from '@/lib/analytics';
 import { Button } from '@/components/ui/button';
+import type { DrillSuccessCriteria } from '@/features/drills/drill-types';
 
 // --- Types ---
+
+export type NoteFeedback = 'on-target' | 'close' | 'off-target' | null;
+export type TimingDeviation = 'early' | 'late' | null;
 
 interface DrillControllerProps {
   drill: {
@@ -12,14 +16,36 @@ interface DrillControllerProps {
     weaknessDescription: string;
     reps: number;
     instructions: string;
+    successCriteria?: DrillSuccessCriteria;
+    targetTempo?: number;
   };
   currentPhase: 'Setup' | 'Demonstrate' | 'Listen' | 'Attempt' | 'Analyze' | 'Complete';
   currentRep: number;
-  repHistory: Array<{ timingDeviationMs: number; accuracy: number }>;
+  repHistory: Array<{
+    timingDeviationMs: number;
+    accuracy: number;
+    tempoAchievedBpm?: number | null;
+  }>;
   improvementMessage: string;
+  /** Total attempt duration in seconds (default 15). */
+  attemptDurationSec?: number;
+  /** Number of notes captured so far (for no-notes detection). */
+  notesCaptured?: number;
+  /** Real-time note feedback: on-target (green), close (amber), off-target (none). */
+  latestNoteFeedback?: NoteFeedback;
+  /** Real-time timing deviation indicator. */
+  latestTimingDeviation?: TimingDeviation;
+  /** Whether the drill is currently paused. */
+  isPaused?: boolean;
   onOneMore: () => void;
   onComplete: () => void;
   onStartDrill: () => void;
+  /** End attempt early (user clicks Done or presses Enter). */
+  onEndAttempt?: () => void;
+  /** Pause the drill timer. */
+  onPause?: () => void;
+  /** Resume the drill from pause. */
+  onResume?: () => void;
   onNewDrill?: () => void;
   onDone?: () => void;
 }
@@ -68,6 +94,183 @@ function getPhaseAnnouncement(
   }
 }
 
+// --- Success criteria helpers ---
+
+const METRIC_TOOLTIPS: Record<string, string> = {
+  accuracy: 'Percentage of target notes you played correctly within the timing window',
+  timing: 'How close your note timing is to the target beat — lower is better',
+  tempo: 'The speed you need to maintain, measured in beats per minute',
+};
+
+interface CriterionStatus {
+  label: string;
+  target: string;
+  actual: string | null;
+  met: boolean | null;
+  tooltipKey: string;
+}
+
+function buildCriteriaStatuses(
+  criteria: DrillSuccessCriteria | undefined,
+  targetTempo: number | undefined,
+  latestRep: {
+    timingDeviationMs: number;
+    accuracy: number;
+    tempoAchievedBpm?: number | null;
+  } | null
+): CriterionStatus[] {
+  if (!criteria) return [];
+  const statuses: CriterionStatus[] = [];
+
+  statuses.push({
+    label: 'Accuracy',
+    target: `${Math.round(criteria.accuracyTarget * 100)}%`,
+    actual: latestRep ? `${Math.round(latestRep.accuracy * 100)}%` : null,
+    met: latestRep ? latestRep.accuracy >= criteria.accuracyTarget : null,
+    tooltipKey: 'accuracy',
+  });
+
+  statuses.push({
+    label: 'Timing',
+    target: `±${criteria.timingThresholdMs}ms`,
+    actual: latestRep ? `±${Math.round(latestRep.timingDeviationMs)}ms` : null,
+    met: latestRep ? latestRep.timingDeviationMs <= criteria.timingThresholdMs : null,
+    tooltipKey: 'timing',
+  });
+
+  if (targetTempo) {
+    statuses.push({
+      label: 'Tempo',
+      target: `${targetTempo} BPM`,
+      actual:
+        latestRep?.tempoAchievedBpm != null
+          ? `${Math.round(latestRep.tempoAchievedBpm)} BPM`
+          : null,
+      met:
+        latestRep?.tempoAchievedBpm != null && criteria.tempoToleranceBpm > 0
+          ? Math.abs(latestRep.tempoAchievedBpm - targetTempo) <= criteria.tempoToleranceBpm
+          : null,
+      tooltipKey: 'tempo',
+    });
+  }
+
+  return statuses;
+}
+
+function MetricTooltip({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span
+      className="relative inline-flex items-center"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onFocus={() => setOpen(true)}
+      onBlur={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        className="inline-flex items-center justify-center w-3.5 h-3.5 text-[9px] border border-border text-text-tertiary hover:text-text-secondary ml-1 cursor-help"
+        aria-label={text}
+        tabIndex={0}
+      >
+        ?
+      </button>
+      {open && (
+        <span
+          role="tooltip"
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-surface-lighter text-text-secondary text-[10px] leading-tight w-40 z-20 border border-border"
+        >
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function SuccessCriteriaDisplay({
+  statuses,
+  showActual,
+}: {
+  statuses: CriterionStatus[];
+  showActual: boolean;
+}) {
+  if (statuses.length === 0) return null;
+
+  return (
+    <div className="mb-4 border border-border bg-card/50 px-3 py-2" aria-label="Success criteria">
+      <p className="text-[10px] font-mono uppercase tracking-[0.1em] text-text-tertiary mb-2">
+        Target
+      </p>
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        {statuses.map((s) => (
+          <div key={s.tooltipKey} className="flex items-center gap-1">
+            {showActual && s.met !== null && (
+              <span
+                className={`inline-block w-1.5 h-1.5 ${s.met ? 'bg-accent-success' : 'bg-accent-warm'}`}
+                aria-label={s.met ? `${s.label} met` : `${s.label} not yet met`}
+              />
+            )}
+            <span className="font-mono text-[11px] text-text-secondary">
+              {s.label}: {s.target}
+            </span>
+            {showActual && s.actual && (
+              <span
+                className={`font-mono text-[11px] ${s.met ? 'text-accent-success' : 'text-accent-warm'}`}
+              >
+                ({s.actual})
+              </span>
+            )}
+            <MetricTooltip text={METRIC_TOOLTIPS[s.tooltipKey]} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// --- Countdown timer hook ---
+
+const DEFAULT_ATTEMPT_DURATION_SEC = 15;
+const WARNING_THRESHOLD_SEC = 5;
+const NO_NOTES_TIMEOUT_SEC = 15;
+
+function useCountdown(
+  isActive: boolean,
+  durationSec: number,
+  onExpire: () => void
+): { remaining: number; isWarning: boolean } {
+  const [remaining, setRemaining] = useState(durationSec);
+  const [trackedInputs, setTrackedInputs] = useState({ isActive, durationSec });
+  const onExpireRef = useRef(onExpire);
+
+  // Reset remaining when inputs change (derived state during render)
+  if (trackedInputs.isActive !== isActive || trackedInputs.durationSec !== durationSec) {
+    setTrackedInputs({ isActive, durationSec });
+    setRemaining(durationSec);
+  }
+
+  useEffect(() => {
+    onExpireRef.current = onExpire;
+  }, [onExpire]);
+
+  useEffect(() => {
+    if (!isActive) return;
+    const interval = setInterval(() => {
+      setRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          onExpireRef.current();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isActive, durationSec]);
+
+  return { remaining, isWarning: isActive && remaining <= WARNING_THRESHOLD_SEC && remaining > 0 };
+}
+
 // --- Component ---
 
 export function DrillController({
@@ -76,12 +279,22 @@ export function DrillController({
   currentRep,
   repHistory,
   improvementMessage,
+  attemptDurationSec = DEFAULT_ATTEMPT_DURATION_SEC,
+  notesCaptured = -1,
+  latestNoteFeedback = null,
+  latestTimingDeviation = null,
+  isPaused = false,
   onOneMore,
   onComplete,
   onStartDrill,
+  onEndAttempt,
+  onPause,
+  onResume,
   onNewDrill,
   onDone,
 }: DrillControllerProps) {
+  // Collapsible instructions state
+  const [instructionsExpanded, setInstructionsExpanded] = useState(false);
   const timingDisplay = useMemo(() => {
     if (repHistory.length === 0) return null;
     return repHistory.map((r) => `${Math.round(r.timingDeviationMs)}ms`).join(' \u203A ');
@@ -100,6 +313,66 @@ export function DrillController({
     const pct = Math.round(((last - first) / first) * 100);
     return pct;
   }, [repHistory]);
+
+  const criteriaStatuses = useMemo(() => {
+    const latestRep = repHistory.length > 0 ? repHistory[repHistory.length - 1] : null;
+    return buildCriteriaStatuses(drill.successCriteria, drill.targetTempo, latestRep);
+  }, [drill.successCriteria, drill.targetTempo, repHistory]);
+
+  // Countdown timer for attempt phase
+  const isAttemptActive = currentPhase === 'Attempt';
+  const handleCountdownExpire = useCallback(() => {
+    onEndAttempt?.();
+  }, [onEndAttempt]);
+  const { remaining: countdownRemaining, isWarning: countdownWarning } = useCountdown(
+    isAttemptActive,
+    attemptDurationSec,
+    handleCountdownExpire
+  );
+
+  // Track no-notes state (notesCaptured === 0 after NO_NOTES_TIMEOUT_SEC means no input)
+  // Keyed off currentPhase so it resets when phase changes
+  const [noNotesElapsed, setNoNotesElapsed] = useState(false);
+  const [trackedAttemptActive, setTrackedAttemptActive] = useState(isAttemptActive);
+
+  // Reset noNotesElapsed when attempt active state changes (derived state during render)
+  if (trackedAttemptActive !== isAttemptActive) {
+    setTrackedAttemptActive(isAttemptActive);
+    setNoNotesElapsed(false);
+  }
+
+  useEffect(() => {
+    if (!isAttemptActive) return;
+    const timer = setTimeout(() => {
+      setNoNotesElapsed(true);
+    }, NO_NOTES_TIMEOUT_SEC * 1000);
+    return () => clearTimeout(timer);
+  }, [isAttemptActive]);
+
+  const showNoNotesPrompt = isAttemptActive && noNotesElapsed && notesCaptured === 0;
+
+  // Keyboard handler: Enter to end attempt early, Escape to pause/resume
+  useEffect(() => {
+    if (!isAttemptActive) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === 'Enter' && onEndAttempt && !isPaused) {
+        e.preventDefault();
+        onEndAttempt();
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (isPaused && onResume) {
+          onResume();
+        } else if (!isPaused && onPause) {
+          onPause();
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isAttemptActive, onEndAttempt, isPaused, onPause, onResume]);
 
   const announcement = getPhaseAnnouncement(phase(), drill, currentRep);
 
@@ -176,6 +449,17 @@ export function DrillController({
         })}
       </div>
 
+      {/* Success criteria (visible during Attempt, Analyze, Complete) */}
+      {criteriaStatuses.length > 0 &&
+        (currentPhase === 'Attempt' ||
+          currentPhase === 'Analyze' ||
+          currentPhase === 'Complete') && (
+          <SuccessCriteriaDisplay
+            statuses={criteriaStatuses}
+            showActual={currentPhase === 'Analyze' || currentPhase === 'Complete'}
+          />
+        )}
+
       {/* Phase-specific content */}
       {currentPhase === 'Setup' && (
         <div className="mb-4">
@@ -216,14 +500,142 @@ export function DrillController({
       )}
 
       {currentPhase === 'Attempt' && (
-        <div className="mb-4 flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping bg-accent-warm opacity-60" />
-            <span className="relative inline-flex h-2 w-2 bg-accent-warm" />
-          </span>
-          <span className="text-ui-label text-accent-warm tracking-[0.02em]">
-            Listening&hellip;
-          </span>
+        <div className="mb-4 relative">
+          {/* Pause overlay */}
+          {isPaused && (
+            <div
+              className="absolute inset-0 bg-card/90 backdrop-blur-sm z-10 flex flex-col items-center justify-center"
+              role="status"
+              aria-label="Drill paused"
+            >
+              <p className="text-section-heading text-text-primary mb-3">Paused</p>
+              {onResume && (
+                <Button size="sm" onClick={onResume} className="bg-accent-blue">
+                  Resume
+                </Button>
+              )}
+              <p className="text-caption text-text-tertiary mt-2">
+                Press{' '}
+                <kbd className="inline-flex h-5 items-center border border-border bg-card px-1.5 font-mono text-caption text-text-secondary">
+                  Esc
+                </kbd>{' '}
+                to resume
+              </p>
+            </div>
+          )}
+
+          {/* Collapsible instructions */}
+          <div className="mb-2">
+            <button
+              type="button"
+              onClick={() => setInstructionsExpanded((prev) => !prev)}
+              className="flex items-center gap-1 text-caption text-text-tertiary hover:text-text-secondary transition-colors"
+              aria-expanded={instructionsExpanded}
+              aria-controls="drill-instructions-attempt"
+            >
+              <span
+                className={`inline-block transition-transform ${instructionsExpanded ? 'rotate-90' : ''}`}
+              >
+                &#9656;
+              </span>
+              Instructions
+            </button>
+            {instructionsExpanded && (
+              <p
+                id="drill-instructions-attempt"
+                className="text-caption text-text-secondary mt-1 pl-3 border-l border-border"
+              >
+                {drill.instructions}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 mb-2">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping bg-accent-warm opacity-60" />
+              <span className="relative inline-flex h-2 w-2 bg-accent-warm" />
+            </span>
+            <span className="text-ui-label text-accent-warm tracking-[0.02em]">
+              Listening&hellip;
+            </span>
+
+            {/* Real-time note feedback flash */}
+            {latestNoteFeedback === 'on-target' && (
+              <span
+                className="inline-block w-2 h-2 bg-accent-success animate-ping"
+                aria-label="On target"
+              />
+            )}
+            {latestNoteFeedback === 'close' && (
+              <span
+                className="inline-block w-2 h-2 bg-accent-warm animate-ping"
+                aria-label="Close"
+              />
+            )}
+
+            {/* Timing deviation indicator */}
+            {latestTimingDeviation === 'early' && (
+              <span className="font-mono text-[10px] text-accent-warm" aria-label="Early">
+                Early
+              </span>
+            )}
+            {latestTimingDeviation === 'late' && (
+              <span className="font-mono text-[10px] text-accent-warm" aria-label="Late">
+                Late
+              </span>
+            )}
+
+            {/* Countdown timer */}
+            <span
+              className={`font-mono text-sm tabular-nums ml-auto ${
+                countdownWarning ? 'text-accent-warm animate-pulse' : 'text-text-secondary'
+              }`}
+              aria-label="Time remaining"
+              role="timer"
+            >
+              {countdownRemaining}s
+            </span>
+          </div>
+          {/* 5-second warning */}
+          {countdownWarning && (
+            <p className="text-caption text-accent-warm animate-pulse mb-2">
+              {countdownRemaining} seconds remaining
+            </p>
+          )}
+          {/* No notes detected prompt */}
+          {showNoNotesPrompt && (
+            <div
+              className="border border-accent-warm/30 bg-accent-warm/5 px-3 py-2 mb-2"
+              role="alert"
+            >
+              <p className="text-caption text-text-secondary mb-1">No notes detected. Try again?</p>
+              <Button variant="outline" size="sm" onClick={onOneMore}>
+                Retry
+              </Button>
+            </div>
+          )}
+          {/* Done + Pause buttons + Enter hint */}
+          {!showNoNotesPrompt && (
+            <div className="flex items-center gap-2">
+              {onPause && !isPaused && (
+                <Button variant="outline" size="sm" onClick={onPause}>
+                  Pause
+                </Button>
+              )}
+              {onEndAttempt && !isPaused && (
+                <Button variant="outline" size="sm" onClick={onEndAttempt}>
+                  Done
+                </Button>
+              )}
+              {!isPaused && onEndAttempt && (
+                <span className="text-caption text-text-tertiary flex items-center gap-1">
+                  <kbd className="inline-flex h-5 items-center border border-border bg-card px-1.5 font-mono text-caption text-text-secondary">
+                    Enter
+                  </kbd>
+                </span>
+              )}
+            </div>
+          )}
         </div>
       )}
 

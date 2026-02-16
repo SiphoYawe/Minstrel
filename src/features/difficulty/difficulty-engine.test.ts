@@ -4,6 +4,9 @@ import {
   initializeDifficulty,
   computeAdjustment,
   applyAdjustment,
+  explainAdjustment,
+  describeAdjustmentTriggers,
+  deriveSuccessCriteria,
   DEFAULT_DIFFICULTY,
 } from './difficulty-engine';
 import {
@@ -202,5 +205,109 @@ describe('applyAdjustment', () => {
       magnitude: 0,
     });
     expect(result.tempo).toBe(params.tempo);
+  });
+});
+
+describe('explainAdjustment', () => {
+  it('returns null when no adjustment', () => {
+    expect(explainAdjustment(null, GrowthZoneStatus.GrowthZone, 0.75)).toBeNull();
+  });
+
+  it('explains an increase adjustment with growth zone framing', () => {
+    const result = explainAdjustment(
+      { parameter: 'tempo', direction: 'increase', magnitude: 10 },
+      GrowthZoneStatus.TooEasy,
+      0.95
+    );
+    expect(result).toContain('95%');
+    expect(result).toContain('Increasing');
+    expect(result).toContain('tempo');
+    expect(result).toContain('growth zone');
+  });
+
+  it('explains a decrease adjustment with growth zone framing', () => {
+    const result = explainAdjustment(
+      { parameter: 'harmonicComplexity', direction: 'decrease', magnitude: 0.1 },
+      GrowthZoneStatus.TooHard,
+      0.3
+    );
+    expect(result).toContain('30%');
+    expect(result).toContain('Easing');
+    expect(result).toContain('harmonic complexity');
+    expect(result).toContain('growth zone');
+  });
+});
+
+describe('describeAdjustmentTriggers', () => {
+  it('describes tempo change with BPM units', () => {
+    const prev = { ...DEFAULT_DIFFICULTY, tempo: 80 };
+    const next = { ...DEFAULT_DIFFICULTY, tempo: 95 };
+    const triggers = describeAdjustmentTriggers(
+      { parameter: 'tempo', direction: 'increase', magnitude: 15 },
+      prev,
+      next
+    );
+    expect(triggers).toHaveLength(1);
+    expect(triggers[0]).toContain('80');
+    expect(triggers[0]).toContain('95');
+    expect(triggers[0]).toContain('BPM');
+  });
+
+  it('describes non-tempo change with percentage', () => {
+    const prev = { ...DEFAULT_DIFFICULTY, harmonicComplexity: 0.2 };
+    const next = { ...DEFAULT_DIFFICULTY, harmonicComplexity: 0.35 };
+    const triggers = describeAdjustmentTriggers(
+      { parameter: 'harmonicComplexity', direction: 'increase', magnitude: 0.15 },
+      prev,
+      next
+    );
+    expect(triggers).toHaveLength(1);
+    expect(triggers[0]).toContain('20%');
+    expect(triggers[0]).toContain('35%');
+  });
+});
+
+describe('deriveSuccessCriteria', () => {
+  it('returns valid criteria for default difficulty', () => {
+    const criteria = deriveSuccessCriteria(DEFAULT_DIFFICULTY);
+    expect(criteria.accuracyTarget).toBeGreaterThanOrEqual(0.6);
+    expect(criteria.accuracyTarget).toBeLessThanOrEqual(0.95);
+    expect(criteria.timingThresholdMs).toBeGreaterThanOrEqual(20);
+    expect(criteria.tempoToleranceBpm).toBeGreaterThanOrEqual(5);
+  });
+
+  it('returns tighter timing for higher tempo', () => {
+    const easy = deriveSuccessCriteria({ ...DEFAULT_DIFFICULTY, tempo: 60 });
+    const hard = deriveSuccessCriteria({ ...DEFAULT_DIFFICULTY, tempo: 200 });
+    expect(hard.timingThresholdMs).toBeLessThan(easy.timingThresholdMs);
+  });
+
+  it('returns lower accuracy target for higher complexity', () => {
+    const simple = deriveSuccessCriteria({
+      ...DEFAULT_DIFFICULTY,
+      harmonicComplexity: 0.1,
+      rhythmicDensity: 0.1,
+    });
+    const complex = deriveSuccessCriteria({
+      ...DEFAULT_DIFFICULTY,
+      harmonicComplexity: 0.9,
+      rhythmicDensity: 0.9,
+    });
+    expect(complex.accuracyTarget).toBeLessThan(simple.accuracyTarget);
+  });
+
+  it('criteria values stay within sane bounds', () => {
+    // Edge: max everything
+    const maxParams: DifficultyParameters = {
+      tempo: 240,
+      harmonicComplexity: 1,
+      keyDifficulty: 1,
+      rhythmicDensity: 1,
+      noteRange: 1,
+    };
+    const criteria = deriveSuccessCriteria(maxParams);
+    expect(criteria.accuracyTarget).toBeGreaterThanOrEqual(0.6);
+    expect(criteria.timingThresholdMs).toBeGreaterThanOrEqual(20);
+    expect(criteria.tempoToleranceBpm).toBeGreaterThanOrEqual(5);
   });
 });

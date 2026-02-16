@@ -221,6 +221,9 @@ export async function migrateGuestData(userId: string): Promise<MigrationResult>
   }
 }
 
+const MAX_RETRY_ATTEMPTS = 3;
+const BASE_RETRY_DELAY_MS = 1000;
+
 export async function triggerMigrationIfNeeded(userId: string): Promise<void> {
   if (!db) return;
 
@@ -242,12 +245,36 @@ export async function triggerMigrationIfNeeded(userId: string): Promise<void> {
 
   if (pendingCount === 0) return;
 
-  // Fire-and-forget: don't block the auth flow
-  migrateGuestData(userId).catch((err) => {
-    Sentry.captureException(err, {
-      tags: { feature: 'migration' },
-      extra: { step: 'migrateGuestData', userId },
-    });
-    useAppStore.getState().setMigrationStatus('partial-failure');
-  });
+  // Story 24.6: Retry with exponential backoff on failure
+  await migrateWithRetry(userId);
+}
+
+async function migrateWithRetry(userId: string): Promise<void> {
+  let lastResult: MigrationResult | null = null;
+
+  for (let attempt = 0; attempt < MAX_RETRY_ATTEMPTS; attempt++) {
+    try {
+      lastResult = await migrateGuestData(userId);
+      if (lastResult.errors.length === 0) return; // Full success — done
+
+      // Partial failure: still have failed sessions, retry if attempts remain
+      if (attempt < MAX_RETRY_ATTEMPTS - 1) {
+        const delay = BASE_RETRY_DELAY_MS * Math.pow(2, attempt);
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    } catch (err) {
+      Sentry.captureException(err, {
+        tags: { feature: 'migration' },
+        extra: { step: 'migrateGuestData', userId, attempt },
+      });
+
+      if (attempt < MAX_RETRY_ATTEMPTS - 1) {
+        const delay = BASE_RETRY_DELAY_MS * Math.pow(2, attempt);
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    }
+  }
+
+  // All retries exhausted with errors still present
+  useAppStore.getState().setMigrationStatus('partial-failure');
 }
