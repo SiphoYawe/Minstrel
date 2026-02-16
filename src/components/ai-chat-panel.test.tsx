@@ -177,6 +177,24 @@ describe('AIChatPanel', () => {
     expect(announcement.textContent).toBe('Input expanded');
   });
 
+  it('filters prohibited words in assistant messages before rendering', () => {
+    const messagesWithProhibited: UIMessage[] = [
+      {
+        id: '1',
+        role: 'assistant',
+        content: 'That was wrong and bad playing.',
+        parts: [{ type: 'text', text: 'That was wrong and bad playing.' }],
+        createdAt: new Date(),
+      },
+    ];
+    renderPanel({ messages: messagesWithProhibited });
+    // "wrong" should be replaced with "not yet there", "bad" with "developing"
+    expect(screen.queryByText(/\bwrong\b/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\bbad\b/)).not.toBeInTheDocument();
+    expect(screen.getByText(/not yet there/)).toBeInTheDocument();
+    expect(screen.getByText(/developing/)).toBeInTheDocument();
+  });
+
   it('does not announce when textarea height stays the same or decreases', () => {
     const onInputChange = vi.fn();
     renderPanel({ onInputChange });

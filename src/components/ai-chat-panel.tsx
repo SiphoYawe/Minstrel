@@ -16,6 +16,7 @@ import { useOnlineStatus } from '@/hooks/use-online-status';
 import { OfflineMessage } from '@/components/offline-message';
 import type { ChatErrorInfo } from '@/features/coaching/coaching-types';
 import { parseRichSegments, type RichSegment } from '@/features/coaching/response-processor';
+import { replaceProhibitedWords } from '@/features/coaching/growth-mindset-rules';
 import { ChordDiagram } from '@/components/chat/chord-diagram';
 import { ScaleDisplay } from '@/components/chat/scale-display';
 import { TimingGraph } from '@/components/chat/timing-graph';
@@ -87,7 +88,10 @@ function HighlightedMessage({ parts }: { parts: UIMessage['parts'] }) {
     .map((part) => part.text)
     .join('');
 
-  const segments = useMemo(() => parseRichSegments(textContent), [textContent]);
+  // Apply growth mindset filter BEFORE rendering to catch prohibited words during streaming
+  const filteredContent = useMemo(() => replaceProhibitedWords(textContent), [textContent]);
+
+  const segments = useMemo(() => parseRichSegments(filteredContent), [filteredContent]);
 
   return (
     <>
