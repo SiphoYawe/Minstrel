@@ -286,14 +286,14 @@ development_status:
 
   # Epic 23: Canvas Visualization Overhaul (P0 — Launch Blocker)
   # Source: adversarial-ux-review-2026-02-16.md — VIZ-C1-C8, VIZ HIGH findings
-  epic-23: in-progress
+  epic-23: done
   23-1-verify-and-fix-piano-roll-note-mapping-direction: done
   23-2-fix-timing-feedback-visibility-pulses-and-flow-glow: done
   23-3-fix-harmonic-overlay-markers-and-chord-quality-distinction: done
   23-4-add-chord-hud-empty-and-waiting-states: done
   23-5-fix-canvas-clearing-and-idle-frame-handling: done
   23-6-fix-snapshot-and-label-text-readability: done
-  23-7-fix-timing-grid-model-and-velocity-rendering: ready-for-dev
+  23-7-fix-timing-grid-model-and-velocity-rendering: done
   epic-23-retrospective: optional
 
   # Epic 24: Session Lifecycle & Data Integrity (P0 — Launch Blocker)

@@ -6,8 +6,8 @@ import type { MidiEvent } from '@/features/midi/midi-types';
 
 describe('canvas-utils', () => {
   describe('velocityToAlpha', () => {
-    it('returns 0.3 for velocity 0', () => {
-      expect(velocityToAlpha(0)).toBeCloseTo(0.3);
+    it('returns 0.5 for velocity 0 (clamped minimum)', () => {
+      expect(velocityToAlpha(0)).toBeCloseTo(0.5);
     });
 
     it('returns 1.0 for velocity 127', () => {
@@ -20,10 +20,10 @@ describe('canvas-utils', () => {
       expect(alpha).toBeLessThan(1.0);
     });
 
-    it('values are always in range [0.3, 1.0]', () => {
+    it('values are always in range [0.5, 1.0]', () => {
       for (let v = 0; v <= 127; v++) {
         const a = velocityToAlpha(v);
-        expect(a).toBeGreaterThanOrEqual(0.3);
+        expect(a).toBeGreaterThanOrEqual(0.5);
         expect(a).toBeLessThanOrEqual(1.0);
       }
     });

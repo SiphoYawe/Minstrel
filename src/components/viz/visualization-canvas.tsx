@@ -61,6 +61,9 @@ export function VisualizationCanvas() {
   const timingPulsesRef = useRef<TimingPulse[]>([]);
   const prevDeviationCountRef = useRef(0);
   const isInFlowRef = useRef(false);
+  // Session-end fade animation refs (Story 23.7)
+  const sessionEndStateRef = useRef<'none' | 'fading' | 'complete'>('none');
+  const sessionEndStartRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -318,18 +321,24 @@ export function VisualizationCanvas() {
       }
     );
 
-    // --- Zustand vanilla subscription for session end (Story 23.5) ---
-    // Clear canvas completely when session ends to remove stale artifacts
+    // --- Zustand vanilla subscription for session end (Story 23.5 + 23.7) ---
+    // Trigger fade-out animation when session ends
     const unsubSessionEnd = useSessionStore.subscribe(
       (state) => state.activeSessionId,
       (sessionId) => {
         if (sessionId === null) {
-          // Session ended — clear all visual state
+          // Session ended — clear visual data and start fade animation
           activeNotesRef.current = {};
           prevActiveNotesRef.current = {};
           fadingNotesRef.current = [];
           timingPulsesRef.current = [];
           isInFlowRef.current = false;
+          sessionEndStateRef.current = 'fading';
+          sessionEndStartRef.current = performance.now();
+          dirtyRef.current = true;
+        } else if (sessionEndStateRef.current !== 'none') {
+          // New session started — reset end animation
+          sessionEndStateRef.current = 'none';
           dirtyRef.current = true;
         }
       }
@@ -447,6 +456,34 @@ export function VisualizationCanvas() {
           );
         }
 
+        // --- Session-end fade animation (Story 23.7) ---
+        if (sessionEndStateRef.current === 'fading') {
+          const fadeElapsed = now - sessionEndStartRef.current;
+          const SESSION_END_FADE_MS = 1000;
+          const fadeAlpha = Math.min(fadeElapsed / SESSION_END_FADE_MS, 1);
+
+          c.save();
+          c.fillStyle = `rgba(15, 15, 15, ${fadeAlpha})`;
+          c.fillRect(0, 0, logicalW, logicalH);
+          c.restore();
+
+          if (fadeAlpha >= 1) {
+            sessionEndStateRef.current = 'complete';
+          }
+          dirtyRef.current = true;
+        } else if (sessionEndStateRef.current === 'complete') {
+          // Dark background + "Session complete" centered text
+          c.save();
+          c.fillStyle = '#0F0F0F';
+          c.fillRect(0, 0, logicalW, logicalH);
+          c.font = '500 18px "Inter", sans-serif';
+          c.fillStyle = 'rgba(124, 185, 232, 0.6)';
+          c.textAlign = 'center';
+          c.textBaseline = 'middle';
+          c.fillText('Session complete', logicalW / 2, logicalH / 2);
+          c.restore();
+        }
+
         // --- Replay mode overlay (Story 12.5) ---
         if (currentModeRef.current === 'replay-studio') {
           // "REPLAY" label in top-left
@@ -484,12 +521,13 @@ export function VisualizationCanvas() {
           dirtyRef.current = true;
         }
 
-        // Keep rendering while fading notes, timing pulses, or snapshot transitioning
+        // Keep rendering while fading notes, timing pulses, snapshot transitioning, or session ending
         if (
           fadingNotesRef.current.length > 0 ||
           timingPulsesRef.current.length > 0 ||
           isInFlowRef.current ||
-          snapshotTransitionRef.current !== 'none'
+          snapshotTransitionRef.current !== 'none' ||
+          sessionEndStateRef.current === 'fading'
         ) {
           dirtyRef.current = true;
         }

@@ -12,8 +12,9 @@ export function noteNumberToY(noteNumber: number, canvasHeight: number): number 
 }
 
 export function velocityToAlpha(velocity: number): number {
-  // Map velocity 0-127 to opacity 0.3-1.0
-  return 0.3 + (velocity / 127) * 0.7;
+  // Map velocity 0-127 to opacity 0.3-1.0, clamped at 0.5 minimum
+  // so soft notes (velocity 1-20) are always visible (Story 23.7)
+  return Math.max(0.5, 0.3 + (velocity / 127) * 0.7);
 }
 
 export function velocityToSize(velocity: number): number {

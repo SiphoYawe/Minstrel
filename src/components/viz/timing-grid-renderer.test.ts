@@ -27,6 +27,7 @@ function createMockCtx() {
     font: '',
     textAlign: 'start',
     textBaseline: 'alphabetic',
+    setLineDash: vi.fn(),
     createRadialGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
     createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
   } as unknown as CanvasRenderingContext2D;
@@ -59,9 +60,11 @@ describe('renderTimingGrid', () => {
     expect(ctx.fillRect).not.toHaveBeenCalled();
   });
 
-  it('renders BPM label when bpm is set but no deviations', () => {
+  it('renders predictive grid lines and BPM label when bpm is set but no deviations', () => {
     const ctx = createMockCtx();
     renderTimingGrid(ctx, WIDTH, HEIGHT, 120, []);
+    // Predictive model: renders grid lines even with no deviations (12 past + 4 predictive + 1 = 17)
+    expect(ctx.stroke).toHaveBeenCalledTimes(17);
     expect(ctx.fillText).toHaveBeenCalledTimes(1);
     expect(ctx.fillText).toHaveBeenCalledWith('120 BPM', expect.any(Number), expect.any(Number));
   });
@@ -76,12 +79,28 @@ describe('renderTimingGrid', () => {
 
     renderTimingGrid(ctx, WIDTH, HEIGHT, 120, deviations);
 
-    // Grid lines drawn (13 lines: 0 through 12)
-    expect(ctx.stroke).toHaveBeenCalled();
+    // Grid lines drawn (17 total: BEATS_TO_SHOW + PREDICTIVE_BEATS + 1)
+    expect(ctx.stroke).toHaveBeenCalledTimes(17);
     // Note markers drawn (3 deviations)
     expect(ctx.fillRect).toHaveBeenCalled();
     // BPM label drawn
     expect(ctx.fillText).toHaveBeenCalledWith('120 BPM', expect.any(Number), expect.any(Number));
+  });
+
+  it('uses dashed lines for predictive future beats', () => {
+    const ctx = createMockCtx();
+    const deviations: TimingEvent[] = [
+      { noteTimestamp: 500, expectedBeatTimestamp: 500, deviationMs: 0, beatIndex: 5 },
+    ];
+    renderTimingGrid(ctx, WIDTH, HEIGHT, 120, deviations);
+    // setLineDash called for future beats (dashed) + resets (solid)
+    expect(ctx.setLineDash).toHaveBeenCalled();
+    // Verify at least one dashed call [4, 4]
+    const dashCalls = (ctx.setLineDash as ReturnType<typeof vi.fn>).mock.calls;
+    const hasDashed = dashCalls.some(
+      (call: unknown[]) => Array.isArray(call[0]) && (call[0] as number[]).length === 2
+    );
+    expect(hasDashed).toBe(true);
   });
 
   it('uses different alpha for on-beat vs off-beat markers', () => {

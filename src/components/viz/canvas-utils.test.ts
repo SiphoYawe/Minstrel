@@ -71,12 +71,18 @@ describe('noteNumberToY', () => {
 });
 
 describe('velocityToAlpha', () => {
-  it('maps velocity 0 to 0.3', () => {
-    expect(velocityToAlpha(0)).toBe(0.3);
+  it('maps velocity 0 to minimum 0.5 (clamped)', () => {
+    expect(velocityToAlpha(0)).toBe(0.5);
   });
 
   it('maps velocity 127 to 1.0', () => {
     expect(velocityToAlpha(127)).toBe(1.0);
+  });
+
+  it('soft notes (velocity 1-20) have at least 0.5 opacity', () => {
+    for (let v = 1; v <= 20; v++) {
+      expect(velocityToAlpha(v)).toBeGreaterThanOrEqual(0.5);
+    }
   });
 });
 

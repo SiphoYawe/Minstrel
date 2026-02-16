@@ -2,6 +2,7 @@ import type { TimingEvent } from '@/features/analysis/analysis-types';
 import { ON_BEAT_TOLERANCE_MS } from '@/lib/constants';
 
 const GRID_LINE_ALPHA = 0.15;
+const PREDICTIVE_GRID_ALPHA = 0.1;
 const GRID_LINE_WIDTH = 1;
 const NOTE_MARKER_SIZE = 6;
 const ON_BEAT_ALPHA = 0.9;
@@ -9,6 +10,7 @@ const OFF_BEAT_ALPHA = 0.5;
 const BPM_LABEL_FONT = '12px "JetBrains Mono", monospace';
 const BPM_LABEL_COLOR = 'rgba(168, 213, 186, 0.6)';
 const BEATS_TO_SHOW = 12;
+const PREDICTIVE_BEATS = 4;
 const MAX_DEVIATION_PX = 40;
 
 // --- Timing pulse constants ---
@@ -203,8 +205,9 @@ export function renderFlowGlow(
  * beat index. On-beat notes are centered on the grid line; early/late
  * notes are offset left/right proportionally to their deviation.
  *
- * All positioning is derived from the deviation data (MIDI timestamps),
- * avoiding any dependency on performance.now() clock.
+ * Story 23.7: Predictive model — shows upcoming beat markers based on
+ * detected tempo, even before notes are played on those beats.
+ * Past beats rendered solid, future beats rendered dashed at lower alpha.
  */
 export function renderTimingGrid(
   ctx: CanvasRenderingContext2D,
@@ -220,38 +223,44 @@ export function renderTimingGrid(
   const bandCenterY = bandTop + bandHeight / 2;
 
   const beatIntervalMs = 60000 / bpm;
-
-  // Use the last 16 deviations for display
   const recent = deviations.slice(-16);
-  if (recent.length === 0) {
-    renderBpmLabel(ctx, bpm, canvasWidth, bandTop);
-    return;
-  }
 
-  // Determine beat range from deviation data
-  const lastBeat = recent[recent.length - 1].beatIndex;
-  const firstBeat = lastBeat - BEATS_TO_SHOW + 1;
+  // Total beats to render: past + predictive future
+  const totalBeats = BEATS_TO_SHOW + PREDICTIVE_BEATS;
+  const beatSpacingPx = canvasWidth / (totalBeats + 1);
 
-  // Pixel spacing per beat
-  const beatSpacingPx = canvasWidth / (BEATS_TO_SHOW + 1);
+  // Determine beat range: anchor on last known beat, extend forward
+  const lastPlayedBeat = recent.length > 0 ? recent[recent.length - 1].beatIndex : 0;
+  const firstBeat = lastPlayedBeat - BEATS_TO_SHOW + 1;
 
-  // Draw vertical beat grid lines
-  ctx.strokeStyle = `rgba(168, 213, 186, ${GRID_LINE_ALPHA})`;
   ctx.lineWidth = GRID_LINE_WIDTH;
 
-  for (let i = 0; i <= BEATS_TO_SHOW; i++) {
+  // Draw vertical beat grid lines (past + predictive future)
+  for (let i = 0; i <= totalBeats; i++) {
+    const beatIndex = firstBeat + i;
     const x = (i + 1) * beatSpacingPx;
+    const isFuture = beatIndex > lastPlayedBeat;
+
+    if (isFuture) {
+      // Predictive beats: dashed, lower alpha
+      ctx.strokeStyle = `rgba(168, 213, 186, ${PREDICTIVE_GRID_ALPHA})`;
+      ctx.setLineDash([4, 4]);
+    } else {
+      ctx.strokeStyle = `rgba(168, 213, 186, ${GRID_LINE_ALPHA})`;
+      ctx.setLineDash([]);
+    }
 
     ctx.beginPath();
     ctx.moveTo(x, bandTop);
     ctx.lineTo(x, bandTop + bandHeight);
     ctx.stroke();
   }
+  ctx.setLineDash([]); // reset
 
   // Render note markers at their beat positions with deviation offset
   for (const d of recent) {
     const beatOffset = d.beatIndex - firstBeat;
-    if (beatOffset < 0 || beatOffset > BEATS_TO_SHOW) continue;
+    if (beatOffset < 0 || beatOffset > totalBeats) continue;
 
     const baseX = (beatOffset + 1) * beatSpacingPx;
 
