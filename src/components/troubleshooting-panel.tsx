@@ -141,7 +141,7 @@ export function TroubleshootingPanel({
       <div
         role="complementary"
         aria-label="MIDI connected"
-        className="fixed inset-x-0 bottom-12 z-[var(--z-panel)] flex justify-center px-4 pb-2"
+        className="fixed inset-0 z-[var(--z-panel)] flex items-center justify-center px-4"
       >
         <div className="w-full max-w-[480px] border border-border bg-card">
           <div className="flex items-center gap-3 px-4 py-4">
@@ -176,7 +176,7 @@ export function TroubleshootingPanel({
     <div
       role="complementary"
       aria-label="MIDI troubleshooting"
-      className="fixed inset-x-0 bottom-12 z-50 flex justify-center px-4 pb-2"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
     >
       <div className="w-full max-w-[480px] border border-border bg-card">
         {/* Header */}

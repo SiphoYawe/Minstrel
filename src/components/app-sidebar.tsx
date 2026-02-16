@@ -118,8 +118,8 @@ export function AppSidebar() {
                 transition-colors duration-150
                 ${
                   isActive
-                    ? 'text-primary bg-primary/8 border-l-2 border-primary'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-card border-l-2 border-transparent'
+                    ? 'text-primary bg-primary/8'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-card'
                 }
               `}
               aria-current={isActive ? 'page' : undefined}
