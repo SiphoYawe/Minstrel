@@ -347,7 +347,7 @@ development_status:
   28-1-fix-z-index-collisions-and-overlay-stacking: done # 2026-02-16
   28-2-fix-duplicate-main-elements-and-shared-statusbar: done # 2026-02-16
   28-3-fix-keyboard-shortcut-suppression-in-text-inputs: done # 2026-02-16
-  28-4-improve-sign-out-discoverability-and-audio-mode-banner: ready-for-dev
+  28-4-improve-sign-out-discoverability-and-audio-mode-banner: done # 2026-02-16
   28-5-fix-return-session-banner-and-mode-transition-feedback: ready-for-dev
   epic-28-retrospective: optional
 

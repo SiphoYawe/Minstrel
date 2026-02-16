@@ -6,6 +6,7 @@ import { KeyboardShortcutsPanel } from '@/components/keyboard-shortcuts-panel';
 import { FirstRunPrompt } from '@/components/first-run-prompt';
 import { SessionSummary } from '@/components/session-summary';
 import { StatusBar } from '@/components/status-bar';
+import { AudioModeBanner } from '@/components/audio-mode-banner';
 import { SilentCoach } from '@/features/modes/silent-coach';
 import { DashboardChat } from '@/features/modes/dashboard-chat';
 import { ReplayStudio } from '@/features/modes/replay-studio';
@@ -53,6 +54,8 @@ export default function GuestPlayPage() {
     <>
       {/* Shared StatusBar — rendered once, above all modes (Story 28.2) */}
       <StatusBar />
+      {/* Audio mode banner with Switch to MIDI button (Story 28.4) */}
+      <AudioModeBanner onSwitchToMidi={retryConnection} />
 
       {/* Mode-specific layout */}
       <div className="relative">

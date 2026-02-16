@@ -13,6 +13,7 @@ import type { AchievementToastItem } from '@/components/achievement-toast';
 import { ErrorBanner } from '@/components/error-banner';
 import { MidiConnectionLoading } from '@/components/midi-connection-loading';
 import { AudioModeLimitations } from '@/components/audio-mode-limitations';
+import { AudioModeBanner } from '@/components/audio-mode-banner';
 import { StatusBar } from '@/components/status-bar';
 import { SilentCoach } from '@/features/modes/silent-coach';
 import { DashboardChat } from '@/features/modes/dashboard-chat';
@@ -120,6 +121,8 @@ export default function SessionPage() {
 
       {/* Shared StatusBar — rendered once, above all modes (Story 28.2) */}
       <StatusBar />
+      {/* Audio mode banner with Switch to MIDI button (Story 28.4) */}
+      <AudioModeBanner onSwitchToMidi={retryConnection} />
 
       {/* Mode-specific layout */}
       <div className="relative">

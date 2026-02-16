@@ -2,7 +2,11 @@
 
 import { useMidiStore } from '@/stores/midi-store';
 
-export function AudioModeBanner() {
+interface AudioModeBannerProps {
+  onSwitchToMidi?: () => void;
+}
+
+export function AudioModeBanner({ onSwitchToMidi }: AudioModeBannerProps) {
   const inputSource = useMidiStore((s) => s.inputSource);
 
   if (inputSource !== 'audio') return null;
@@ -35,6 +39,15 @@ export function AudioModeBanner() {
             {' — connect a MIDI device for full precision'}
           </span>
         </span>
+        {onSwitchToMidi && (
+          <button
+            type="button"
+            onClick={onSwitchToMidi}
+            className="ml-auto shrink-0 font-mono text-[11px] uppercase tracking-[0.08em] text-primary hover:text-white border border-primary/20 hover:border-primary/50 px-2.5 py-1 transition-colors duration-150"
+          >
+            Switch to MIDI
+          </button>
+        )}
       </p>
     </div>
   );
