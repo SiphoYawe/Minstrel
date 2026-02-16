@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useSessionStore } from '@/stores/session-store';
 import { createMockSession } from '@/test-utils/session-fixtures';
 
@@ -80,7 +80,6 @@ describe('replay error recovery - session not found', () => {
   it('sets error status when session ID does not exist in DB', async () => {
     mockGet.mockResolvedValue(undefined);
 
-    const { loadSessionList } = await import('./use-replay-session');
     // Simulate the load path: get returns undefined → error
     const result = await mockGet(999);
     expect(result).toBeUndefined();
@@ -88,12 +87,18 @@ describe('replay error recovery - session not found', () => {
 
   it('distinguishes between no-sessions and invalid-id error messages', () => {
     // Invalid ID scenario
-    useSessionStore.getState().setReplayErrorMessage('Session not found. It may have been deleted.');
+    useSessionStore
+      .getState()
+      .setReplayErrorMessage('Session not found. It may have been deleted.');
     useSessionStore.getState().setReplayStatus('error');
     expect(useSessionStore.getState().replayErrorMessage).toContain('not found');
 
     // No sessions scenario
-    useSessionStore.getState().setReplayErrorMessage('No sessions to replay. Play a session first, then come back here to review your playing.');
+    useSessionStore
+      .getState()
+      .setReplayErrorMessage(
+        'No sessions to replay. Play a session first, then come back here to review your playing.'
+      );
     expect(useSessionStore.getState().replayErrorMessage).toContain('No sessions to replay');
   });
 });
@@ -113,7 +118,9 @@ describe('replay error recovery - mid-playback deletion', () => {
     useSessionStore.getState().setReplayState('paused');
 
     expect(useSessionStore.getState().replayStatus).toBe('deleted');
-    expect(useSessionStore.getState().replayErrorMessage).toBe('This session is no longer available.');
+    expect(useSessionStore.getState().replayErrorMessage).toBe(
+      'This session is no longer available.'
+    );
     expect(useSessionStore.getState().replayState).toBe('paused');
   });
 });
@@ -132,9 +139,7 @@ describe('replay error recovery - 0-duration sessions', () => {
     });
 
     const state = useSessionStore.getState();
-    const totalDurationMs = state.replaySession?.duration
-      ? state.replaySession.duration * 1000
-      : 0;
+    const totalDurationMs = state.replaySession?.duration ? state.replaySession.duration * 1000 : 0;
     const isEmpty = totalDurationMs === 0 && state.replayEvents.length === 0;
     expect(isEmpty).toBe(true);
   });
@@ -152,9 +157,7 @@ describe('replay error recovery - 0-duration sessions', () => {
     });
 
     const state = useSessionStore.getState();
-    const totalDurationMs = state.replaySession?.duration
-      ? state.replaySession.duration * 1000
-      : 0;
+    const totalDurationMs = state.replaySession?.duration ? state.replaySession.duration * 1000 : 0;
     const isEmpty = totalDurationMs === 0 && state.replayEvents.length === 0;
     expect(isEmpty).toBe(true);
   });
@@ -182,9 +185,7 @@ describe('replay error recovery - 0-duration sessions', () => {
     });
 
     const state = useSessionStore.getState();
-    const totalDurationMs = state.replaySession?.duration
-      ? state.replaySession.duration * 1000
-      : 0;
+    const totalDurationMs = state.replaySession?.duration ? state.replaySession.duration * 1000 : 0;
     const isEmpty = totalDurationMs === 0 && state.replayEvents.length === 0;
     expect(isEmpty).toBe(false);
   });

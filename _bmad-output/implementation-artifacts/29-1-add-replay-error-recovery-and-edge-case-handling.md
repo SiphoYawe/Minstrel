@@ -35,9 +35,11 @@ So that invalid sessions don't crash the app.
 ## Dev Agent Record
 
 ### Agent Model Used
+
 Claude Opus 4.6
 
 ### Completion Notes List
+
 - Added `replayErrorMessage` and `'deleted'` status to session store
 - Enhanced useReplaySession hook with specific error messages for not-found vs no-sessions
 - Added mid-playback deletion polling (5s interval) that detects removed sessions and stops playback
@@ -47,6 +49,7 @@ Claude Opus 4.6
 - 10 new unit tests covering all edge cases
 
 ### File List
+
 - src/stores/session-store.ts
 - src/features/session/use-replay-session.ts
 - src/features/modes/replay-studio.tsx

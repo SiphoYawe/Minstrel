@@ -234,7 +234,8 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
               {replayStatus === 'deleted' ? 'Session unavailable' : 'Replay error'}
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-              {replayErrorMessage || 'No sessions to replay. Play a session first, then come back here to review your playing.'}
+              {replayErrorMessage ||
+                'No sessions to replay. Play a session first, then come back here to review your playing.'}
             </p>
             <Link
               href="/replay"

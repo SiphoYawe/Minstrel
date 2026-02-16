@@ -82,7 +82,9 @@ export function useReplaySession(sessionId: number | null) {
     try {
       const latest = await loadLatestSession();
       if (!latest || !latest.id) {
-        setReplayErrorMessage('No sessions to replay. Play a session first, then come back here to review your playing.');
+        setReplayErrorMessage(
+          'No sessions to replay. Play a session first, then come back here to review your playing.'
+        );
         setReplayStatus('error');
         return;
       }
@@ -96,7 +98,13 @@ export function useReplaySession(sessionId: number | null) {
       setReplayErrorMessage('Failed to load session data.');
       setReplayStatus('error');
     }
-  }, [setReplaySession, setReplayEvents, setReplayStatus, setReplayPosition, setReplayErrorMessage]);
+  }, [
+    setReplaySession,
+    setReplayEvents,
+    setReplayStatus,
+    setReplayPosition,
+    setReplayErrorMessage,
+  ]);
 
   // Load session on mount / ID change
   useEffect(() => {
