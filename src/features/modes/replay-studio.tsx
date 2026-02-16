@@ -478,6 +478,7 @@ const ChatPanel = memo(function ChatPanel() {
   } = useReplayChat();
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [messagePositions, setMessagePositions] = useState<Record<string, number>>({});
 
   // Auto-scroll to bottom on new messages or loading state change
   useEffect(() => {
@@ -487,15 +488,24 @@ const ChatPanel = memo(function ChatPanel() {
     }
   }, [messages, isLoading]);
 
+  // Wrap submit to capture replay position for the message
+  const handleSubmitWithPosition = useCallback(() => {
+    const pos = useSessionStore.getState().replayPosition;
+    // Generate a predictive ID based on message count
+    const nextId = `user-${messages.length}`;
+    setMessagePositions((prev) => ({ ...prev, [nextId]: pos }));
+    handleSubmit();
+  }, [handleSubmit, messages.length]);
+
   // Handle Enter key in textarea
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        handleSubmit();
+        handleSubmitWithPosition();
       }
     },
-    [handleSubmit]
+    [handleSubmitWithPosition]
   );
 
   // --- No API key: graceful degradation ---
@@ -541,7 +551,7 @@ const ChatPanel = memo(function ChatPanel() {
           </div>
         )}
 
-        {messages.map((message) => {
+        {messages.map((message, idx) => {
           const textContent = message.parts
             .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
             .map((p) => p.text)
@@ -550,6 +560,8 @@ const ChatPanel = memo(function ChatPanel() {
           if (!textContent) return null;
 
           const isUser = message.role === 'user';
+          const posKey = `user-${idx}`;
+          const capturedPosition = messagePositions[posKey];
 
           return (
             <div key={message.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
@@ -563,6 +575,11 @@ const ChatPanel = memo(function ChatPanel() {
                   }
                 `}
               >
+                {isUser && capturedPosition !== undefined && (
+                  <span className="block font-mono text-[10px] text-primary/50 mb-1">
+                    Asking about {formatPositionMmSs(capturedPosition)}
+                  </span>
+                )}
                 {textContent}
               </div>
             </div>
@@ -604,14 +621,20 @@ const ChatPanel = memo(function ChatPanel() {
       <div className="shrink-0 border-t border-border bg-background">
         {/* Timestamp context indicator */}
         <div className="px-3 pt-2 pb-1">
-          <span className="font-mono text-[10px] text-muted-foreground tracking-wide">
-            Asking about moment at{' '}
-            <span className="text-primary/70">{formatPositionMmSs(currentTimestamp)}</span>
+          <span className="font-mono text-sm text-muted-foreground tracking-wide">
+            Asking about{' '}
+            <span className="text-primary font-medium">{formatPositionMmSs(currentTimestamp)}</span>
           </span>
         </div>
 
         {/* Input + send */}
-        <form onSubmit={handleSubmit} className="flex items-end gap-2 px-3 pb-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmitWithPosition();
+          }}
+          className="flex items-end gap-2 px-3 pb-3"
+        >
           <textarea
             value={input}
             onChange={handleInputChange}
@@ -717,8 +740,20 @@ const SessionsListPanel = memo(function SessionsListPanel() {
 
   if (loadingList) {
     return (
-      <div className="p-4">
-        <p className="font-mono text-xs text-muted-foreground">Loading sessions...</p>
+      <div className="p-2 flex flex-col gap-1" role="status" aria-label="Loading sessions">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="bg-card border border-surface-light p-3 animate-pulse">
+            <div className="flex items-center justify-between mb-2">
+              <div className="h-3 w-24 bg-surface-light" />
+              <div className="h-3 w-12 bg-surface-light" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-2.5 w-14 bg-surface-light" />
+              <div className="h-2.5 w-16 bg-surface-light" />
+            </div>
+          </div>
+        ))}
+        <span className="sr-only">Loading sessions</span>
       </div>
     );
   }
