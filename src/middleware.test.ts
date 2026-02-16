@@ -179,6 +179,39 @@ describe('middleware', () => {
   });
 
   // ──────────────────────────────────────────────
+  // Redirect path validation (SEC-L1)
+  // ──────────────────────────────────────────────
+
+  it('validates redirect path - blocks protocol-based paths', async () => {
+    const { validateRedirectPath } = await import('./middleware');
+    expect(validateRedirectPath('https://evil.com/steal')).toBe('/');
+    expect(validateRedirectPath('http://attacker.io')).toBe('/');
+    expect(validateRedirectPath('javascript://alert(1)')).toBe('/');
+  });
+
+  it('validates redirect path - allows safe relative paths', async () => {
+    const { validateRedirectPath } = await import('./middleware');
+    expect(validateRedirectPath('/session')).toBe('/session');
+    expect(validateRedirectPath('/settings')).toBe('/settings');
+    expect(validateRedirectPath('/replay/abc-123')).toBe('/replay/abc-123');
+  });
+
+  it('validates redirect path - blocks paths not starting with /', async () => {
+    const { validateRedirectPath } = await import('./middleware');
+    expect(validateRedirectPath('evil.com/redirect')).toBe('/');
+    expect(validateRedirectPath('')).toBe('/');
+  });
+
+  it('applies redirect validation when redirecting unauthenticated users', async () => {
+    const response = await runMiddleware('/session');
+    const location = response.headers.get('location');
+    expect(location).toBeTruthy();
+    const url = new URL(location!);
+    // redirectTo should be the validated pathname
+    expect(url.searchParams.get('redirectTo')).toBe('/session');
+  });
+
+  // ──────────────────────────────────────────────
   // Config / matcher export
   // ──────────────────────────────────────────────
 

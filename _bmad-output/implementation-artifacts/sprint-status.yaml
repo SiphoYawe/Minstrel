@@ -262,7 +262,7 @@ development_status:
   # Epic 21: Low Priority Cleanup (P3 — Post-launch)
   # Source: code-review-findings-epics-8-11.md — 20 LOW findings
   epic-21: in-progress
-  21-1-harden-middleware-and-rls-verification: ready-for-dev
+  21-1-harden-middleware-and-rls-verification: done
   21-2-fix-dst-edge-case-and-accumulator-reset: ready-for-dev
   21-3-fix-timer-and-subscription-cleanup: ready-for-dev
   21-4-fix-session-cache-and-metadata: ready-for-dev

@@ -4,6 +4,17 @@ import { createServerClient } from '@supabase/ssr';
 const PROTECTED_PATHS = ['/session', '/settings', '/replay'];
 const AUTH_PATHS = ['/login', '/signup'];
 
+/**
+ * Validates a redirect path to prevent open redirect attacks (SEC-L1).
+ * Only allows relative paths that start with '/' and don't contain protocol indicators.
+ */
+export function validateRedirectPath(path: string): string {
+  if (path.startsWith('/') && !path.includes('://')) {
+    return path;
+  }
+  return '/';
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -42,7 +53,7 @@ export async function middleware(request: NextRequest) {
   if (!user && isProtected) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
-    loginUrl.searchParams.set('redirectTo', pathname);
+    loginUrl.searchParams.set('redirectTo', validateRedirectPath(pathname));
     return NextResponse.redirect(loginUrl);
   }
 
@@ -57,6 +68,11 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // SEC-L2: API routes (/api/*) are intentionally excluded from this middleware.
+  // Each API route handler performs its own auth check via createClient() + getUser()
+  // because API routes need granular control: some are public (e.g., health checks),
+  // and middleware cannot reliably distinguish between authenticated API calls
+  // (which use cookie-based sessions) and server-to-server calls.
   matcher: [
     '/session/:path*',
     '/settings/:path*',
