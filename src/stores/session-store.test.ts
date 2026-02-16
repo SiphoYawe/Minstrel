@@ -672,4 +672,61 @@ describe('useSessionStore', () => {
       expect(state.timingAccuracy).toBe(100);
     });
   });
+
+  describe('recording pause & session markers (Story 24.2)', () => {
+    it('has initial recordingPaused as false', () => {
+      expect(useSessionStore.getState().recordingPaused).toBe(false);
+    });
+
+    it('setRecordingPaused updates pause state', () => {
+      useSessionStore.getState().setRecordingPaused(true);
+      expect(useSessionStore.getState().recordingPaused).toBe(true);
+      useSessionStore.getState().setRecordingPaused(false);
+      expect(useSessionStore.getState().recordingPaused).toBe(false);
+    });
+
+    it('has initial sessionMarkers as empty', () => {
+      expect(useSessionStore.getState().sessionMarkers).toEqual([]);
+    });
+
+    it('addSessionMarker appends markers', () => {
+      useSessionStore.getState().addSessionMarker({
+        type: 'midi-disconnected',
+        timestamp: 1000,
+      });
+      useSessionStore.getState().addSessionMarker({
+        type: 'midi-reconnected',
+        timestamp: 2000,
+      });
+
+      const markers = useSessionStore.getState().sessionMarkers;
+      expect(markers).toHaveLength(2);
+      expect(markers[0].type).toBe('midi-disconnected');
+      expect(markers[1].type).toBe('midi-reconnected');
+    });
+
+    it('addSessionMarker supports metadata', () => {
+      useSessionStore.getState().addSessionMarker({
+        type: 'device-changed',
+        timestamp: 3000,
+        metadata: { oldDevice: 'Piano A', newDevice: 'Piano B' },
+      });
+
+      const markers = useSessionStore.getState().sessionMarkers;
+      expect(markers[0].metadata).toEqual({ oldDevice: 'Piano A', newDevice: 'Piano B' });
+    });
+
+    it('endSession clears markers and pause state', () => {
+      useSessionStore.getState().setRecordingPaused(true);
+      useSessionStore.getState().addSessionMarker({
+        type: 'midi-disconnected',
+        timestamp: 1000,
+      });
+      useSessionStore.getState().setSessionStartTimestamp(12345);
+      useSessionStore.getState().endSession();
+
+      expect(useSessionStore.getState().recordingPaused).toBe(false);
+      expect(useSessionStore.getState().sessionMarkers).toEqual([]);
+    });
+  });
 });

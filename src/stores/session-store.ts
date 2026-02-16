@@ -43,12 +43,26 @@ import {
 } from '@/features/difficulty/difficulty-engine';
 import { detectZone } from '@/features/difficulty/growth-zone-detector';
 
+export type SessionMarkerType =
+  | 'midi-disconnected'
+  | 'midi-reconnected'
+  | 'device-changed'
+  | 'mode-switch';
+
+export interface SessionMarker {
+  type: SessionMarkerType;
+  timestamp: number;
+  metadata?: Record<string, string>;
+}
+
 interface SessionState {
   currentMode: SessionMode;
   sessionStartTimestamp: number | null;
   sessionType: SessionType | null;
   interruptionsAllowed: boolean;
   activeSessionId: number | null;
+  recordingPaused: boolean;
+  sessionMarkers: SessionMarker[];
   currentNotes: DetectedNote[];
   detectedChords: DetectedChord[];
   chordProgression: ChordProgression | null;
@@ -150,6 +164,8 @@ interface SessionActions {
   addTokenUsage: (tokens: number) => void;
   setShowSessionSummary: (show: boolean) => void;
   endSession: () => void;
+  setRecordingPaused: (paused: boolean) => void;
+  addSessionMarker: (marker: SessionMarker) => void;
   resetReplay: () => void;
   resetAnalysis: () => void;
 }
@@ -162,6 +178,8 @@ const initialState: SessionState = {
   sessionType: null,
   interruptionsAllowed: false,
   activeSessionId: null,
+  recordingPaused: false,
+  sessionMarkers: [],
   currentNotes: [],
   detectedChords: [],
   chordProgression: null,
@@ -407,6 +425,13 @@ export const useSessionStore = create<SessionStore>()(
         recentSessions: state.recentSessions,
         // Keep summary visible until explicitly dismissed
         showSessionSummary: state.showSessionSummary,
+      })),
+
+    setRecordingPaused: (paused) => set({ recordingPaused: paused }),
+
+    addSessionMarker: (marker) =>
+      set((state) => ({
+        sessionMarkers: [...state.sessionMarkers, marker],
       })),
 
     resetReplay: () =>
