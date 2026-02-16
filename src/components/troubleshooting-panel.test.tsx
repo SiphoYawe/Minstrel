@@ -156,4 +156,37 @@ describe('TroubleshootingPanel', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(props.onDismiss).toHaveBeenCalledTimes(1);
   });
+
+  describe('keyboard shortcut suppression in text inputs (Story 28.3)', () => {
+    it('suppresses Escape when an <input> is focused', () => {
+      const { props } = renderPanel();
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+      input.focus();
+      fireEvent.keyDown(input, { key: 'Escape' });
+      expect(props.onDismiss).not.toHaveBeenCalled();
+      document.body.removeChild(input);
+    });
+
+    it('suppresses Escape when a <textarea> is focused', () => {
+      const { props } = renderPanel();
+      const textarea = document.createElement('textarea');
+      document.body.appendChild(textarea);
+      textarea.focus();
+      fireEvent.keyDown(textarea, { key: 'Escape' });
+      expect(props.onDismiss).not.toHaveBeenCalled();
+      document.body.removeChild(textarea);
+    });
+
+    it('suppresses Escape when a contenteditable element is focused', () => {
+      const { props } = renderPanel();
+      const div = document.createElement('div');
+      div.contentEditable = 'true';
+      document.body.appendChild(div);
+      div.focus();
+      fireEvent.keyDown(div, { key: 'Escape' });
+      expect(props.onDismiss).not.toHaveBeenCalled();
+      document.body.removeChild(div);
+    });
+  });
 });

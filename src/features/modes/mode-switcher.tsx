@@ -63,6 +63,18 @@ export function ModeSwitcher() {
     function handleKeyDown(e: KeyboardEvent) {
       if (!e.altKey) return;
 
+      // Suppress shortcuts when user is typing in an input field (Story 28.3)
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable ||
+          target.contentEditable === 'true')
+      ) {
+        return;
+      }
+
       const modeByKey: Record<string, SessionMode> = {
         '1': 'silent-coach',
         '2': 'dashboard-chat',

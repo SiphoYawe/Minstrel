@@ -91,4 +91,43 @@ describe('ModeSwitcher', () => {
     expect(screen.getByText('Coach')).toBeDefined();
     expect(screen.getByText('Replay')).toBeDefined();
   });
+
+  describe('keyboard shortcut suppression in text inputs (Story 28.3)', () => {
+    it('suppresses Alt+2 when an <input> is focused', () => {
+      render(<ModeSwitcher />);
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+      input.focus();
+      fireEvent.keyDown(input, { key: '2', altKey: true });
+      expect(useSessionStore.getState().currentMode).toBe('silent-coach');
+      document.body.removeChild(input);
+    });
+
+    it('suppresses Alt+2 when a <textarea> is focused', () => {
+      render(<ModeSwitcher />);
+      const textarea = document.createElement('textarea');
+      document.body.appendChild(textarea);
+      textarea.focus();
+      fireEvent.keyDown(textarea, { key: '2', altKey: true });
+      expect(useSessionStore.getState().currentMode).toBe('silent-coach');
+      document.body.removeChild(textarea);
+    });
+
+    it('suppresses Alt+2 when a contenteditable element is focused', () => {
+      render(<ModeSwitcher />);
+      const div = document.createElement('div');
+      div.contentEditable = 'true';
+      document.body.appendChild(div);
+      div.focus();
+      fireEvent.keyDown(div, { key: '2', altKey: true });
+      expect(useSessionStore.getState().currentMode).toBe('silent-coach');
+      document.body.removeChild(div);
+    });
+
+    it('still fires shortcut when focus is on a non-input element', () => {
+      render(<ModeSwitcher />);
+      fireEvent.keyDown(window, { key: '2', altKey: true });
+      expect(useSessionStore.getState().currentMode).toBe('dashboard-chat');
+    });
+  });
 });

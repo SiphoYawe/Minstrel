@@ -216,6 +216,17 @@ export function TimelineScrubber({
   // --- Global spacebar for play/pause ---
   useEffect(() => {
     function handleGlobalKey(e: KeyboardEvent) {
+      // Suppress when user is typing in an input field (Story 28.3)
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable ||
+          target.contentEditable === 'true')
+      ) {
+        return;
+      }
       if (e.key === ' ' && e.target === document.body) {
         e.preventDefault();
         onPlayPause();

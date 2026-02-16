@@ -78,6 +78,17 @@ export function TroubleshootingPanel({
     if (steps.length === 0 && !showSuccess) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Suppress when user is typing in an input field (Story 28.3)
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable ||
+          target.contentEditable === 'true')
+      ) {
+        return;
+      }
       if (e.key === 'Escape') {
         setShowSuccess(false);
         if (successTimerRef.current) {

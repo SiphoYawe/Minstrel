@@ -281,6 +281,42 @@ describe('TimelineScrubber', () => {
     });
   });
 
+  describe('keyboard shortcut suppression in text inputs (Story 28.3)', () => {
+    it('suppresses global spacebar when an <input> is focused', () => {
+      const onPlayPause = vi.fn();
+      render(<TimelineScrubber {...makeProps({ onPlayPause })} />);
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+      input.focus();
+      fireEvent.keyDown(input, { key: ' ' });
+      expect(onPlayPause).not.toHaveBeenCalled();
+      document.body.removeChild(input);
+    });
+
+    it('suppresses global spacebar when a <textarea> is focused', () => {
+      const onPlayPause = vi.fn();
+      render(<TimelineScrubber {...makeProps({ onPlayPause })} />);
+      const textarea = document.createElement('textarea');
+      document.body.appendChild(textarea);
+      textarea.focus();
+      fireEvent.keyDown(textarea, { key: ' ' });
+      expect(onPlayPause).not.toHaveBeenCalled();
+      document.body.removeChild(textarea);
+    });
+
+    it('suppresses global spacebar when a contenteditable element is focused', () => {
+      const onPlayPause = vi.fn();
+      render(<TimelineScrubber {...makeProps({ onPlayPause })} />);
+      const div = document.createElement('div');
+      div.contentEditable = 'true';
+      document.body.appendChild(div);
+      div.focus();
+      fireEvent.keyDown(div, { key: ' ' });
+      expect(onPlayPause).not.toHaveBeenCalled();
+      document.body.removeChild(div);
+    });
+  });
+
   describe('speed announcement', () => {
     it('announces speed change for screen readers', () => {
       render(<TimelineScrubber {...makeProps()} />);
