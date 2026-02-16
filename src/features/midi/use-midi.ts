@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useMidiStore } from '@/stores/midi-store';
 import { requestMidiAccess, disconnectMidi } from './midi-engine';
 import { requestAudioAccess, stopAudioListening, isAudioSupported } from './audio-engine';
@@ -62,10 +62,13 @@ export function useMidi() {
   const showTroubleshooting = useMidiStore((s) => s.showTroubleshooting);
   const detectedChannel = useMidiStore((s) => s.detectedChannel);
   const inputSource = useMidiStore((s) => s.inputSource);
+  const mountedRef = useRef(true);
 
   const isSupported = isMidiSupported();
 
   useEffect(() => {
+    mountedRef.current = true;
+
     if (!isSupported) {
       const audioSupported = isAudioSupported();
       useMidiStore.getState().setConnectionStatus('unsupported');
@@ -83,6 +86,8 @@ export function useMidi() {
 
     // Show troubleshooting after timeout if no device found
     const timer = setTimeout(() => {
+      // STATE-L5: Check mount state before updating store
+      if (!mountedRef.current) return;
       const { connectionStatus: status } = useMidiStore.getState();
       if (status !== 'connected') {
         useMidiStore.getState().setShowTroubleshooting(true);
@@ -90,6 +95,7 @@ export function useMidi() {
     }, TROUBLESHOOT_TIMEOUT_MS);
 
     return () => {
+      mountedRef.current = false;
       clearTimeout(timer);
       stopAudioListening();
       disconnectMidi();

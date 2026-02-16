@@ -187,6 +187,9 @@ export function useAnalysisPipeline() {
         clearTimeout(silenceTimerRef.current);
       }
       silenceTimerRef.current = setTimeout(() => {
+        // STATE-L3: Check mount state before executing timeout callback
+        if (!mountedRef.current) return;
+
         // Run pattern analysis first so snapshot captures latest genre/tendency data
         runPatternAnalysis();
 
@@ -244,6 +247,8 @@ export function useAnalysisPipeline() {
         store.setShowSessionSummary(false);
       }
       sessionEndTimerRef.current = setTimeout(() => {
+        // STATE-L3: Check mount state before executing timeout callback
+        if (!mountedRef.current) return;
         // Only trigger if user has actually played notes in this session
         const s = useSessionStore.getState();
         if (s.totalNotesPlayed > 0 && s.sessionStartTimestamp !== null) {
