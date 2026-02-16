@@ -21,6 +21,9 @@ import { validateCsrf } from '@/lib/middleware/csrf';
 const MAX_RETRIES = 3;
 const RETRY_BASE_MS = 1_000;
 
+/** Hard per-request token budget (AI-H2). Requests exceeding this get trimmed. */
+export const PER_REQUEST_TOKEN_BUDGET = 8_000;
+
 /**
  * Detect whether an error is a 429 / rate-limit response from the provider.
  */
@@ -53,7 +56,7 @@ async function streamWithRetry(
   params: {
     model: LanguageModel;
     system: string;
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
     experimental_transform?: (options: {
       tools: ToolSet;
       stopStream: () => void;
@@ -206,7 +209,10 @@ export async function POST(req: Request): Promise<Response> {
 
     // --- Context length management ---
     const systemPromptTokens = estimateTokenCount(systemPrompt);
-    const maxContextTokens = getContextLimit(providerId);
+    const providerContextLimit = getContextLimit(providerId);
+
+    // Use the smaller of the provider context limit and the per-request budget (AI-H2).
+    const maxContextTokens = Math.min(providerContextLimit, PER_REQUEST_TOKEN_BUDGET);
 
     const { trimmedMessages, wasTruncated, truncationSummary } = trimMessagesToFit(
       messages.map((m) => ({ role: m.role, content: m.content })),
@@ -214,12 +220,13 @@ export async function POST(req: Request): Promise<Response> {
       maxContextTokens
     );
 
-    // Prepend truncation summary as a system-injected assistant message so
-    // the model knows earlier context was removed.
-    const finalMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+    // Prepend truncation summary as a system-injected message so the model
+    // knows earlier context was removed. Uses 'system' role so it is clearly
+    // metadata rather than a fake assistant utterance (AI-H3).
+    const finalMessages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
 
     if (wasTruncated && truncationSummary) {
-      finalMessages.push({ role: 'assistant', content: truncationSummary });
+      finalMessages.push({ role: 'system', content: truncationSummary });
     }
 
     for (const m of trimmedMessages) {

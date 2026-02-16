@@ -13,14 +13,14 @@ vi.mock('@sentry/nextjs', () => ({
 }));
 import * as Sentry from '@sentry/nextjs';
 
-// Mock Supabase client
+// Mock Supabase server client (async createClient)
 const mockInsert = vi.fn().mockResolvedValue({ error: null });
 const mockSelect = vi.fn();
 const mockEq = vi.fn();
 const mockLimit = vi.fn();
 
-vi.mock('@/lib/supabase/client', () => ({
-  createClient: () => ({
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: async () => ({
     from: () => ({
       insert: mockInsert,
       select: mockSelect,
@@ -28,9 +28,19 @@ vi.mock('@/lib/supabase/client', () => ({
   }),
 }));
 
+// Mock validation — allow tests to control UUID validation behavior
+const mockIsValidUUID = vi.fn().mockReturnValue(true);
+vi.mock('@/lib/validation', () => ({
+  isValidUUID: (...args: unknown[]) => mockIsValidUUID(...args),
+}));
+
+// Valid UUID for test params
+const VALID_UUID = '550e8400-e29b-41d4-a716-446655440000';
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockInsert.mockResolvedValue({ error: null });
+  mockIsValidUUID.mockReturnValue(true);
 
   // Default chain for select queries: .select().eq().limit()
   mockLimit.mockResolvedValue({ data: [], error: null });
@@ -120,7 +130,7 @@ describe('extractTokenUsage', () => {
 describe('recordTokenUsage', () => {
   it('inserts a row with correct column mapping', async () => {
     await recordTokenUsage({
-      sessionId: 'session-123',
+      sessionId: VALID_UUID,
       userId: 'user-456',
       role: 'assistant',
       content: 'Hello!',
@@ -131,7 +141,7 @@ describe('recordTokenUsage', () => {
     });
 
     expect(mockInsert).toHaveBeenCalledWith({
-      session_id: 'session-123',
+      session_id: VALID_UUID,
       user_id: 'user-456',
       role: 'assistant',
       content: 'Hello!',
@@ -144,7 +154,7 @@ describe('recordTokenUsage', () => {
 
   it('defaults metadata to null when not provided', async () => {
     await recordTokenUsage({
-      sessionId: 's1',
+      sessionId: VALID_UUID,
       userId: 'u1',
       role: 'user',
       content: 'test',
@@ -162,7 +172,7 @@ describe('recordTokenUsage', () => {
 
     await expect(
       recordTokenUsage({
-        sessionId: 's1',
+        sessionId: VALID_UUID,
         userId: 'u1',
         role: 'user',
         content: 'test',
@@ -173,6 +183,44 @@ describe('recordTokenUsage', () => {
     ).resolves.toBeUndefined();
 
     expect(consoleSpy).toHaveBeenCalledWith('Failed to record token usage:', 'DB error');
+    consoleSpy.mockRestore();
+  });
+
+  it('allows empty sessionId (skips UUID validation)', async () => {
+    await recordTokenUsage({
+      sessionId: '',
+      userId: 'u1',
+      role: 'user',
+      content: 'test',
+      tokenCount: 10,
+      model: 'gpt-4o',
+      provider: 'openai',
+    });
+
+    // Empty sessionId should bypass UUID check and proceed to insert
+    expect(mockInsert).toHaveBeenCalled();
+  });
+
+  it('rejects invalid non-empty sessionId (SEC-M4)', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockIsValidUUID.mockReturnValue(false);
+
+    await recordTokenUsage({
+      sessionId: 'not-a-valid-uuid',
+      userId: 'u1',
+      role: 'user',
+      content: 'test',
+      tokenCount: 10,
+      model: 'gpt-4o',
+      provider: 'openai',
+    });
+
+    // Should NOT attempt insert
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Invalid sessionId format (not a UUID):',
+      'not-a-valid-uuid'
+    );
     consoleSpy.mockRestore();
   });
 });
@@ -307,7 +355,7 @@ describe('getTokenUsageSummary', () => {
 
 describe('recordTokenUsage Sentry & fallback queue', () => {
   const validParams = {
-    sessionId: 's1',
+    sessionId: '',
     userId: 'u1',
     role: 'user' as const,
     content: 'test',
@@ -329,10 +377,12 @@ describe('recordTokenUsage Sentry & fallback queue', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockInsert.mockResolvedValue({ error: null });
+    mockIsValidUUID.mockReturnValue(true);
     // Drain any leftover queue items from prior tests
     await drainQueue();
     vi.clearAllMocks();
     mockInsert.mockResolvedValue({ error: null });
+    mockIsValidUUID.mockReturnValue(true);
   });
 
   it('reports to Sentry when recording fails', async () => {

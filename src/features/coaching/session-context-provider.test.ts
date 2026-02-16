@@ -51,6 +51,18 @@ describe('getSessionContextForAI', () => {
     expect(ctx.timingAccuracy).toBe(0.75);
   });
 
+  it('clamps timingAccuracy above 100 to 1.0', () => {
+    useSessionStore.setState({ timingAccuracy: 150 });
+    const ctx = getSessionContextForAI();
+    expect(ctx.timingAccuracy).toBe(1.0);
+  });
+
+  it('clamps negative timingAccuracy to 0', () => {
+    useSessionStore.setState({ timingAccuracy: -20 });
+    const ctx = getSessionContextForAI();
+    expect(ctx.timingAccuracy).toBe(0);
+  });
+
   it('returns tempo from store', () => {
     useSessionStore.setState({ currentTempo: 120 });
     const ctx = getSessionContextForAI();

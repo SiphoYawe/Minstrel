@@ -1,9 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import * as Sentry from '@sentry/nextjs';
 import {
   getTerminologyForGenre,
   getGenreTerminologyHints,
   GenreTerminology,
 } from './genre-terminology';
+
+vi.mock('@sentry/nextjs', () => ({
+  captureMessage: vi.fn(),
+  captureException: vi.fn(),
+}));
 
 function expectPopulatedTerminology(t: GenreTerminology) {
   expect(Object.keys(t.chordTerms).length).toBeGreaterThanOrEqual(3);
@@ -14,6 +20,10 @@ function expectPopulatedTerminology(t: GenreTerminology) {
 }
 
 describe('getTerminologyForGenre', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('returns Jazz terminology for "Jazz"', () => {
     const t = getTerminologyForGenre('Jazz');
     expect(t.genre).toBe('Jazz');
@@ -259,6 +269,28 @@ describe('getTerminologyForGenre', () => {
     const t = getTerminologyForGenre('Grindcore');
     expect(t.genre).toBe('Generic');
     expectPopulatedTerminology(t);
+  });
+
+  it('logs unknown genre to Sentry when falling back to GENERIC', () => {
+    getTerminologyForGenre('Grindcore');
+    expect(Sentry.captureMessage).toHaveBeenCalledOnce();
+    expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      'Unknown genre fell back to GENERIC: "Grindcore"',
+      expect.objectContaining({
+        level: 'info',
+        extra: { genre: 'Grindcore' },
+      })
+    );
+  });
+
+  it('does not log to Sentry for null genre', () => {
+    getTerminologyForGenre(null);
+    expect(Sentry.captureMessage).not.toHaveBeenCalled();
+  });
+
+  it('does not log to Sentry for known genre', () => {
+    getTerminologyForGenre('Jazz');
+    expect(Sentry.captureMessage).not.toHaveBeenCalled();
   });
 });
 

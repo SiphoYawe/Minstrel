@@ -37,14 +37,18 @@ export async function fetchLifetimeXp(userId: string): Promise<number> {
  * increments current_value by the delta, eliminating race conditions from
  * concurrent read-modify-write cycles (e.g., session end + achievement unlock).
  *
- * Returns the server-authoritative new lifetime XP so callers can set
- * local state from the server value rather than optimistic calculation.
+ * Returns a status object so callers can distinguish success from failure
+ * rather than treating the call as fire-and-forget.
+ *
+ * - `success: true`  — `newTotal` is the server-authoritative lifetime XP.
+ * - `success: false` — the award failed; `newTotal` is undefined.
+ * - Returns `{ success: true }` with no `newTotal` when `totalXp <= 0` (no-op).
  */
 export async function awardXp(
   userId: string,
   breakdown: XpBreakdown
-): Promise<{ newLifetimeXp: number } | null> {
-  if (breakdown.totalXp <= 0) return null;
+): Promise<{ success: boolean; newTotal?: number }> {
+  if (breakdown.totalXp <= 0) return { success: true };
 
   const supabase = createClient();
   const { data, error } = await supabase.rpc('increment_xp', {
@@ -56,12 +60,13 @@ export async function awardXp(
 
   if (error) {
     console.error('[XP] Failed to award XP:', error.message);
-    return null;
+    return { success: false };
   }
 
   // RPC returns TABLE(new_lifetime_xp, new_best_xp) — data is an array
   const row = Array.isArray(data) ? data[0] : data;
   return {
-    newLifetimeXp: row?.new_lifetime_xp ?? breakdown.totalXp,
+    success: true,
+    newTotal: row?.new_lifetime_xp ?? breakdown.totalXp,
   };
 }

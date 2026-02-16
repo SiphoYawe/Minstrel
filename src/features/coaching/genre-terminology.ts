@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/nextjs';
+
 export interface GenreTerminology {
   genre: string;
   chordTerms: Record<string, string>;
@@ -446,7 +448,15 @@ const GENRE_MAP: Record<string, GenreTerminology> = {
 
 export function getTerminologyForGenre(genre: string | null): GenreTerminology {
   if (!genre) return GENERIC;
-  return GENRE_MAP[genre] ?? GENERIC;
+  const terminology = GENRE_MAP[genre];
+  if (!terminology) {
+    Sentry.captureMessage(`Unknown genre fell back to GENERIC: "${genre}"`, {
+      level: 'info',
+      extra: { genre },
+    });
+    return GENERIC;
+  }
+  return terminology;
 }
 
 export function getGenreTerminologyHints(genre: string | null): string {

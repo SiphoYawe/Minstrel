@@ -10,9 +10,13 @@ import type { MidiEngineCallbacks } from './midi-engine';
 
 const TROUBLESHOOT_TIMEOUT_MS = 3000;
 
-function createMidiCallbacks(): MidiEngineCallbacks {
-  let channelChecked = false;
+let channelChecked = false;
 
+function resetChannelChecked(): void {
+  channelChecked = false;
+}
+
+function createMidiCallbacks(): MidiEngineCallbacks {
   return {
     onConnectionStatusChanged: (status) => {
       const store = useMidiStore.getState();
@@ -89,6 +93,7 @@ export function useMidi() {
       clearTimeout(timer);
       stopAudioListening();
       disconnectMidi();
+      resetChannelChecked();
       useMidiStore.getState().reset();
     };
   }, [isSupported]);
@@ -98,6 +103,8 @@ export function useMidi() {
     disconnectMidi();
     useMidiStore.getState().setConnectionStatus('connecting');
     useMidiStore.getState().setDetectedChannel(null);
+    // Reset drum channel detection so it runs again after reconnect (STATE-M5)
+    resetChannelChecked();
     await requestMidiAccess(createMidiCallbacks());
   }, []);
 

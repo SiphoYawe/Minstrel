@@ -18,7 +18,7 @@ export function SilentCoach() {
   const hasSnapshot = useSessionStore((s) => !!s.currentSnapshot);
 
   return (
-    <div className="relative h-dvh w-full bg-background">
+    <main id="main-content" className="relative h-dvh w-full bg-background">
       {/* Canvas fills the entire viewport */}
       <div className="absolute inset-0 pt-10">
         <VisualizationCanvas />
@@ -31,6 +31,6 @@ export function SilentCoach() {
 
       {/* StatusBar — fixed top overlay (includes ModeSwitcher) */}
       <StatusBar />
-    </div>
+    </main>
   );
 }

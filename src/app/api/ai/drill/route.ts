@@ -70,14 +70,44 @@ export async function POST(req: Request): Promise<Response> {
       );
     }
 
+    const DRILL_TIMEOUT_MS = 20_000;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), DRILL_TIMEOUT_MS);
+
     const startTime = performance.now();
 
-    const { output } = await generateText({
-      model,
-      system: systemPrompt,
-      prompt: promptLines.join('\n'),
-      output: Output.object({ schema: DrillGenerationSchema }),
-    });
+    let output: Awaited<ReturnType<typeof generateText>>['output'];
+    try {
+      const result = await generateText({
+        model,
+        system: systemPrompt,
+        prompt: promptLines.join('\n'),
+        output: Output.object({ schema: DrillGenerationSchema }),
+        abortSignal: controller.signal,
+      });
+      output = result.output;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err instanceof Error && err.name === 'AbortError') {
+        Sentry.captureMessage('Drill generation timed out', {
+          level: 'warning',
+          extra: { timeoutMs: DRILL_TIMEOUT_MS, weakness },
+        });
+        return Response.json(
+          {
+            data: null,
+            error: {
+              code: 'TIMEOUT',
+              message: 'Drill generation timed out. Please try again.',
+            },
+          },
+          { status: 504 }
+        );
+      }
+      throw err;
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const elapsed = performance.now() - startTime;
     if (elapsed > 2000) {
@@ -94,7 +124,7 @@ export async function POST(req: Request): Promise<Response> {
     // Track server-side drill generation
     const posthog = getPostHogClient();
     posthog.capture({
-      distinctId: 'server', // No user context in this API route
+      distinctId: authResult.userId,
       event: 'ai_drill_generated',
       properties: {
         weakness,

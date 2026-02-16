@@ -66,33 +66,36 @@ describe('awardXp', () => {
       p_metadata: breakdown,
       p_last_qualified_at: expect.any(String),
     });
-    expect(result).toEqual({ newLifetimeXp: 142 });
+    expect(result).toEqual({ success: true, newTotal: 142 });
   });
 
-  it('returns null when totalXp is zero', async () => {
+  it('returns success with no newTotal when totalXp is zero', async () => {
     const breakdown = makeBreakdown(0);
     const result = await awardXp('user-123', breakdown);
 
     expect(mockRpc).not.toHaveBeenCalled();
-    expect(result).toBeNull();
+    expect(result).toEqual({ success: true });
+    expect(result.newTotal).toBeUndefined();
   });
 
-  it('returns null when totalXp is negative', async () => {
+  it('returns success with no newTotal when totalXp is negative', async () => {
     const breakdown = makeBreakdown(-5);
     const result = await awardXp('user-123', breakdown);
 
     expect(mockRpc).not.toHaveBeenCalled();
-    expect(result).toBeNull();
+    expect(result).toEqual({ success: true });
+    expect(result.newTotal).toBeUndefined();
   });
 
-  it('returns null on RPC error', async () => {
+  it('returns { success: false } on RPC error', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockRpc.mockResolvedValue({ data: null, error: { message: 'Database unavailable' } });
 
     const breakdown = makeBreakdown(10);
     const result = await awardXp('user-123', breakdown);
 
-    expect(result).toBeNull();
+    expect(result).toEqual({ success: false });
+    expect(result.newTotal).toBeUndefined();
     expect(consoleSpy).toHaveBeenCalledWith('[XP] Failed to award XP:', 'Database unavailable');
     consoleSpy.mockRestore();
   });
@@ -116,7 +119,7 @@ describe('awardXp', () => {
     const callArgs = mockRpc.mock.calls[0][1];
     expect(callArgs.p_delta).toBe(55);
     expect(callArgs.p_metadata).toEqual(breakdown);
-    expect(result).toEqual({ newLifetimeXp: 255 });
+    expect(result).toEqual({ success: true, newTotal: 255 });
   });
 });
 

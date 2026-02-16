@@ -11,14 +11,14 @@ import {
 // ---------------------------------------------------------------------------
 
 describe('estimateTokenCount', () => {
-  it('estimates ~4 chars per token', () => {
-    // 20 chars / 4 = 5 tokens
-    expect(estimateTokenCount('12345678901234567890')).toBe(5);
+  it('estimates ~4 chars per token for plain text', () => {
+    // 20 plain alpha chars / 4 = 5 tokens
+    expect(estimateTokenCount('abcdefghijklmnopqrst')).toBe(5);
   });
 
   it('rounds up for non-exact multiples', () => {
-    // 7 chars / 4 = 1.75 → ceil = 2
-    expect(estimateTokenCount('1234567')).toBe(2);
+    // 7 plain chars / 4 = 1.75 → ceil = 2
+    expect(estimateTokenCount('abcdefg')).toBe(2);
   });
 
   it('returns 0 for empty string', () => {
@@ -30,9 +30,42 @@ describe('estimateTokenCount', () => {
     expect(estimateTokenCount('x')).toBe(1);
   });
 
-  it('handles long text', () => {
+  it('handles long plain text', () => {
     const text = 'a'.repeat(4000);
     expect(estimateTokenCount(text)).toBe(1000);
+  });
+
+  // --- Adaptive estimation: content-type multipliers ---
+
+  it('applies code multiplier (1.2x) for code-heavy text', () => {
+    // Code tokens use fewer chars per token (more tokens per char)
+    const code = 'const x = () => { return []; };';
+    const plain = 'this is just plain english text';
+    // Code-heavy text should produce more tokens than plain text of similar length
+    expect(estimateTokenCount(code)).toBeGreaterThan(estimateTokenCount(plain));
+  });
+
+  it('applies number multiplier (0.8x) for number-heavy text', () => {
+    // Numbers compress well — fewer tokens per char
+    const numbers = '1234567890 9876543210 1111222233';
+    const plain = 'abcdefghij klmnopqrst uvwxabcdef';
+    // Number-heavy text should produce fewer tokens than plain text of similar length
+    expect(estimateTokenCount(numbers)).toBeLessThan(estimateTokenCount(plain));
+  });
+
+  it('handles mixed content with code and numbers', () => {
+    const mixed = 'const val = 12345; let arr = [1, 2, 3];';
+    const count = estimateTokenCount(mixed);
+    // Should still produce a reasonable positive token count
+    expect(count).toBeGreaterThan(0);
+    expect(count).toBeLessThan(mixed.length); // never more tokens than chars
+  });
+
+  it('plain text baseline is still ~4 chars per token', () => {
+    // Pure plain text with no code patterns or numbers
+    const text = 'hello world this is a test sentence with only words';
+    // 51 chars / 4 = 12.75 → ceil = 13
+    expect(estimateTokenCount(text)).toBe(13);
   });
 });
 

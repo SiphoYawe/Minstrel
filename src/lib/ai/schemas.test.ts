@@ -188,6 +188,30 @@ describe('DrillGenerationSchema', () => {
     const result = DrillGenerationSchema.safeParse(data);
     expect(result.success).toBe(false);
   });
+
+  it('rejects DrillGeneration with more than 64 notes', () => {
+    const data = validDrillGeneration();
+    data.sequence.notes = Array.from({ length: 65 }, (_, i) => ({
+      midiNote: 60,
+      duration: 1,
+      velocity: 80,
+      startBeat: i,
+    }));
+    const result = DrillGenerationSchema.safeParse(data);
+    expect(result.success).toBe(false);
+  });
+
+  it('accepts DrillGeneration with exactly 64 notes', () => {
+    const data = validDrillGeneration();
+    data.sequence.notes = Array.from({ length: 64 }, (_, i) => ({
+      midiNote: 60,
+      duration: 1,
+      velocity: 80,
+      startBeat: i,
+    }));
+    const result = DrillGenerationSchema.safeParse(data);
+    expect(result.success).toBe(true);
+  });
 });
 
 describe('AnalysisResultSchema', () => {

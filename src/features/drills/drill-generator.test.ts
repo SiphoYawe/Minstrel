@@ -106,6 +106,27 @@ describe('buildApiPayload', () => {
     expect(payload.weakness).toBe('Timing');
     expect(payload.difficultyParameters).toEqual(DEFAULT_DIFFICULTY);
   });
+
+  it('includes genre from sessionContext', () => {
+    const request = buildDrillRequest('Timing', null, DEFAULT_DIFFICULTY);
+    const context = makeSessionContext(); // genre: 'Blues'
+    const payload = buildApiPayload(request, context, 'openai');
+    expect(payload.genre).toBe('Blues');
+  });
+
+  it('falls back to request genreContext when sessionContext.genre is null', () => {
+    const request = buildDrillRequest('Timing', null, DEFAULT_DIFFICULTY, 'Jazz');
+    const context = { ...makeSessionContext(), genre: null };
+    const payload = buildApiPayload(request, context, 'openai');
+    expect(payload.genre).toBe('Jazz');
+  });
+
+  it('returns null genre when both sources are null', () => {
+    const request = buildDrillRequest('Timing', null, DEFAULT_DIFFICULTY);
+    const context = { ...makeSessionContext(), genre: null };
+    const payload = buildApiPayload(request, context, 'openai');
+    expect(payload.genre).toBeNull();
+  });
 });
 
 describe('mapLlmResponseToDrill', () => {

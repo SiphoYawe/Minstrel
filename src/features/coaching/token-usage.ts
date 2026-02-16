@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
 import { estimateCost } from '@/lib/ai/pricing';
+import { isValidUUID } from '@/lib/validation';
 
 export interface TokenUsageSummary {
   totalTokens: number;
@@ -69,6 +70,11 @@ function aggregateRows(rows: ConversationRow[]): TokenUsageSummary {
 }
 
 export async function getSessionTokenUsage(sessionId: string): Promise<TokenUsageSummary> {
+  // SEC-M4: Validate sessionId is a valid UUID before querying
+  if (!isValidUUID(sessionId)) {
+    return { ...EMPTY_SUMMARY };
+  }
+
   const supabase = createClient();
 
   const { data, error } = await supabase

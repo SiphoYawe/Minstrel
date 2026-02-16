@@ -61,12 +61,17 @@ export function useXp() {
       if (currentAuth && currentUser?.id) {
         try {
           const result = await awardXp(currentUser.id, breakdown);
-          if (result?.newLifetimeXp != null) {
+          if (result.success && result.newTotal != null) {
             // Server-authoritative: override optimistic value
-            setLifetimeXp(result.newLifetimeXp);
+            setLifetimeXp(result.newTotal);
+          } else if (!result.success) {
+            // Rollback optimistic update on failure
+            console.warn('[xp] XP award failed — rolling back optimistic update');
+            setLifetimeXp((prev) => prev - breakdown.totalXp);
           }
         } catch {
-          console.warn('[xp] Failed to persist XP to Supabase');
+          console.warn('[xp] Failed to persist XP to Supabase — rolling back');
+          setLifetimeXp((prev) => prev - breakdown.totalXp);
         }
       }
     }

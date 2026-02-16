@@ -162,12 +162,39 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
     return result;
   }, [replaySession, snapshots, drillRecords]);
 
-  const handleTabKeyDown = useCallback((e: React.KeyboardEvent, tabId: TabId) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setActiveTab(tabId);
-    }
-  }, []);
+  const handleTabKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLButtonElement>) => {
+      const currentIndex = TABS.findIndex((t) => t.id === activeTab);
+      let nextIndex: number | null = null;
+
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        nextIndex = (currentIndex + 1) % TABS.length;
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        nextIndex = (currentIndex - 1 + TABS.length) % TABS.length;
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        nextIndex = 0;
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        nextIndex = TABS.length - 1;
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        // Activate current tab (already active via roving tabindex focus)
+        return;
+      }
+
+      if (nextIndex !== null) {
+        const nextTab = TABS[nextIndex];
+        setActiveTab(nextTab.id);
+        // Move focus to the newly active tab
+        const tabEl = document.getElementById(`tab-${nextTab.id}`);
+        tabEl?.focus();
+      }
+    },
+    [activeTab]
+  );
 
   // --- Loading state ---
   if (replayStatus === 'loading') {
@@ -183,12 +210,12 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
             >
               <div className="h-full w-1/3 bg-primary animate-[shimmer_1.2s_ease-in-out_infinite]" />
             </div>
-            <p
-              className="font-mono text-xs tracking-widest uppercase text-primary/60"
-              aria-live="polite"
-            >
+            <p className="font-mono text-xs tracking-widest uppercase text-primary/60">
               Loading session...
             </p>
+            <span className="sr-only" aria-live="assertive">
+              Loading replay data
+            </span>
           </div>
         </div>
       </div>
@@ -260,7 +287,7 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
                   id={`tab-${tab.id}`}
                   tabIndex={activeTab === tab.id ? 0 : -1}
                   onClick={() => setActiveTab(tab.id)}
-                  onKeyDown={(e) => handleTabKeyDown(e, tab.id)}
+                  onKeyDown={handleTabKeyDown}
                   className={`
                     relative flex-1 px-4 py-3
                     text-xs uppercase tracking-[0.12em] font-medium

@@ -30,6 +30,13 @@ describe('SilentCoach', () => {
     expect(screen.getByTestId('status-bar')).toBeInTheDocument();
   });
 
+  it('renders a <main> landmark element (UI-M1)', () => {
+    render(<SilentCoach />);
+    const mainEl = document.querySelector('main');
+    expect(mainEl).toBeInTheDocument();
+    expect(mainEl).toHaveAttribute('id', 'main-content');
+  });
+
   it('does not render any chat panel or data cards', () => {
     render(<SilentCoach />);
     expect(screen.queryByTestId('chat-panel')).not.toBeInTheDocument();

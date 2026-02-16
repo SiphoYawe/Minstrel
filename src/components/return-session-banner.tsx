@@ -52,13 +52,18 @@ export function ReturnSessionBanner({ onStartFresh, onContinue }: ReturnSessionB
   const recentSessions = useSessionStore((s) => s.recentSessions);
   const totalNotesPlayed = useSessionStore((s) => s.totalNotesPlayed);
   const unsubRef = useRef<(() => void) | null>(null);
+  const bannerRef = useRef<HTMLDivElement>(null);
 
   // Auto-dismiss on first MIDI input via vanilla subscribe
+  // Only dismiss if banner does NOT have focus (UI-H7)
   useEffect(() => {
     const unsub = useMidiStore.subscribe(
       (state) => state.latestEvent,
       (latestEvent) => {
         if (latestEvent && latestEvent.type === 'note-on') {
+          if (bannerRef.current?.contains(document.activeElement)) {
+            return; // Don't dismiss while user is interacting with the banner
+          }
           setDismissed(true);
         }
       }
@@ -93,6 +98,7 @@ export function ReturnSessionBanner({ onStartFresh, onContinue }: ReturnSessionB
 
   return (
     <div
+      ref={bannerRef}
       className="absolute top-12 left-1/2 z-20 -translate-x-1/2 w-full max-w-lg"
       style={{ animation: 'banner-slide-in 0.3s ease-out' }}
       role="status"

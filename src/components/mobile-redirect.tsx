@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 const MOBILE_DISMISS_KEY = 'minstrel:mobile-redirect-dismissed';
@@ -43,6 +43,17 @@ export function MobileRedirect() {
     setShowMidiBanner(false);
   }
 
+  // Toggle aria-hidden on main content when mobile overlay is visible
+  useEffect(() => {
+    if (!showMobileOverlay) return;
+    const main = document.getElementById('main-content');
+    if (!main) return;
+    main.setAttribute('aria-hidden', 'true');
+    return () => {
+      main.removeAttribute('aria-hidden');
+    };
+  }, [showMobileOverlay]);
+
   return (
     <>
       {/* Full-screen mobile overlay */}
@@ -60,11 +71,10 @@ export function MobileRedirect() {
             height={30}
             className="mb-8 h-6 w-auto opacity-60"
           />
-          <p className="text-lg font-medium text-foreground mb-3">
-            Designed for desktop
-          </p>
+          <p className="text-lg font-medium text-foreground mb-3">Designed for desktop</p>
           <p className="text-sm text-muted-foreground max-w-xs leading-relaxed mb-6">
-            Minstrel requires a desktop browser with MIDI support. Open on your computer for the best experience.
+            Minstrel requires a desktop browser with MIDI support. Open on your computer for the
+            best experience.
           </p>
           <button
             onClick={handleMobileDismiss}

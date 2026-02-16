@@ -34,6 +34,7 @@ export function buildApiPayload(
   return {
     sessionContext,
     weakness: request.weakness,
+    genre: sessionContext.genre ?? request.genreContext ?? null,
     difficultyParameters: request.difficultyParameters,
     previousDrillDescriptions: request.previousDrillDescriptions,
     providerId,

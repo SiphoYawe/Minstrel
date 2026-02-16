@@ -153,5 +153,131 @@ describe('GET /api/user/export', () => {
     expect(body.aiConversations).toEqual([]);
     expect(body.apiKeys).toEqual([]);
     expect(body.achievements).toEqual([]);
+    expect(body.tokenUsage).toEqual([]);
+  });
+
+  it('includes aggregated tokenUsage breakdown by provider and model', async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: 'user-tokens', email: 'tokens@example.com' } },
+      error: null,
+    });
+
+    const conversationsData = [
+      {
+        id: 'c1',
+        provider: 'openai',
+        model: 'gpt-4',
+        token_count: 500,
+        metadata: { prompt_tokens: 200, completion_tokens: 300 },
+      },
+      {
+        id: 'c2',
+        provider: 'openai',
+        model: 'gpt-4',
+        token_count: 300,
+        metadata: { prompt_tokens: 100, completion_tokens: 200 },
+      },
+      {
+        id: 'c3',
+        provider: 'anthropic',
+        model: 'claude-3',
+        token_count: 1000,
+        metadata: { prompt_tokens: 400, completion_tokens: 600 },
+      },
+      {
+        id: 'c4',
+        provider: 'openai',
+        model: 'gpt-3.5-turbo',
+        token_count: 150,
+        metadata: null,
+      },
+    ];
+
+    const conversationsChain = createChainMock({ data: conversationsData, error: null });
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'ai_conversations') return conversationsChain;
+      return createChainMock({ data: table === 'profiles' ? null : [], error: null });
+    });
+
+    const response = await GET();
+    const body = JSON.parse(await response.text());
+
+    expect(body.tokenUsage).toBeDefined();
+    expect(body.tokenUsage).toHaveLength(3);
+
+    // Find the openai/gpt-4 aggregation
+    const openaiGpt4 = body.tokenUsage.find(
+      (t: Record<string, unknown>) => t.provider === 'openai' && t.model === 'gpt-4'
+    );
+    expect(openaiGpt4).toBeDefined();
+    expect(openaiGpt4.totalTokens).toBe(800);
+    expect(openaiGpt4.promptTokens).toBe(300);
+    expect(openaiGpt4.completionTokens).toBe(500);
+    expect(openaiGpt4.interactionCount).toBe(2);
+
+    // Find the anthropic/claude-3 aggregation
+    const anthropicClaude = body.tokenUsage.find(
+      (t: Record<string, unknown>) => t.provider === 'anthropic' && t.model === 'claude-3'
+    );
+    expect(anthropicClaude).toBeDefined();
+    expect(anthropicClaude.totalTokens).toBe(1000);
+    expect(anthropicClaude.promptTokens).toBe(400);
+    expect(anthropicClaude.completionTokens).toBe(600);
+    expect(anthropicClaude.interactionCount).toBe(1);
+
+    // Find the openai/gpt-3.5-turbo entry (no metadata)
+    const openaiGpt35 = body.tokenUsage.find(
+      (t: Record<string, unknown>) => t.provider === 'openai' && t.model === 'gpt-3.5-turbo'
+    );
+    expect(openaiGpt35).toBeDefined();
+    expect(openaiGpt35.totalTokens).toBe(150);
+    expect(openaiGpt35.promptTokens).toBe(0);
+    expect(openaiGpt35.completionTokens).toBe(0);
+    expect(openaiGpt35.interactionCount).toBe(1);
+  });
+
+  it('handles conversations with missing provider/model gracefully', async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: 'user-edge', email: 'edge@example.com' } },
+      error: null,
+    });
+
+    const conversationsData = [
+      {
+        id: 'c1',
+        provider: null,
+        model: null,
+        token_count: 100,
+        metadata: null,
+      },
+      {
+        id: 'c2',
+        provider: 'openai',
+        model: '',
+        token_count: 200,
+        metadata: { prompt_tokens: 80, completion_tokens: 120 },
+      },
+    ];
+
+    const conversationsChain = createChainMock({ data: conversationsData, error: null });
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'ai_conversations') return conversationsChain;
+      return createChainMock({ data: table === 'profiles' ? null : [], error: null });
+    });
+
+    const response = await GET();
+    const body = JSON.parse(await response.text());
+
+    expect(body.tokenUsage).toBeDefined();
+    expect(body.tokenUsage.length).toBeGreaterThanOrEqual(1);
+
+    // Null provider/model should fall back to 'unknown'
+    const unknownEntry = body.tokenUsage.find(
+      (t: Record<string, unknown>) => t.provider === 'unknown'
+    );
+    expect(unknownEntry).toBeDefined();
+    expect(unknownEntry.totalTokens).toBe(100);
   });
 });

@@ -168,6 +168,59 @@ describe('MobileRedirect', () => {
     });
   });
 
+  describe('aria-hidden on background content', () => {
+    it('sets aria-hidden on main content when mobile overlay shows', () => {
+      // Create a #main-content element in the document
+      const mainContent = document.createElement('div');
+      mainContent.id = 'main-content';
+      document.body.appendChild(mainContent);
+
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)',
+        configurable: true,
+      });
+      render(<MobileRedirect />);
+
+      expect(mainContent.getAttribute('aria-hidden')).toBe('true');
+
+      document.body.removeChild(mainContent);
+    });
+
+    it('removes aria-hidden when overlay is dismissed', () => {
+      const mainContent = document.createElement('div');
+      mainContent.id = 'main-content';
+      document.body.appendChild(mainContent);
+
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)',
+        configurable: true,
+      });
+      render(<MobileRedirect />);
+
+      expect(mainContent.getAttribute('aria-hidden')).toBe('true');
+
+      // Dismiss overlay
+      fireEvent.click(screen.getByRole('button', { name: /continue anyway/i }));
+
+      expect(mainContent.hasAttribute('aria-hidden')).toBe(false);
+
+      document.body.removeChild(mainContent);
+    });
+
+    it('does not set aria-hidden when no overlay is showing', () => {
+      const mainContent = document.createElement('div');
+      mainContent.id = 'main-content';
+      document.body.appendChild(mainContent);
+
+      // Desktop, MIDI supported - no overlay
+      render(<MobileRedirect />);
+
+      expect(mainContent.hasAttribute('aria-hidden')).toBe(false);
+
+      document.body.removeChild(mainContent);
+    });
+  });
+
   describe('design compliance', () => {
     it('uses design token classes (no hardcoded hex in mobile overlay)', () => {
       Object.defineProperty(navigator, 'userAgent', {

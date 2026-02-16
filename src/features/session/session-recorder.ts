@@ -4,6 +4,7 @@ import type { MidiEvent } from '@/features/midi/midi-types';
 import type { SessionType } from './session-types';
 import type { InstantSnapshot } from '@/features/analysis/analysis-types';
 import { capture } from '@/lib/analytics';
+import * as Sentry from '@sentry/nextjs';
 import {
   MAX_BUFFER_SIZE,
   AUTOSAVE_INTERVAL_MS,
@@ -18,10 +19,12 @@ let retryQueue: Omit<StoredMidiEvent, 'id'>[] = [];
 let autosaveTimer: ReturnType<typeof setInterval> | null = null;
 let metadataTimer: ReturnType<typeof setInterval> | null = null;
 let flushPromise: Promise<void> | null = null;
+let startPromise: Promise<number> | null = null;
 
 /**
  * Starts recording a session. Creates a session record in Dexie.
  * Returns the session ID.
+ * Uses an async lock (startPromise) to prevent double-start race conditions (STATE-M7).
  */
 export async function startRecording(
   sessionType: SessionType,
@@ -29,62 +32,80 @@ export async function startRecording(
 ): Promise<number> {
   if (activeSessionId !== null) return activeSessionId;
 
+  // Async lock: if a start is already in progress, return the existing promise (STATE-M7)
+  if (startPromise !== null) return startPromise;
+
   // Mark recording as requested so recordEvent buffers events before ID is assigned
   recordingRequested = true;
 
-  const id = await db.sessions.add({
-    startedAt: Date.now(),
-    endedAt: null,
-    duration: null,
-    inputSource,
-    sessionType,
-    status: 'recording',
-    key: null,
-    tempo: null,
-    userId: null,
-    syncStatus: 'pending',
-    supabaseId: null,
-  });
+  startPromise = (async () => {
+    // Atomic transaction: session creation + any pending events written together.
+    // If the transaction fails, neither the session nor events are persisted.
+    const id = await db.transaction('rw', db.sessions, db.midiEvents, async () => {
+      const sessionId = await db.sessions.add({
+        startedAt: Date.now(),
+        endedAt: null,
+        duration: null,
+        inputSource,
+        sessionType,
+        status: 'recording',
+        key: null,
+        tempo: null,
+        userId: null,
+        syncStatus: 'pending',
+        supabaseId: null,
+      });
 
-  activeSessionId = id as number;
-  eventBuffer = [];
-  retryQueue = [];
+      // Drain any events that arrived while awaiting session creation
+      if (pendingBuffer.length > 0) {
+        const initialEvents: Omit<StoredMidiEvent, 'id'>[] = pendingBuffer.map((event) => ({
+          sessionId: sessionId as number,
+          type: event.type,
+          note: event.note,
+          noteName: event.noteName,
+          velocity: event.velocity,
+          channel: event.channel,
+          timestamp: event.timestamp,
+          source: event.source,
+          userId: null,
+          syncStatus: 'pending' as const,
+        }));
+        await db.midiEvents.bulkAdd(initialEvents);
+      }
 
-  // Attach emergency flush handler
-  attachBeforeUnload();
-
-  // Drain any events that arrived while awaiting session creation
-  for (const event of pendingBuffer) {
-    eventBuffer.push({
-      sessionId: activeSessionId,
-      type: event.type,
-      note: event.note,
-      noteName: event.noteName,
-      velocity: event.velocity,
-      channel: event.channel,
-      timestamp: event.timestamp,
-      source: event.source,
-      userId: null,
-      syncStatus: 'pending',
+      return sessionId;
     });
+
+    activeSessionId = id as number;
+    eventBuffer = [];
+    retryQueue = [];
+    pendingBuffer = [];
+
+    // Attach emergency flush handler
+    attachBeforeUnload();
+
+    // Start autosave timer
+    autosaveTimer = setInterval(() => {
+      flush().catch((err) => {
+        console.warn('Autosave flush failed:', err);
+      });
+    }, AUTOSAVE_INTERVAL_MS);
+
+    // Track practice session start
+    capture('practice_session_started', {
+      session_type: sessionType,
+      input_source: inputSource,
+      session_id: activeSessionId,
+    });
+
+    return activeSessionId;
+  })();
+
+  try {
+    return await startPromise;
+  } finally {
+    startPromise = null;
   }
-  pendingBuffer = [];
-
-  // Start autosave timer
-  autosaveTimer = setInterval(() => {
-    flush().catch((err) => {
-      console.warn('Autosave flush failed:', err);
-    });
-  }, AUTOSAVE_INTERVAL_MS);
-
-  // Track practice session start
-  capture('practice_session_started', {
-    session_type: sessionType,
-    input_source: inputSource,
-    session_id: activeSessionId,
-  });
-
-  return activeSessionId;
 }
 
 /**
@@ -144,7 +165,9 @@ export async function flush(): Promise<void> {
       const retryBatch = retryQueue;
       retryQueue = [];
       try {
-        await db.midiEvents.bulkAdd(retryBatch);
+        await db.transaction('rw', db.midiEvents, async () => {
+          await db.midiEvents.bulkAdd(retryBatch);
+        });
       } catch {
         // Re-enqueue failed retries
         retryQueue = [...retryBatch, ...retryQueue];
@@ -156,7 +179,9 @@ export async function flush(): Promise<void> {
       const toWrite = eventBuffer;
       eventBuffer = [];
       try {
-        await db.midiEvents.bulkAdd(toWrite);
+        await db.transaction('rw', db.midiEvents, async () => {
+          await db.midiEvents.bulkAdd(toWrite);
+        });
       } catch {
         // Move failed events to retry queue (not back to main buffer)
         retryQueue = [...retryQueue, ...toWrite];
@@ -339,6 +364,7 @@ export function resetRecorder(): void {
   eventBuffer = [];
   retryQueue = [];
   flushPromise = null;
+  startPromise = null;
 }
 
 /**
@@ -346,4 +372,44 @@ export function resetRecorder(): void {
  */
 export function getRetryQueueSize(): number {
   return retryQueue.length;
+}
+
+/**
+ * Cleans up orphan sessions — sessions with zero MIDI events.
+ * Typically called on app startup. Logs to Sentry if orphans are found,
+ * then deletes them along with any associated analysis snapshots.
+ */
+export async function cleanupOrphanSessions(): Promise<number> {
+  if (!db) return 0;
+
+  const allSessions = await db.sessions.toArray();
+  const orphanIds: number[] = [];
+
+  for (const session of allSessions) {
+    // Skip sessions that are currently recording — they may not have events yet
+    if (session.status === 'recording') continue;
+
+    const eventCount = await db.midiEvents.where('sessionId').equals(session.id!).count();
+    if (eventCount === 0) {
+      orphanIds.push(session.id!);
+    }
+  }
+
+  if (orphanIds.length > 0) {
+    Sentry.captureMessage('Orphan sessions detected on startup', {
+      level: 'warning',
+      tags: { feature: 'session-recorder' },
+      extra: { orphanSessionIds: orphanIds, count: orphanIds.length },
+    });
+
+    // Delete orphan sessions and any associated snapshots atomically
+    await db.transaction('rw', db.sessions, db.analysisSnapshots, async () => {
+      await db.sessions.bulkDelete(orphanIds);
+      for (const id of orphanIds) {
+        await db.analysisSnapshots.where('sessionId').equals(id).delete();
+      }
+    });
+  }
+
+  return orphanIds.length;
 }

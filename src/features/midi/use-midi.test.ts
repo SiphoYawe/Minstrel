@@ -351,6 +351,54 @@ describe('useMidi', () => {
 
       expect(useMidiStore.getState().detectedChannel).toBe(9);
     });
+
+    it('resets channelChecked so drum detection runs again after retry (STATE-M5)', async () => {
+      vi.mocked(midiEngine.requestMidiAccess).mockResolvedValue(undefined);
+      const { result } = renderHook(() => useMidi());
+
+      // First connection: send a normal channel note-on to mark channelChecked = true
+      const initialCallbacks = vi.mocked(midiEngine.requestMidiAccess).mock.calls[0][0];
+      act(() => {
+        initialCallbacks.onMidiEvent!({
+          type: 'note-on',
+          note: 60,
+          noteName: 'C4',
+          velocity: 100,
+          channel: 0,
+          timestamp: 1000,
+          source: 'midi',
+        });
+      });
+
+      // channelChecked is now true — drum detection would not run again
+      expect(useMidiStore.getState().detectedChannel).toBeNull();
+
+      // Retry connection — should reset channelChecked
+      vi.mocked(midiEngine.requestMidiAccess).mockClear();
+      vi.mocked(midiEngine.requestMidiAccess).mockResolvedValue(undefined);
+
+      await act(async () => {
+        await result.current.retryConnection();
+      });
+
+      // After retry, send a drum channel note-on — detection should run again
+      const retryCallbacks = vi.mocked(midiEngine.requestMidiAccess).mock.calls[0][0];
+      act(() => {
+        retryCallbacks.onMidiEvent!({
+          type: 'note-on',
+          note: 36,
+          noteName: 'C2',
+          velocity: 80,
+          channel: 9,
+          timestamp: 2000,
+          source: 'midi',
+        });
+      });
+
+      // Without the STATE-M5 fix, this would still be null because channelChecked was true
+      expect(useMidiStore.getState().detectedChannel).toBe(9);
+      expect(useMidiStore.getState().showTroubleshooting).toBe(true);
+    });
   });
 
   describe('dismissTroubleshooting', () => {

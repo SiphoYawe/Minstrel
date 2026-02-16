@@ -71,6 +71,8 @@ export function TimelineScrubber({
   const rafPending = useRef(false);
   const pendingPosition = useRef(0);
   const capturedPointerIdRef = useRef<number | null>(null);
+  const savedUserSelectRef = useRef('');
+  const markerListRef = useRef<HTMLDivElement>(null);
   const [hoveredMarker, setHoveredMarker] = useState<TimelineMarker | null>(null);
   const [speedAnnouncement, setSpeedAnnouncement] = useState('');
 
@@ -112,6 +114,7 @@ export function TimelineScrubber({
       track.setPointerCapture(e.pointerId);
       capturedPointerIdRef.current = e.pointerId;
       isDragging.current = true;
+      savedUserSelectRef.current = document.body.style.userSelect;
       document.body.style.userSelect = 'none';
       onPositionChange(pixelToTimestamp(e.clientX));
     },
@@ -129,7 +132,7 @@ export function TimelineScrubber({
   const handlePointerUp = useCallback(() => {
     isDragging.current = false;
     capturedPointerIdRef.current = null;
-    document.body.style.userSelect = '';
+    document.body.style.userSelect = savedUserSelectRef.current;
   }, []);
 
   // --- Keyboard handler for slider ---
@@ -164,6 +167,24 @@ export function TimelineScrubber({
     [position, effectiveDuration, onPositionChange]
   );
 
+  // --- Arrow key navigation for marker buttons (UI-H11) ---
+  const handleMarkerKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    e.stopPropagation();
+    const container = markerListRef.current;
+    if (!container) return;
+    const buttons = Array.from(container.querySelectorAll<HTMLButtonElement>('button'));
+    if (buttons.length === 0) return;
+    const currentIndex = buttons.indexOf(e.target as HTMLButtonElement);
+    if (currentIndex === -1) return;
+    const nextIndex =
+      e.key === 'ArrowRight'
+        ? Math.min(currentIndex + 1, buttons.length - 1)
+        : Math.max(currentIndex - 1, 0);
+    buttons[nextIndex].focus();
+  }, []);
+
   // --- Speed change with announcement ---
   const handleSpeedChange = useCallback(
     (newSpeed: number) => {
@@ -178,7 +199,7 @@ export function TimelineScrubber({
     return () => {
       if (isDragging.current) {
         isDragging.current = false;
-        document.body.style.userSelect = '';
+        document.body.style.userSelect = savedUserSelectRef.current;
         const track = trackRef.current;
         if (track && capturedPointerIdRef.current !== null) {
           try {
@@ -260,56 +281,66 @@ export function TimelineScrubber({
             {formatTime(position)}
           </div>
 
-          {/* Event markers */}
-          {markers.map((marker, i) => {
-            const markerPercent = (marker.timestamp / effectiveDuration) * 100;
-            const markerColor = MARKER_COLORS[marker.type];
-            return (
-              <div
-                key={`${marker.type}-${marker.timestamp}-${i}`}
-                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10"
-                style={{ left: `${markerPercent}%` }}
-              >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onPositionChange(marker.timestamp);
-                  }}
-                  onMouseEnter={() => setHoveredMarker(marker)}
-                  onMouseLeave={() => setHoveredMarker(null)}
-                  onFocus={() => setHoveredMarker(marker)}
-                  onBlur={() => setHoveredMarker(null)}
-                  aria-label={`${marker.type}: ${marker.summary}`}
-                  className="flex items-center justify-center w-4 h-4
-                    cursor-pointer hover:scale-150 transition-transform duration-100"
-                >
-                  <span
-                    className="block w-2 h-2"
-                    style={{ backgroundColor: markerColor }}
-                    aria-hidden="true"
-                  />
-                </button>
-
-                {/* Tooltip */}
-                {hoveredMarker === marker && (
+          {/* Event markers — semantic list with arrow key navigation (UI-H11) */}
+          {markers.length > 0 && (
+            <div
+              ref={markerListRef}
+              role="list"
+              aria-label="Timeline markers"
+              onKeyDown={handleMarkerKeyDown}
+            >
+              {markers.map((marker, i) => {
+                const markerPercent = (marker.timestamp / effectiveDuration) * 100;
+                const markerColor = MARKER_COLORS[marker.type];
+                return (
                   <div
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2
-                      px-2 py-1 bg-card border border-surface-border
-                      font-mono text-[10px] text-foreground whitespace-nowrap
-                      pointer-events-none z-20"
-                    role="tooltip"
+                    key={`${marker.type}-${marker.timestamp}-${i}`}
+                    role="listitem"
+                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10"
+                    style={{ left: `${markerPercent}%` }}
                   >
-                    <span
-                      className="inline-block w-1.5 h-1.5 mr-1.5 align-middle"
-                      style={{ backgroundColor: markerColor }}
-                      aria-hidden="true"
-                    />
-                    {marker.summary}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPositionChange(marker.timestamp);
+                      }}
+                      onMouseEnter={() => setHoveredMarker(marker)}
+                      onMouseLeave={() => setHoveredMarker(null)}
+                      onFocus={() => setHoveredMarker(marker)}
+                      onBlur={() => setHoveredMarker(null)}
+                      aria-label={`${marker.type}: ${marker.summary}`}
+                      className="flex items-center justify-center w-4 h-4
+                        cursor-pointer hover:scale-150 transition-transform duration-100"
+                    >
+                      <span
+                        className="block w-2 h-2"
+                        style={{ backgroundColor: markerColor }}
+                        aria-hidden="true"
+                      />
+                    </button>
+
+                    {/* Tooltip */}
+                    {hoveredMarker === marker && (
+                      <div
+                        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2
+                          px-2 py-1 bg-card border border-surface-border
+                          font-mono text-[10px] text-foreground whitespace-nowrap
+                          pointer-events-none z-20"
+                        role="tooltip"
+                      >
+                        <span
+                          className="inline-block w-1.5 h-1.5 mr-1.5 align-middle"
+                          style={{ backgroundColor: markerColor }}
+                          aria-hidden="true"
+                        />
+                        {marker.summary}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

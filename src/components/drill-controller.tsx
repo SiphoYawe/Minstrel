@@ -183,9 +183,16 @@ export function DrillController({
           <p className="text-caption text-accent-warm tracking-[0.08em] uppercase mb-3">
             Listen first
           </p>
-          <Button size="sm" onClick={handleStartDrill} className="bg-accent-blue">
-            Start Drill
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={handleStartDrill} className="bg-accent-blue">
+              Start Drill
+            </Button>
+            <span className="text-caption text-text-tertiary flex items-center gap-1">
+              <kbd className="inline-flex h-5 items-center border border-border bg-card px-1.5 font-mono text-[10px] text-text-secondary">
+                Enter
+              </kbd>
+            </span>
+          </div>
         </div>
       )}
 
@@ -244,7 +251,7 @@ export function DrillController({
                 improvementPercent > 0
                   ? 'text-accent-success'
                   : improvementPercent === 0
-                    ? 'text-accent-warm'
+                    ? 'text-muted-foreground'
                     : 'text-accent-warm'
               }`}
             >

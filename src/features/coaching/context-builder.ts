@@ -31,7 +31,7 @@ export function buildSessionContext(): SessionContext {
     .slice(-20)
     .map((c) => `${c.root}${c.quality === 'Major' ? '' : c.quality === 'Minor' ? 'm' : c.quality}`);
 
-  const timingAccuracy = state.timingAccuracy / 100;
+  const timingAccuracy = Math.max(0, Math.min(1, state.timingAccuracy / 100));
   const tempo = state.currentTempo;
 
   const genre =
@@ -130,6 +130,19 @@ export function assessDataSufficiency(context: SessionContext): DataSufficiency 
 }
 
 const DEFAULT_REPLAY_WINDOW_MS = 10_000;
+const BEATS_TO_CAPTURE = 16;
+
+/**
+ * Compute a tempo-adaptive replay window.
+ * Formula: beatsToCapture * (60000 / tempo).
+ * Falls back to DEFAULT_REPLAY_WINDOW_MS when tempo is unavailable.
+ * Clamped to [2000, 30000] ms to avoid extreme values.
+ */
+export function computeAdaptiveWindowMs(tempo: number | null): number {
+  if (!tempo || tempo <= 0) return DEFAULT_REPLAY_WINDOW_MS;
+  const raw = BEATS_TO_CAPTURE * (60_000 / tempo);
+  return Math.max(2_000, Math.min(30_000, Math.round(raw)));
+}
 
 function formatTimestamp(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -170,8 +183,10 @@ export function buildReplayContext(
     genre: string | null;
     timingAccuracy?: number | null;
   },
-  windowMs: number = DEFAULT_REPLAY_WINDOW_MS
+  windowMs?: number
 ): ReplayContext {
+  // Use caller-supplied window or compute an adaptive one from tempo
+  windowMs = windowMs ?? computeAdaptiveWindowMs(sessionMeta.tempo);
   const windowStart = Math.max(0, timestamp - windowMs);
   const windowEnd = timestamp + windowMs;
 
@@ -225,7 +240,10 @@ export function buildReplayContext(
     }));
 
   // Read timing accuracy from session metadata (computed by analysis pipeline)
-  const timingAccuracy = sessionMeta.timingAccuracy != null ? sessionMeta.timingAccuracy / 100 : 0;
+  const timingAccuracy =
+    sessionMeta.timingAccuracy != null
+      ? Math.max(0, Math.min(1, sessionMeta.timingAccuracy / 100))
+      : 0;
 
   // Detect chord at moment from active notes
   const notesAtMoment = Array.from(activeNotes.values());

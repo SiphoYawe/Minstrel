@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@/test-utils/render';
+import { render, screen, fireEvent, act } from '@/test-utils/render';
 import { SessionSummary } from './session-summary';
 import { useSessionStore } from '@/stores/session-store';
 
@@ -172,5 +172,66 @@ describe('SessionSummary', () => {
     const { container } = render(<SessionSummary onDismiss={defaultOnDismiss} />);
     const html = container.innerHTML;
     expect(html).not.toMatch(/class="[^"]*#[0-9A-Fa-f]{3,8}[^"]*"/);
+  });
+
+  describe('focus trap (UI-M9)', () => {
+    it('auto-focuses the first interactive element on mount', () => {
+      render(<SessionSummary onDismiss={defaultOnDismiss} onContinuePracticing={vi.fn()} />);
+      // The close button (X) is the first focusable element
+      const closeBtn = screen.getByLabelText('Close session summary');
+      expect(document.activeElement).toBe(closeBtn);
+    });
+
+    it('traps Tab at the last focusable element back to the first', () => {
+      render(
+        <SessionSummary
+          onDismiss={defaultOnDismiss}
+          onContinuePracticing={vi.fn()}
+          onEndSession={vi.fn()}
+        />
+      );
+      const dialog = screen.getByRole('dialog');
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      const last = focusable[focusable.length - 1];
+      const first = focusable[0];
+      act(() => {
+        last.focus();
+      });
+      expect(document.activeElement).toBe(last);
+
+      // Press Tab on last — should wrap to first
+      fireEvent.keyDown(window, { key: 'Tab' });
+      expect(document.activeElement).toBe(first);
+    });
+
+    it('traps Shift+Tab at the first focusable element back to the last', () => {
+      render(
+        <SessionSummary
+          onDismiss={defaultOnDismiss}
+          onContinuePracticing={vi.fn()}
+          onEndSession={vi.fn()}
+        />
+      );
+      const dialog = screen.getByRole('dialog');
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      act(() => {
+        first.focus();
+      });
+      expect(document.activeElement).toBe(first);
+
+      // Press Shift+Tab on first — should wrap to last
+      fireEvent.keyDown(window, { key: 'Tab', shiftKey: true });
+      expect(document.activeElement).toBe(last);
+    });
   });
 });

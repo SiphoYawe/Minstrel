@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@/test-utils/render';
+import { render, screen, fireEvent, cleanup, act } from '@/test-utils/render';
 import { TimelineScrubber } from './timeline-scrubber';
 import type { TimelineScrubberProps, TimelineMarker } from './timeline-scrubber';
 
@@ -220,6 +220,65 @@ describe('TimelineScrubber', () => {
       fireEvent.mouseLeave(markerBtn);
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
     });
+
+    it('wraps markers in a semantic list with role="list" and aria-label (UI-H11)', () => {
+      render(<TimelineScrubber {...makeProps({ markers: testMarkers })} />);
+      const list = screen.getByRole('list', { name: 'Timeline markers' });
+      expect(list).toBeInTheDocument();
+    });
+
+    it('each marker has role="listitem" (UI-H11)', () => {
+      render(<TimelineScrubber {...makeProps({ markers: testMarkers })} />);
+      const listItems = screen.getAllByRole('listitem');
+      expect(listItems).toHaveLength(testMarkers.length);
+    });
+
+    it('does not render the marker list when there are no markers', () => {
+      render(<TimelineScrubber {...makeProps({ markers: [] })} />);
+      expect(screen.queryByRole('list', { name: 'Timeline markers' })).not.toBeInTheDocument();
+    });
+
+    it('ArrowRight moves focus to the next marker button', () => {
+      render(<TimelineScrubber {...makeProps({ markers: testMarkers })} />);
+      const firstMarker = screen.getByRole('button', { name: /snapshot: timing analysis/i });
+      const secondMarker = screen.getByRole('button', { name: /drill: scale drill/i });
+      act(() => {
+        firstMarker.focus();
+      });
+      fireEvent.keyDown(firstMarker, { key: 'ArrowRight' });
+      expect(document.activeElement).toBe(secondMarker);
+    });
+
+    it('ArrowLeft moves focus to the previous marker button', () => {
+      render(<TimelineScrubber {...makeProps({ markers: testMarkers })} />);
+      const firstMarker = screen.getByRole('button', { name: /snapshot: timing analysis/i });
+      const secondMarker = screen.getByRole('button', { name: /drill: scale drill/i });
+      act(() => {
+        secondMarker.focus();
+      });
+      fireEvent.keyDown(secondMarker, { key: 'ArrowLeft' });
+      expect(document.activeElement).toBe(firstMarker);
+    });
+
+    it('ArrowLeft on first marker keeps focus on first marker', () => {
+      render(<TimelineScrubber {...makeProps({ markers: testMarkers })} />);
+      const firstMarker = screen.getByRole('button', { name: /snapshot: timing analysis/i });
+      act(() => {
+        firstMarker.focus();
+      });
+      fireEvent.keyDown(firstMarker, { key: 'ArrowLeft' });
+      expect(document.activeElement).toBe(firstMarker);
+    });
+
+    it('ArrowRight on last marker keeps focus on last marker', () => {
+      render(<TimelineScrubber {...makeProps({ markers: testMarkers })} />);
+      const lastMarker = screen.getByRole('button', { name: /insight: speed ceiling/i });
+      act(() => {
+        lastMarker.focus();
+      });
+      fireEvent.keyDown(lastMarker, { key: 'ArrowRight' });
+      expect(document.activeElement).toBe(lastMarker);
+    });
   });
 
   describe('speed announcement', () => {
@@ -268,6 +327,26 @@ describe('TimelineScrubber', () => {
       // Unmount without any pointer interaction
       unmount();
       expect(document.body.style.userSelect).toBe('');
+    });
+
+    it('restores original non-empty userSelect value on unmount (UI-M7)', () => {
+      // Set a non-empty userSelect before rendering
+      document.body.style.userSelect = 'text';
+
+      const { unmount } = render(<TimelineScrubber {...makeProps()} />);
+      const slider = screen.getByRole('slider');
+      stubPointerCapture(slider);
+
+      // Start drag — should overwrite to 'none'
+      fireEvent.pointerDown(slider, { pointerId: 1, clientX: 50 });
+      expect(document.body.style.userSelect).toBe('none');
+
+      // Unmount mid-drag — should restore original 'text'
+      unmount();
+      expect(document.body.style.userSelect).toBe('text');
+
+      // Clean up for afterEach
+      document.body.style.userSelect = '';
     });
 
     it('restores userSelect after pointerUp ends drag before unmount', () => {

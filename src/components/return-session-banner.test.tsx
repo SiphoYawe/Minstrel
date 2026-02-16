@@ -144,6 +144,57 @@ describe('ReturnSessionBanner', () => {
     expect(screen.queryByText('Welcome back.')).not.toBeInTheDocument();
   });
 
+  it('does NOT auto-dismiss when banner has focus (UI-H7)', () => {
+    render(<ReturnSessionBanner />);
+    expect(screen.getByText('Welcome back.')).toBeInTheDocument();
+
+    // Focus the "Continue Where I Left Off" button inside the banner
+    const continueBtn = screen.getByText('Continue Where I Left Off');
+    continueBtn.focus();
+
+    act(() => {
+      useMidiStore.setState({
+        latestEvent: {
+          type: 'note-on',
+          note: 60,
+          noteName: 'C4',
+          velocity: 100,
+          channel: 1,
+          timestamp: Date.now(),
+          source: 'midi',
+        },
+      });
+    });
+
+    // Banner should still be visible because it had focus
+    expect(screen.getByText('Welcome back.')).toBeInTheDocument();
+  });
+
+  it('auto-dismisses on MIDI when banner does NOT have focus (UI-H7)', () => {
+    render(<ReturnSessionBanner />);
+    expect(screen.getByText('Welcome back.')).toBeInTheDocument();
+
+    // Ensure focus is NOT on the banner (blur any active element)
+    (document.activeElement as HTMLElement)?.blur();
+
+    act(() => {
+      useMidiStore.setState({
+        latestEvent: {
+          type: 'note-on',
+          note: 60,
+          noteName: 'C4',
+          velocity: 100,
+          channel: 1,
+          timestamp: Date.now(),
+          source: 'midi',
+        },
+      });
+    });
+
+    // Banner should be dismissed
+    expect(screen.queryByText('Welcome back.')).not.toBeInTheDocument();
+  });
+
   it('does not auto-dismiss on control-change events', () => {
     render(<ReturnSessionBanner />);
     expect(screen.getByText('Welcome back.')).toBeInTheDocument();

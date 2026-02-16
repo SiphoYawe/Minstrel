@@ -259,6 +259,196 @@ describe('playDrill (MIDI output)', () => {
   });
 });
 
+// --- Audio output mock helpers ---
+
+function createMockAudioContext() {
+  const oscillators: Array<{
+    type: string;
+    frequency: { value: number };
+    connect: ReturnType<typeof vi.fn>;
+    start: ReturnType<typeof vi.fn>;
+    stop: ReturnType<typeof vi.fn>;
+    disconnect: ReturnType<typeof vi.fn>;
+    addEventListener: ReturnType<typeof vi.fn>;
+    _endedCallback: (() => void) | null;
+  }> = [];
+
+  const gainNodes: Array<{
+    gain: {
+      setValueAtTime: ReturnType<typeof vi.fn>;
+      linearRampToValueAtTime: ReturnType<typeof vi.fn>;
+    };
+    connect: ReturnType<typeof vi.fn>;
+    disconnect: ReturnType<typeof vi.fn>;
+  }> = [];
+
+  const ctx = {
+    currentTime: 0,
+    destination: {},
+    createOscillator: vi.fn(() => {
+      const osc = {
+        type: 'sine',
+        frequency: { value: 440 },
+        connect: vi.fn(),
+        start: vi.fn(),
+        stop: vi.fn(),
+        disconnect: vi.fn(),
+        addEventListener: vi.fn((event: string, cb: () => void) => {
+          if (event === 'ended') {
+            osc._endedCallback = cb;
+          }
+        }),
+        _endedCallback: null as (() => void) | null,
+      };
+      oscillators.push(osc);
+      return osc;
+    }),
+    createGain: vi.fn(() => {
+      const gain = {
+        gain: {
+          setValueAtTime: vi.fn(),
+          linearRampToValueAtTime: vi.fn(),
+        },
+        connect: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      gainNodes.push(gain);
+      return gain;
+    }),
+  } as unknown as AudioContext;
+
+  return { ctx, oscillators, gainNodes };
+}
+
+describe('playDrill (audio output)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('creates oscillator and gain nodes for each note', () => {
+    const { ctx, oscillators, gainNodes } = createMockAudioContext();
+    const drill = makeDrill();
+    const output: DrillOutput = { type: 'audio', audioContext: ctx };
+
+    playDrill(drill, output);
+
+    expect(oscillators).toHaveLength(3);
+    expect(gainNodes).toHaveLength(3);
+  });
+
+  it('registers ended listener on each oscillator for cleanup (STATE-M6)', () => {
+    const { ctx, oscillators } = createMockAudioContext();
+    const drill = makeDrill();
+    const output: DrillOutput = { type: 'audio', audioContext: ctx };
+
+    playDrill(drill, output);
+
+    for (const osc of oscillators) {
+      expect(osc.addEventListener).toHaveBeenCalledWith('ended', expect.any(Function));
+      expect(osc._endedCallback).toBeTypeOf('function');
+    }
+  });
+
+  it('disconnects oscillator and gain nodes when ended fires (STATE-M6)', () => {
+    const { ctx, oscillators, gainNodes } = createMockAudioContext();
+    const drill = makeDrill();
+    const output: DrillOutput = { type: 'audio', audioContext: ctx };
+
+    playDrill(drill, output);
+
+    // Simulate oscillator ended events
+    for (const osc of oscillators) {
+      osc._endedCallback!();
+    }
+
+    for (const osc of oscillators) {
+      expect(osc.disconnect).toHaveBeenCalledTimes(1);
+    }
+    for (const gain of gainNodes) {
+      expect(gain.disconnect).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it('nodes stay bounded across rapid playback cycles (STATE-M6)', () => {
+    const { ctx, oscillators, gainNodes } = createMockAudioContext();
+    const drill = makeDrill();
+    const output: DrillOutput = { type: 'audio', audioContext: ctx };
+
+    // Rapid playback cycle 1
+    const handle1 = playDrill(drill, output);
+    handle1.stop();
+    // Simulate ended for cycle 1 nodes
+    for (const osc of oscillators) {
+      osc._endedCallback!();
+    }
+
+    const disconnectedOscCount = oscillators.filter(
+      (o) => o.disconnect.mock.calls.length > 0
+    ).length;
+    const disconnectedGainCount = gainNodes.filter(
+      (g) => g.disconnect.mock.calls.length > 0
+    ).length;
+
+    expect(disconnectedOscCount).toBe(3);
+    expect(disconnectedGainCount).toBe(3);
+
+    // Rapid playback cycle 2
+    playDrill(drill, output);
+
+    // New nodes created (6 total oscillators)
+    expect(oscillators).toHaveLength(6);
+    expect(gainNodes).toHaveLength(6);
+
+    // Simulate ended for cycle 2 nodes
+    for (let i = 3; i < 6; i++) {
+      oscillators[i]._endedCallback!();
+    }
+
+    // All nodes from both cycles should be disconnected
+    for (const osc of oscillators) {
+      expect(osc.disconnect).toHaveBeenCalledTimes(1);
+    }
+    for (const gain of gainNodes) {
+      expect(gain.disconnect).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it('fires onNotePlay and onComplete for audio output', () => {
+    const { ctx } = createMockAudioContext();
+    const drill = makeDrill();
+    const output: DrillOutput = { type: 'audio', audioContext: ctx };
+    const onNotePlay = vi.fn();
+    const onComplete = vi.fn();
+
+    playDrill(drill, output, { onNotePlay, onComplete });
+
+    vi.advanceTimersByTime(SCHEDULE_AHEAD_MS + 1500 + 200);
+
+    expect(onNotePlay).toHaveBeenCalledTimes(3);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('stop() cancels visual callbacks for audio output', () => {
+    const { ctx } = createMockAudioContext();
+    const drill = makeDrill();
+    const output: DrillOutput = { type: 'audio', audioContext: ctx };
+    const onNotePlay = vi.fn();
+    const onComplete = vi.fn();
+
+    const handle = playDrill(drill, output, { onNotePlay, onComplete });
+    handle.stop();
+
+    vi.advanceTimersByTime(10000);
+
+    expect(onNotePlay).not.toHaveBeenCalled();
+    expect(onComplete).not.toHaveBeenCalled();
+  });
+});
+
 describe('createDrillCycle', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -380,6 +570,36 @@ describe('createDrillCycle', () => {
     await Promise.resolve();
 
     expect(ready).toBe(true);
+  });
+
+  it('stop() during listen pause does not transition to attempt (STATE-M4)', async () => {
+    const { port } = createMockMIDIOutput();
+    const drill = makeDrill();
+    const output: DrillOutput = { type: 'midi', port };
+    const phases: DrillPhase[] = [];
+
+    const cycle = createDrillCycle(drill, output, (phase) => {
+      phases.push(phase);
+    });
+
+    cycle.startDemonstration();
+
+    // Advance past playback to reach Listen phase
+    vi.advanceTimersByTime(SCHEDULE_AHEAD_MS + 1500 + 200);
+    await Promise.resolve();
+
+    expect(phases).toEqual([DrillPhase.Demonstrate, DrillPhase.Listen]);
+
+    // Stop during the listen pause window (before the 1.5s elapses)
+    cycle.stop();
+
+    // Advance past the full listen pause
+    vi.advanceTimersByTime(LISTEN_PAUSE_MS + 1000);
+    await Promise.resolve();
+
+    // Should NOT have transitioned to Attempt
+    expect(phases).toEqual([DrillPhase.Demonstrate, DrillPhase.Listen]);
+    expect(phases).not.toContain(DrillPhase.Attempt);
   });
 
   it('does not start demonstration if already stopped', () => {

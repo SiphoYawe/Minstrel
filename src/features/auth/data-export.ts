@@ -1,5 +1,7 @@
 import { db } from '@/lib/dexie/db';
 
+export type ExportSectionStatus = 'complete' | 'failed';
+
 export interface ServerExportData {
   exportedAt: string;
   userId: string;
@@ -10,6 +12,16 @@ export interface ServerExportData {
   aiConversations: Record<string, unknown>[];
   apiKeys: Record<string, unknown>[];
   achievements: Record<string, unknown>[];
+  tokenUsage?: TokenUsageBreakdown[];
+}
+
+export interface TokenUsageBreakdown {
+  provider: string;
+  model: string;
+  totalTokens: number;
+  promptTokens: number;
+  completionTokens: number;
+  interactionCount: number;
 }
 
 export interface LocalExportData {
@@ -20,14 +32,44 @@ export interface LocalExportData {
   skillProfiles: Record<string, unknown>[];
 }
 
+export interface ExportStatus {
+  sessions: ExportSectionStatus;
+  midiEvents: ExportSectionStatus;
+  analysisSnapshots: ExportSectionStatus;
+  drillRecords: ExportSectionStatus;
+  skillProfiles: ExportSectionStatus;
+}
+
 export interface FullExportData {
   server: ServerExportData;
   local: LocalExportData;
+  exportStatus: ExportStatus;
+}
+
+/**
+ * Query a single IndexedDB table, returning data and status.
+ * Failures are non-critical — returns empty array and 'failed' status.
+ */
+async function safeQuery<T>(
+  queryFn: () => Promise<T[]>
+): Promise<{ data: Record<string, unknown>[]; status: ExportSectionStatus }> {
+  try {
+    const result = await queryFn();
+    return {
+      data: result as unknown as Record<string, unknown>[],
+      status: 'complete',
+    };
+  } catch {
+    console.warn('IndexedDB query failed for export section');
+    return { data: [], status: 'failed' };
+  }
 }
 
 /**
  * Fetch all user data from the server API and local IndexedDB.
  * Combines both data sources into a single export payload.
+ * Each local section is queried independently so partial failures
+ * are captured in exportStatus rather than losing all local data.
  */
 export async function exportUserData(): Promise<FullExportData> {
   // Fetch server data
@@ -37,8 +79,8 @@ export async function exportUserData(): Promise<FullExportData> {
   }
   const serverData: ServerExportData = await response.json();
 
-  // Query local IndexedDB via Dexie
-  let localData: LocalExportData = {
+  // Default empty state
+  const localData: LocalExportData = {
     sessions: [],
     midiEvents: [],
     analysisSnapshots: [],
@@ -46,31 +88,38 @@ export async function exportUserData(): Promise<FullExportData> {
     skillProfiles: [],
   };
 
-  if (db) {
-    try {
-      const [sessions, midiEvents, analysisSnapshots, drillRecords, skillProfiles] =
-        await Promise.all([
-          db.sessions.toArray(),
-          db.midiEvents.toArray(),
-          db.analysisSnapshots.toArray(),
-          db.drillRecords.toArray(),
-          db.skillProfiles.toArray(),
-        ]);
+  const exportStatus: ExportStatus = {
+    sessions: 'complete',
+    midiEvents: 'complete',
+    analysisSnapshots: 'complete',
+    drillRecords: 'complete',
+    skillProfiles: 'complete',
+  };
 
-      localData = {
-        sessions: sessions as unknown as Record<string, unknown>[],
-        midiEvents: midiEvents as unknown as Record<string, unknown>[],
-        analysisSnapshots: analysisSnapshots as unknown as Record<string, unknown>[],
-        drillRecords: drillRecords as unknown as Record<string, unknown>[],
-        skillProfiles: skillProfiles as unknown as Record<string, unknown>[],
-      };
-    } catch {
-      // IndexedDB query failure is non-critical — include empty local data
-      console.warn('Could not read local IndexedDB data for export');
-    }
+  if (db) {
+    const [sessions, midiEvents, analysisSnapshots, drillRecords, skillProfiles] =
+      await Promise.all([
+        safeQuery(() => db.sessions.toArray()),
+        safeQuery(() => db.midiEvents.toArray()),
+        safeQuery(() => db.analysisSnapshots.toArray()),
+        safeQuery(() => db.drillRecords.toArray()),
+        safeQuery(() => db.skillProfiles.toArray()),
+      ]);
+
+    localData.sessions = sessions.data;
+    localData.midiEvents = midiEvents.data;
+    localData.analysisSnapshots = analysisSnapshots.data;
+    localData.drillRecords = drillRecords.data;
+    localData.skillProfiles = skillProfiles.data;
+
+    exportStatus.sessions = sessions.status;
+    exportStatus.midiEvents = midiEvents.status;
+    exportStatus.analysisSnapshots = analysisSnapshots.status;
+    exportStatus.drillRecords = drillRecords.status;
+    exportStatus.skillProfiles = skillProfiles.status;
   }
 
-  return { server: serverData, local: localData };
+  return { server: serverData, local: localData, exportStatus };
 }
 
 /**

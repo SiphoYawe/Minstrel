@@ -26,6 +26,15 @@ function handleAuthenticated(userId: string): void {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const userInitiatedSignOut = useRef(false);
 
+  // Run orphan session cleanup on app startup (fire-and-forget)
+  useEffect(() => {
+    import('@/features/session/session-recorder').then(({ cleanupOrphanSessions }) => {
+      cleanupOrphanSessions().catch(() => {
+        // Best effort — don't block app startup
+      });
+    });
+  }, []);
+
   useEffect(() => {
     const supabase = createClient();
     let authStateSettled = false;

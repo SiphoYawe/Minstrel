@@ -20,12 +20,42 @@ const DEFAULT_CONTEXT_LIMIT = 8_000;
 const SUMMARY_BUDGET_TOKENS = 200;
 
 /**
- * Estimate token count from text (~4 chars per token).
- * This is a lightweight heuristic — accurate enough for context-window
- * budgeting without requiring a tokenizer dependency.
+ * Content-type multipliers for adaptive token estimation.
+ *
+ * Code-heavy text tends to tokenize into more tokens per character (lots of
+ * short identifiers, punctuation, operators), while number-heavy text is
+ * denser (digits compress well in most tokenizers).
+ */
+const CODE_PATTERN = /[{}()\[\];=<>]|function |const |let |var |=>|import |export /g;
+const NUMBER_PATTERN = /\b\d[\d.,]*\b/g;
+
+const BASE_CHARS_PER_TOKEN = 4;
+const CODE_MULTIPLIER = 1.2; // code tokenizes into ~20% more tokens
+const NUMBER_MULTIPLIER = 0.8; // numbers tokenize into ~20% fewer tokens
+
+/**
+ * Estimate token count from text using adaptive content-type awareness.
+ *
+ * Analyses the text for code-like and number-heavy patterns, blending
+ * multipliers into a single adaptive chars-per-token ratio. Falls back
+ * to the classic ~4 chars/token for plain text.
  */
 export function estimateTokenCount(text: string): number {
-  return Math.ceil(text.length / 4);
+  if (text.length === 0) return 0;
+
+  const codeMatches = text.match(CODE_PATTERN);
+  const numberMatches = text.match(NUMBER_PATTERN);
+
+  const codeCharCount = codeMatches ? codeMatches.reduce((sum, m) => sum + m.length, 0) : 0;
+  const numberCharCount = numberMatches ? numberMatches.reduce((sum, m) => sum + m.length, 0) : 0;
+  const plainCharCount = Math.max(0, text.length - codeCharCount - numberCharCount);
+
+  // Weighted token count across content types
+  const codeTokens = codeCharCount / (BASE_CHARS_PER_TOKEN / CODE_MULTIPLIER);
+  const numberTokens = numberCharCount / (BASE_CHARS_PER_TOKEN / NUMBER_MULTIPLIER);
+  const plainTokens = plainCharCount / BASE_CHARS_PER_TOKEN;
+
+  return Math.ceil(codeTokens + numberTokens + plainTokens);
 }
 
 /**

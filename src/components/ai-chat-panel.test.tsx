@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@/test-utils/render';
+import { render, screen, fireEvent } from '@/test-utils/render';
 import userEvent from '@testing-library/user-event';
 import { AIChatPanel } from './ai-chat-panel';
 import { useAppStore } from '@/stores/app-store';
@@ -123,14 +123,14 @@ describe('AIChatPanel', () => {
     const onInputChange = vi.fn();
     renderPanel({ onInputChange });
 
-    const input = screen.getByLabelText('Chat message input');
+    const input = screen.getByLabelText('Ask your coach');
     await user.type(input, 'a');
     expect(onInputChange).toHaveBeenCalled();
   });
 
   it('textarea has max-height of 200px and overflow-y auto', () => {
     renderPanel();
-    const textarea = screen.getByLabelText('Chat message input');
+    const textarea = screen.getByLabelText('Ask your coach');
     expect(textarea.style.maxHeight).toBe('200px');
     expect(textarea.className).toContain('overflow-y-auto');
   });
@@ -138,5 +138,59 @@ describe('AIChatPanel', () => {
   it('does not show scroll indicator when content fits', () => {
     renderPanel();
     expect(screen.queryByTestId('scroll-indicator')).not.toBeInTheDocument();
+  });
+
+  it('has a visible sr-only label associated with the textarea via htmlFor/id', () => {
+    renderPanel();
+    const label = screen.getByText('Ask your coach');
+    expect(label.tagName).toBe('LABEL');
+    expect(label).toHaveAttribute('for', 'chat-input');
+    expect(label.className).toContain('sr-only');
+
+    const textarea = screen.getByLabelText('Ask your coach');
+    expect(textarea).toHaveAttribute('id', 'chat-input');
+    expect(textarea.tagName).toBe('TEXTAREA');
+  });
+
+  it('has a resize announcement aria-live region', () => {
+    renderPanel();
+    const announcement = screen.getByTestId('resize-announcement');
+    expect(announcement).toHaveAttribute('aria-live', 'polite');
+    expect(announcement.className).toContain('sr-only');
+    expect(announcement.textContent).toBe('');
+  });
+
+  it('announces "Input expanded" when textarea height increases', () => {
+    const onInputChange = vi.fn();
+    renderPanel({ onInputChange });
+    const textarea = screen.getByLabelText('Ask your coach') as HTMLTextAreaElement;
+
+    // Simulate first change (sets baseline height)
+    Object.defineProperty(textarea, 'scrollHeight', { value: 36, configurable: true });
+    fireEvent.change(textarea, { target: { value: 'a' } });
+
+    // Simulate second change with increased height
+    Object.defineProperty(textarea, 'scrollHeight', { value: 72, configurable: true });
+    fireEvent.change(textarea, { target: { value: 'a\nb\nc' } });
+
+    const announcement = screen.getByTestId('resize-announcement');
+    expect(announcement.textContent).toBe('Input expanded');
+  });
+
+  it('does not announce when textarea height stays the same or decreases', () => {
+    const onInputChange = vi.fn();
+    renderPanel({ onInputChange });
+    const textarea = screen.getByLabelText('Ask your coach') as HTMLTextAreaElement;
+
+    // Simulate first change (sets baseline height)
+    Object.defineProperty(textarea, 'scrollHeight', { value: 72, configurable: true });
+    fireEvent.change(textarea, { target: { value: 'a\nb\nc' } });
+
+    // Simulate second change with same height
+    Object.defineProperty(textarea, 'scrollHeight', { value: 72, configurable: true });
+    fireEvent.change(textarea, { target: { value: 'a\nb\nd' } });
+
+    const announcement = screen.getByTestId('resize-announcement');
+    expect(announcement.textContent).toBe('');
   });
 });

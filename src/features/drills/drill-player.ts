@@ -169,6 +169,12 @@ function scheduleAudioNote(
   gain.connect(ctx.destination);
   osc.start(noteStart);
   osc.stop(noteEnd + 0.05);
+
+  // STATE-M6: Disconnect audio nodes after oscillator ends to prevent accumulation
+  osc.addEventListener('ended', () => {
+    osc.disconnect();
+    gain.disconnect();
+  });
 }
 
 /** Pause duration (ms) between demonstration end and "Your turn" prompt. */

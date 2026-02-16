@@ -306,6 +306,22 @@ describe('DrillController', () => {
     });
   });
 
+  describe('Keyboard hints', () => {
+    it('shows Enter keyboard hint next to Start Drill button in Setup phase', () => {
+      render(<DrillController {...defaultProps()} />);
+      const kbdElements = screen.getAllByText('Enter');
+      const kbdElement = kbdElements.find((el) => el.tagName === 'KBD');
+      expect(kbdElement).toBeInTheDocument();
+    });
+
+    it('does not show Enter keyboard hint in non-Setup phases', () => {
+      render(<DrillController {...defaultProps()} currentPhase="Demonstrate" />);
+      const kbdElements = screen.queryAllByText('Enter');
+      const kbdElement = kbdElements.find((el) => el.tagName === 'KBD');
+      expect(kbdElement).toBeUndefined();
+    });
+  });
+
   describe('Growth mindset', () => {
     it('never renders the word "failed"', () => {
       const { container } = render(

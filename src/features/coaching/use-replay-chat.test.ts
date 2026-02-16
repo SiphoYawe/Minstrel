@@ -42,8 +42,11 @@ vi.mock('./context-builder', () => ({
 
 vi.mock('./chat-error-handler', () => ({
   parseChatError: vi.fn((err: Error) => ({
-    code: 'UNKNOWN',
-    message: err.message,
+    error: {
+      code: 'UNKNOWN',
+      message: err.message,
+    },
+    type: 'UNKNOWN',
   })),
 }));
 

@@ -114,4 +114,11 @@ describe('SnapshotCTA', () => {
     // Ensure no hardcoded hex colors remain in class attributes
     expect(html).not.toMatch(/class="[^"]*#[0-9A-Fa-f]{3,8}[^"]*"/);
   });
+
+  it('auto-focuses the first button (View Dashboard) on mount', () => {
+    useSessionStore.setState({ currentSnapshot: fakeSnapshot });
+    render(<SnapshotCTA />);
+    const viewDashboardBtn = screen.getByRole('button', { name: /view dashboard/i });
+    expect(document.activeElement).toBe(viewDashboardBtn);
+  });
 });

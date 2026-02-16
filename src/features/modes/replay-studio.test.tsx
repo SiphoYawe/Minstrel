@@ -316,6 +316,100 @@ describe('ReplayStudio', () => {
     });
   });
 
+  describe('roving tabindex keyboard navigation (UI-H3)', () => {
+    beforeEach(() => {
+      useSessionStore.setState({
+        replayStatus: 'success',
+        replaySession: createMockSession({ id: 1, key: 'C major', tempo: 120, duration: 300 }),
+        replayEvents: [],
+      });
+    });
+
+    it('ArrowRight moves focus from Insights to Sessions tab', () => {
+      render(<ReplayStudio sessionId={1} />);
+      const insightsTab = screen.getByRole('tab', { name: /insights/i });
+      insightsTab.focus();
+      fireEvent.keyDown(insightsTab, { key: 'ArrowRight' });
+      const sessionsTab = screen.getByRole('tab', { name: /sessions/i });
+      expect(sessionsTab).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(sessionsTab);
+    });
+
+    it('ArrowRight wraps from Chat to Insights tab', () => {
+      render(<ReplayStudio sessionId={1} />);
+      // First move to Chat tab
+      fireEvent.click(screen.getByRole('tab', { name: /chat/i }));
+      const chatTab = screen.getByRole('tab', { name: /chat/i });
+      chatTab.focus();
+      fireEvent.keyDown(chatTab, { key: 'ArrowRight' });
+      const insightsTab = screen.getByRole('tab', { name: /insights/i });
+      expect(insightsTab).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(insightsTab);
+    });
+
+    it('ArrowLeft moves focus from Insights to Chat tab (wraps)', () => {
+      render(<ReplayStudio sessionId={1} />);
+      const insightsTab = screen.getByRole('tab', { name: /insights/i });
+      insightsTab.focus();
+      fireEvent.keyDown(insightsTab, { key: 'ArrowLeft' });
+      const chatTab = screen.getByRole('tab', { name: /chat/i });
+      expect(chatTab).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(chatTab);
+    });
+
+    it('Home key moves focus to first tab', () => {
+      render(<ReplayStudio sessionId={1} />);
+      fireEvent.click(screen.getByRole('tab', { name: /chat/i }));
+      const chatTab = screen.getByRole('tab', { name: /chat/i });
+      chatTab.focus();
+      fireEvent.keyDown(chatTab, { key: 'Home' });
+      const insightsTab = screen.getByRole('tab', { name: /insights/i });
+      expect(insightsTab).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(insightsTab);
+    });
+
+    it('End key moves focus to last tab', () => {
+      render(<ReplayStudio sessionId={1} />);
+      const insightsTab = screen.getByRole('tab', { name: /insights/i });
+      insightsTab.focus();
+      fireEvent.keyDown(insightsTab, { key: 'End' });
+      const chatTab = screen.getByRole('tab', { name: /chat/i });
+      expect(chatTab).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(chatTab);
+    });
+
+    it('inactive tabs have tabIndex -1', () => {
+      render(<ReplayStudio sessionId={1} />);
+      const sessionsTab = screen.getByRole('tab', { name: /sessions/i });
+      const chatTab = screen.getByRole('tab', { name: /chat/i });
+      expect(sessionsTab).toHaveAttribute('tabindex', '-1');
+      expect(chatTab).toHaveAttribute('tabindex', '-1');
+    });
+
+    it('active tab has tabIndex 0', () => {
+      render(<ReplayStudio sessionId={1} />);
+      const insightsTab = screen.getByRole('tab', { name: /insights/i });
+      expect(insightsTab).toHaveAttribute('tabindex', '0');
+    });
+  });
+
+  describe('loading state announcement (UI-H4)', () => {
+    it('has an aria-live="assertive" region with loading text', () => {
+      useSessionStore.setState({ replayStatus: 'loading' });
+      render(<ReplayStudio sessionId={1} />);
+      const liveRegion = screen.getByText('Loading replay data');
+      expect(liveRegion).toBeInTheDocument();
+      expect(liveRegion).toHaveAttribute('aria-live', 'assertive');
+    });
+
+    it('loading announcement is screen-reader only', () => {
+      useSessionStore.setState({ replayStatus: 'loading' });
+      render(<ReplayStudio sessionId={1} />);
+      const liveRegion = screen.getByText('Loading replay data');
+      expect(liveRegion).toHaveClass('sr-only');
+    });
+  });
+
   describe('chat tab', () => {
     beforeEach(() => {
       useSessionStore.setState({

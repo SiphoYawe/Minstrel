@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useSessionStore } from '@/stores/session-store';
 import { useAppStore } from '@/stores/app-store';
@@ -13,6 +14,13 @@ export function SnapshotCTA({ onGenerateDrill, isDrillGenerating = false }: Snap
   const currentSnapshot = useSessionStore((s) => s.currentSnapshot);
   const setCurrentMode = useSessionStore((s) => s.setCurrentMode);
   const hasApiKey = useAppStore((s) => s.hasApiKey);
+  const firstButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (currentSnapshot && firstButtonRef.current) {
+      firstButtonRef.current.focus();
+    }
+  }, [currentSnapshot]);
 
   if (!currentSnapshot) return null;
 
@@ -28,6 +36,7 @@ export function SnapshotCTA({ onGenerateDrill, isDrillGenerating = false }: Snap
           : currentSnapshot.keyInsight}
       </span>
       <Button
+        ref={firstButtonRef}
         variant="outline"
         size="sm"
         onClick={() => setCurrentMode('dashboard-chat')}

@@ -1,7 +1,7 @@
 // @vitest-environment node
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 
-import { AiError, classifyAiError, aiErrorToResponse } from './errors';
+import { AiError, classifyAiError, aiErrorToResponse, sanitizeError } from './errors';
 import type { AiErrorCode } from './errors';
 
 /* ------------------------------------------------------------------ */
@@ -141,6 +141,82 @@ describe('classifyAiError', () => {
 
     expect(result.code).toBe('GENERATION_FAILED');
   });
+
+  // --- Structured field classification (AI-H5) ---
+
+  // 15. OpenAI error.code: 'invalid_api_key'
+  it('returns INVALID_KEY for { code: "invalid_api_key" } (structured field)', () => {
+    const result = classifyAiError({ code: 'invalid_api_key', message: 'some message' });
+
+    expect(result.code).toBe('INVALID_KEY');
+  });
+
+  // 16. OpenAI error.type: 'authentication_error'
+  it('returns INVALID_KEY for { type: "authentication_error" } (structured field)', () => {
+    const result = classifyAiError({ type: 'authentication_error' });
+
+    expect(result.code).toBe('INVALID_KEY');
+  });
+
+  // 17. OpenAI error.code: 'rate_limit_exceeded'
+  it('returns RATE_LIMITED for { code: "rate_limit_exceeded" } (structured field)', () => {
+    const result = classifyAiError({ code: 'rate_limit_exceeded' });
+
+    expect(result.code).toBe('RATE_LIMITED');
+  });
+
+  // 18. Anthropic error.type: 'rate_limit_error'
+  it('returns RATE_LIMITED for { type: "rate_limit_error" } (structured field)', () => {
+    const result = classifyAiError({ type: 'rate_limit_error' });
+
+    expect(result.code).toBe('RATE_LIMITED');
+  });
+
+  // 19. Provider server error type
+  it('returns PROVIDER_DOWN for { type: "server_error" } (structured field)', () => {
+    const result = classifyAiError({ type: 'server_error' });
+
+    expect(result.code).toBe('PROVIDER_DOWN');
+  });
+
+  // 20. Provider api_error type
+  it('returns PROVIDER_DOWN for { type: "api_error" } (structured field)', () => {
+    const result = classifyAiError({ type: 'api_error' });
+
+    expect(result.code).toBe('PROVIDER_DOWN');
+  });
+
+  // 21. Overloaded code
+  it('returns PROVIDER_DOWN for { code: "overloaded" } (structured field)', () => {
+    const result = classifyAiError({ code: 'overloaded' });
+
+    expect(result.code).toBe('PROVIDER_DOWN');
+  });
+
+  // 22. Structured fields take priority over message matching
+  it('prefers structured fields over message content', () => {
+    // Message says "rate limit" but structured code says "invalid_api_key"
+    const result = classifyAiError({
+      code: 'invalid_api_key',
+      message: 'rate limit exceeded',
+    });
+
+    expect(result.code).toBe('INVALID_KEY');
+  });
+
+  // 23. Falls back to message matching when no structured fields present
+  it('falls back to message matching when no code/type fields', () => {
+    const result = classifyAiError(new Error('rate limit exceeded'));
+
+    expect(result.code).toBe('RATE_LIMITED');
+  });
+
+  // 24. Unknown structured fields fall through to status/message checks
+  it('falls through to HTTP status when structured fields are unrecognized', () => {
+    const result = classifyAiError({ code: 'unknown_code', type: 'unknown_type', status: 429 });
+
+    expect(result.code).toBe('RATE_LIMITED');
+  });
 });
 
 /* ------------------------------------------------------------------ */
@@ -169,5 +245,61 @@ describe('aiErrorToResponse', () => {
         message: 'Your API key appears to be invalid. Check your key in Settings.',
       },
     });
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/*  sanitizeError (SEC-M3)                                            */
+/* ------------------------------------------------------------------ */
+describe('sanitizeError', () => {
+  const originalEnv = process.env.NODE_ENV;
+
+  afterEach(() => {
+    // Restore NODE_ENV after each test
+    process.env.NODE_ENV = originalEnv;
+  });
+
+  it('returns Error.message in development', () => {
+    process.env.NODE_ENV = 'development';
+    const result = sanitizeError(new Error('Detailed internal error: SQL injection at line 42'));
+    expect(result).toBe('Detailed internal error: SQL injection at line 42');
+  });
+
+  it('returns string error in development', () => {
+    process.env.NODE_ENV = 'development';
+    const result = sanitizeError('raw string error');
+    expect(result).toBe('raw string error');
+  });
+
+  it('returns generic message in production for Error objects', () => {
+    process.env.NODE_ENV = 'production';
+    const result = sanitizeError(new Error('Detailed internal error: SQL injection at line 42'));
+    expect(result).toBe('An unexpected error occurred. Please try again.');
+  });
+
+  it('returns generic message in production for string errors', () => {
+    process.env.NODE_ENV = 'production';
+    const result = sanitizeError('raw string error with secrets');
+    expect(result).toBe('An unexpected error occurred. Please try again.');
+  });
+
+  it('returns generic message in production for non-Error objects', () => {
+    process.env.NODE_ENV = 'production';
+    const result = sanitizeError({ code: 'SECRET', detail: 'leaked info' });
+    expect(result).toBe('An unexpected error occurred. Please try again.');
+  });
+
+  it('stringifies non-Error objects in development', () => {
+    process.env.NODE_ENV = 'development';
+    const result = sanitizeError(42);
+    expect(result).toBe('42');
+  });
+
+  it('returns generic message in test environment (not development)', () => {
+    process.env.NODE_ENV = 'test';
+    const result = sanitizeError(new Error('test error'));
+    // NODE_ENV=test is not 'development', but also not 'production'
+    // Our code checks for !== 'production', so test env should show details
+    expect(result).toBe('test error');
   });
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface ShortcutGroup {
   label: string;
@@ -29,11 +29,40 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
   },
 ];
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])';
+
 export function KeyboardShortcutsPanel() {
   const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<Element | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
-  const toggle = useCallback(() => setIsOpen((v) => !v), []);
+  const close = useCallback(() => {
+    setIsOpen(false);
+  }, []);
 
+  const toggle = useCallback(() => {
+    setIsOpen((v) => {
+      if (!v) {
+        // Opening: capture the current active element as trigger
+        triggerRef.current = document.activeElement;
+      }
+      return !v;
+    });
+  }, []);
+
+  // Focus the dialog when opened, restore focus when closed
+  useEffect(() => {
+    if (isOpen && dialogRef.current) {
+      dialogRef.current.focus();
+    }
+    if (!isOpen && triggerRef.current instanceof HTMLElement) {
+      triggerRef.current.focus();
+      triggerRef.current = null;
+    }
+  }, [isOpen]);
+
+  // Global keyboard handler for opening/closing
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
@@ -46,27 +75,66 @@ export function KeyboardShortcutsPanel() {
       }
       if (e.key === 'Escape' && isOpen) {
         e.preventDefault();
-        setIsOpen(false);
+        close();
       }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, toggle]);
+  }, [isOpen, toggle, close]);
+
+  // Focus trap: cycle Tab within the dialog
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function handleFocusTrap(e: KeyboardEvent) {
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+      );
+
+      // If no focusable children, keep focus on the dialog itself
+      if (focusable.length === 0) {
+        e.preventDefault();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first || document.activeElement === dialogRef.current) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleFocusTrap);
+    return () => window.removeEventListener('keydown', handleFocusTrap);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={() => setIsOpen(false)}
+      onClick={close}
       data-testid="shortcuts-overlay"
     >
       <div
+        ref={dialogRef}
         className="w-full max-w-sm border border-border bg-background p-6"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label="Keyboard shortcuts"
         aria-modal="true"
+        tabIndex={-1}
       >
         <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-primary">
           Keyboard Shortcuts
@@ -102,10 +170,14 @@ export function KeyboardShortcutsPanel() {
             </div>
           ))}
         </div>
-        <p className="mt-4 text-xs text-muted-foreground">
+        <button
+          className="mt-4 text-xs text-muted-foreground hover:text-foreground transition-colors duration-150 cursor-pointer bg-transparent border-none p-0"
+          onClick={close}
+          data-testid="shortcuts-close-btn"
+        >
           Press <kbd className="border border-border bg-card px-1 font-mono text-xs">Esc</kbd> to
           close
-        </p>
+        </button>
       </div>
     </div>
   );

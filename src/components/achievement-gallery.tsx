@@ -73,10 +73,13 @@ function formatUnlockedDate(isoDate: string): string {
   });
 }
 
+const PAGE_SIZE = 24;
+
 export function AchievementGallery() {
   const [items, setItems] = useState<AchievementDisplayItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<FilterCategory>('all');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const user = useAppStore((s) => s.user);
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
@@ -133,6 +136,9 @@ export function AchievementGallery() {
     return a.definition.category.localeCompare(b.definition.category);
   });
 
+  const paginatedItems = sortedItems.slice(0, visibleCount);
+  const hasMore = visibleCount < sortedItems.length;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -179,7 +185,10 @@ export function AchievementGallery() {
         ).map((option) => (
           <button
             key={option.value}
-            onClick={() => setFilter(option.value)}
+            onClick={() => {
+              setFilter(option.value);
+              setVisibleCount(PAGE_SIZE);
+            }}
             className={`border px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors ${
               filter === option.value
                 ? 'border-primary bg-primary/10 text-primary'
@@ -198,7 +207,7 @@ export function AchievementGallery() {
         role="list"
         aria-label="Achievements"
       >
-        {sortedItems.map((item) => {
+        {paginatedItems.map((item) => {
           const Icon = getIcon(item.definition);
           return (
             <div
@@ -262,6 +271,25 @@ export function AchievementGallery() {
           );
         })}
       </div>
+
+      {/* Load More */}
+      {hasMore && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
+            className="border border-border bg-card px-6 py-2 font-mono text-xs uppercase tracking-wider text-foreground transition-colors hover:bg-surface-light"
+          >
+            Show More
+          </button>
+        </div>
+      )}
+
+      {sortedItems.length > 0 && (
+        <p className="mt-4 text-center text-[11px] text-muted-foreground">
+          {paginatedItems.length} of {sortedItems.length} achievement
+          {sortedItems.length !== 1 ? 's' : ''}
+        </p>
+      )}
 
       {filteredItems.length === 0 && unlockedCount === 0 && (
         <div className="flex flex-col items-center justify-center py-12 text-center">

@@ -90,7 +90,7 @@ export const DrillGenerationSchema = z.object({
   targetSkill: z.string().describe('Specific skill this drill targets'),
   instructions: z.string().describe('Brief instruction for the musician'),
   sequence: z.object({
-    notes: z.array(DrillNoteSchema).min(1).describe('MIDI note sequence'),
+    notes: z.array(DrillNoteSchema).min(1).max(64).describe('MIDI note sequence'),
     chordSymbols: z.array(z.string()).optional().describe('Chord symbols for reference'),
     timeSignature: z.tuple([z.number(), z.number()]).describe('Time signature [beats, beat unit]'),
     measures: z.number().int().positive().describe('Number of measures'),

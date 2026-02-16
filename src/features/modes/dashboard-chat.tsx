@@ -141,17 +141,25 @@ export function DashboardChat() {
               {/* Raw <button> retained: full-width accordion toggle with custom layout */}
               <button
                 onClick={() => setShowEngagement((v) => !v)}
+                aria-expanded={showEngagement}
+                aria-controls="engagement-section"
                 className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-border hover:bg-card transition-colors duration-150"
               >
                 <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                   Progress
                 </span>
-                <span className="font-mono text-[10px] text-text-tertiary">
+                <span className="font-mono text-[10px] text-text-tertiary" aria-hidden="true">
                   {showEngagement ? '−' : '+'}
                 </span>
               </button>
+              <span className="sr-only" aria-live="polite">
+                {showEngagement ? 'Progress section expanded' : 'Progress section collapsed'}
+              </span>
               {showEngagement && (
-                <div className="shrink-0 max-h-[280px] overflow-y-auto border-b border-border">
+                <div
+                  id="engagement-section"
+                  className="shrink-0 max-h-[280px] overflow-y-auto border-b border-border"
+                >
                   <WeeklySummary />
                   <div className="h-px bg-border" />
                   <PersonalRecords />

@@ -1,5 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import * as Sentry from '@sentry/nextjs';
 import { processAiResponse, segmentResponseText } from './response-processor';
+
+vi.mock('@sentry/nextjs', () => ({
+  captureMessage: vi.fn(),
+}));
 
 describe('processAiResponse', () => {
   it('returns compliant for growth-mindset text', () => {
@@ -11,6 +16,27 @@ describe('processAiResponse', () => {
   it('detects non-compliant text', () => {
     const result = processAiResponse('That was a bad mistake.');
     expect(result.growthMindsetCompliant).toBe(false);
+  });
+
+  it('logs growth mindset violations to Sentry', () => {
+    vi.mocked(Sentry.captureMessage).mockClear();
+    processAiResponse('That was a bad mistake.');
+    expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      'Growth mindset violation in AI response',
+      expect.objectContaining({
+        level: 'warning',
+        extra: expect.objectContaining({
+          violations: expect.any(Array),
+          responseLength: expect.any(Number),
+        }),
+      })
+    );
+  });
+
+  it('does not log to Sentry for compliant text', () => {
+    vi.mocked(Sentry.captureMessage).mockClear();
+    processAiResponse('Great progress on your timing.');
+    expect(Sentry.captureMessage).not.toHaveBeenCalled();
   });
 
   it('extracts metric references (percentages)', () => {

@@ -244,19 +244,19 @@ development_status:
 
   # Epic 20: Medium Priority Polish (P2 — Post-launch acceptable)
   # Source: code-review-findings-epics-8-11.md — 35 MEDIUM findings
-  epic-20: in-progress
-  20-1-fix-security-polish-ci-imports-errors: ready-for-dev
-  20-2-fix-timezone-bug-and-xp-error-handling: ready-for-dev
-  20-3-fix-drill-player-memory-leaks-and-race-conditions: ready-for-dev
-  20-4-fix-stale-closures-and-buffer-guards: ready-for-dev
-  20-5-fix-data-export-completeness: ready-for-dev
-  20-6-clean-up-dead-code-schema-mismatches-missing-context: ready-for-dev
-  20-7-fix-ai-observability-and-logging: ready-for-dev
-  20-8-fix-screen-reader-and-landmark-issues: ready-for-dev
-  20-9-fix-chat-ux-scroll-submit-color-logic: ready-for-dev
-  20-10-fix-animation-and-cleanup-accessibility: ready-for-dev
-  20-11-add-focus-traps-and-reduced-motion-support: ready-for-dev
-  20-12-add-virtualization-and-pagination: ready-for-dev
+  epic-20: done
+  20-1-fix-security-polish-ci-imports-errors: done
+  20-2-fix-timezone-bug-and-xp-error-handling: done
+  20-3-fix-drill-player-memory-leaks-and-race-conditions: done
+  20-4-fix-stale-closures-and-buffer-guards: done
+  20-5-fix-data-export-completeness: done
+  20-6-clean-up-dead-code-schema-mismatches-missing-context: done
+  20-7-fix-ai-observability-and-logging: done
+  20-8-fix-screen-reader-and-landmark-issues: done
+  20-9-fix-chat-ux-scroll-submit-color-logic: done
+  20-10-fix-animation-and-cleanup-accessibility: done
+  20-11-add-focus-traps-and-reduced-motion-support: done
+  20-12-add-virtualization-and-pagination: done
   epic-20-retrospective: optional
 
   # Epic 21: Low Priority Cleanup (P3 — Post-launch)

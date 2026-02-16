@@ -1,5 +1,6 @@
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 import * as Sentry from '@sentry/nextjs';
+import { isValidUUID } from '@/lib/validation';
 
 export interface TokenUsageParams {
   sessionId: string;
@@ -84,7 +85,13 @@ export function getTokenFallbackQueueSize(): number {
  * On failure, reports to Sentry and queues the record for retry.
  */
 export async function recordTokenUsage(params: TokenUsageParams): Promise<void> {
-  const supabase = createClient();
+  // SEC-M4: Validate sessionId is a valid UUID when non-empty
+  if (params.sessionId && !isValidUUID(params.sessionId)) {
+    console.error('Invalid sessionId format (not a UUID):', params.sessionId);
+    return;
+  }
+
+  const supabase = await createClient();
 
   // Attempt to drain fallback queue first
   if (tokenFallbackQueue.length > 0) {
@@ -145,7 +152,7 @@ export async function trackTokenUsage(
   promptTokens: number,
   completionTokens: number
 ): Promise<void> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const totalTokens = promptTokens + completionTokens;
 
@@ -173,7 +180,7 @@ export async function trackTokenUsage(
  * Get a summary of token usage for a user, aggregated across all interactions.
  */
 export async function getTokenUsageSummary(userId: string): Promise<TokenUsageSummaryResult> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('ai_conversations')

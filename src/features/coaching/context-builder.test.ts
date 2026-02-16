@@ -4,6 +4,7 @@ import {
   assessDataSufficiency,
   buildReplayContext,
   formatContinuitySection,
+  computeAdaptiveWindowMs,
 } from './context-builder';
 import { useSessionStore } from '@/stores/session-store';
 import type { StoredMidiEvent, AnalysisSnapshot } from '@/lib/dexie/db';
@@ -69,6 +70,18 @@ describe('buildSessionContext', () => {
     useSessionStore.setState({ timingAccuracy: 100 });
     const ctx = buildSessionContext();
     expect(ctx.timingAccuracy).toBe(1.0);
+  });
+
+  it('clamps timingAccuracy above 100 to 1.0', () => {
+    useSessionStore.setState({ timingAccuracy: 150 });
+    const ctx = buildSessionContext();
+    expect(ctx.timingAccuracy).toBe(1.0);
+  });
+
+  it('clamps negative timingAccuracy to 0', () => {
+    useSessionStore.setState({ timingAccuracy: -20 });
+    const ctx = buildSessionContext();
+    expect(ctx.timingAccuracy).toBe(0);
   });
 
   it('returns highest confidence genre', () => {
@@ -508,6 +521,18 @@ describe('buildReplayContext', () => {
     expect(ctx.timingAccuracy).toBe(0);
   });
 
+  it('clamps replay timingAccuracy above 100 to 1.0', () => {
+    const meta = { key: null, tempo: null, genre: null, timingAccuracy: 200 };
+    const ctx = buildReplayContext([], 5000, [], meta);
+    expect(ctx.timingAccuracy).toBe(1.0);
+  });
+
+  it('clamps replay negative timingAccuracy to 0', () => {
+    const meta = { key: null, tempo: null, genre: null, timingAccuracy: -50 };
+    const ctx = buildReplayContext([], 5000, [], meta);
+    expect(ctx.timingAccuracy).toBe(0);
+  });
+
   // --- binary search & windowed events ---
 
   it('extracts events within window', () => {
@@ -757,8 +782,15 @@ describe('buildReplayContext', () => {
     expect(ctx.windowMs).toBe(5000);
   });
 
-  it('uses default 10s window when not specified', () => {
+  it('uses adaptive window based on tempo when windowMs not specified', () => {
+    // sessionMeta has tempo: 120 → 16 * (60000/120) = 8000ms
     const ctx = buildReplayContext([], 5000, [], sessionMeta);
+    expect(ctx.windowMs).toBe(8000);
+  });
+
+  it('uses default 10s window when tempo is null and windowMs not specified', () => {
+    const meta = { key: null, tempo: null, genre: null };
+    const ctx = buildReplayContext([], 5000, [], meta);
     expect(ctx.windowMs).toBe(10_000);
   });
 
@@ -769,6 +801,49 @@ describe('buildReplayContext', () => {
     // timestamp=500, windowMs=10000 -> windowStart = max(0, -9500) = 0
     const ctx = buildReplayContext(events, 500, [], sessionMeta, 10_000);
     expect(ctx.notesAtMoment).toContain('C');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeAdaptiveWindowMs
+// ---------------------------------------------------------------------------
+
+describe('computeAdaptiveWindowMs', () => {
+  it('returns 24000ms for 40 BPM', () => {
+    // 16 * (60000 / 40) = 24000
+    expect(computeAdaptiveWindowMs(40)).toBe(24_000);
+  });
+
+  it('returns 5333ms for 180 BPM', () => {
+    // 16 * (60000 / 180) = 5333.33 → rounded to 5333
+    expect(computeAdaptiveWindowMs(180)).toBe(5_333);
+  });
+
+  it('returns 8000ms for 120 BPM', () => {
+    // 16 * (60000 / 120) = 8000
+    expect(computeAdaptiveWindowMs(120)).toBe(8_000);
+  });
+
+  it('returns default 10000ms for null tempo', () => {
+    expect(computeAdaptiveWindowMs(null)).toBe(10_000);
+  });
+
+  it('returns default 10000ms for zero tempo', () => {
+    expect(computeAdaptiveWindowMs(0)).toBe(10_000);
+  });
+
+  it('returns default 10000ms for negative tempo', () => {
+    expect(computeAdaptiveWindowMs(-60)).toBe(10_000);
+  });
+
+  it('clamps to minimum 2000ms for very fast tempos', () => {
+    // 16 * (60000 / 600) = 1600 → clamped to 2000
+    expect(computeAdaptiveWindowMs(600)).toBe(2_000);
+  });
+
+  it('clamps to maximum 30000ms for very slow tempos', () => {
+    // 16 * (60000 / 20) = 48000 → clamped to 30000
+    expect(computeAdaptiveWindowMs(20)).toBe(30_000);
   });
 });
 

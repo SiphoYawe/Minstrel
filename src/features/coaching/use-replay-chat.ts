@@ -76,7 +76,11 @@ export function useReplayChat(snapshots: AnalysisSnapshot[] = []) {
     setInput(e.target.value);
   }, []);
 
-  const chatError: ChatErrorInfo | null = error ? parseChatError(error) : null;
+  const parsed = error ? parseChatError(error) : null;
+  if (parsed?.action === 'invalidate_api_key') {
+    useAppStore.getState().setApiKeyStatus('invalid');
+  }
+  const chatError: ChatErrorInfo | null = parsed?.error ?? null;
 
   const currentTimestamp = useSessionStore((s) => s.replayPosition);
 

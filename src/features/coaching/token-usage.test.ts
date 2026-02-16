@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getSessionTokenUsage, getTotalTokenUsage, getRecentSessionUsage } from './token-usage';
 
+// Mock UUID validation to always pass (test focuses on DB logic, not validation)
+vi.mock('@/lib/validation', () => ({
+  isValidUUID: () => true,
+}));
+
 // Build a chainable query builder mock
 function createQueryBuilder(resolvedValue: { data: unknown; error: unknown }) {
   const builder: Record<string, ReturnType<typeof vi.fn>> = {};

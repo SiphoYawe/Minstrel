@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSessionStore } from '@/stores/session-store';
 import { calculateSessionXp, formatXpBreakdown } from '@/features/engagement/xp-calculator';
 import { GROWTH_MINDSET_MESSAGES } from '@/lib/constants';
@@ -15,6 +15,9 @@ function formatDuration(ms: number): string {
   if (m === 0) return `${s}s`;
   return `${m}m ${s}s`;
 }
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
 function pickMotivationalMessage(): string {
   return GROWTH_MINDSET_MESSAGES[Math.floor(Math.random() * GROWTH_MINDSET_MESSAGES.length)];
@@ -44,6 +47,46 @@ export function SessionSummary({
   onViewReplay,
   onEndSession,
 }: SessionSummaryProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Focus trap: cycle Tab within the dialog (UI-M9)
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    // Auto-focus the first interactive element
+    const firstFocusable = dialog.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+    firstFocusable?.focus();
+
+    function handleFocusTrap(e: KeyboardEvent) {
+      if (e.key !== 'Tab' || !dialog) return;
+
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+      if (focusable.length === 0) {
+        e.preventDefault();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first || document.activeElement === dialog) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleFocusTrap);
+    return () => window.removeEventListener('keydown', handleFocusTrap);
+  }, []);
+
   const sessionStartTimestamp = useSessionStore((s) => s.sessionStartTimestamp);
   const totalNotesPlayed = useSessionStore((s) => s.totalNotesPlayed);
   const currentKey = useSessionStore((s) => s.currentKey);
@@ -98,6 +141,7 @@ export function SessionSummary({
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
       style={{ animation: 'modal-fade-in 0.2s ease-out' }}
       role="dialog"

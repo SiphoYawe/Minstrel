@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { validateGrowthMindset } from './growth-mindset-rules';
 
 export interface DataReference {
@@ -23,6 +24,16 @@ const TRAJECTORY_PATTERN = /(\d+(?:\.\d+)?%?\s*(?:->|→|to)\s*\d+(?:\.\d+)?%?)/
 export function processAiResponse(response: string): ProcessedResponse {
   const validation = validateGrowthMindset(response);
   const dataReferences = extractDataReferences(response);
+
+  if (!validation.isCompliant) {
+    Sentry.captureMessage('Growth mindset violation in AI response', {
+      level: 'warning',
+      extra: {
+        violations: validation.violations,
+        responseLength: response.length,
+      },
+    });
+  }
 
   return {
     content: response,

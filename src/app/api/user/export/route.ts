@@ -33,6 +33,54 @@ export async function GET() {
     supabase.from('achievements').select('*').eq('user_id', user.id),
   ]);
 
+  // Aggregate token usage by provider + model from ai_conversations (AI-M2)
+  const conversationRows = conversations.data ?? [];
+  const tokenAggregation = new Map<
+    string,
+    {
+      provider: string;
+      model: string;
+      totalTokens: number;
+      promptTokens: number;
+      completionTokens: number;
+      interactionCount: number;
+    }
+  >();
+
+  for (const row of conversationRows) {
+    const provider = (row.provider as string) || 'unknown';
+    const model = (row.model as string) || 'unknown';
+    const key = `${provider}::${model}`;
+
+    let entry = tokenAggregation.get(key);
+    if (!entry) {
+      entry = {
+        provider,
+        model,
+        totalTokens: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        interactionCount: 0,
+      };
+      tokenAggregation.set(key, entry);
+    }
+
+    entry.totalTokens += (row.token_count as number) ?? 0;
+    entry.interactionCount += 1;
+
+    const meta = row.metadata as Record<string, unknown> | null;
+    if (meta) {
+      if (typeof meta.prompt_tokens === 'number') {
+        entry.promptTokens += meta.prompt_tokens;
+      }
+      if (typeof meta.completion_tokens === 'number') {
+        entry.completionTokens += meta.completion_tokens;
+      }
+    }
+  }
+
+  const tokenUsage = Array.from(tokenAggregation.values());
+
   const exportData = {
     exportedAt: new Date().toISOString(),
     userId: user.id,
@@ -40,9 +88,10 @@ export async function GET() {
     profile: profile.data ?? null,
     sessions: sessions.data ?? [],
     progressMetrics: metrics.data ?? [],
-    aiConversations: conversations.data ?? [],
+    aiConversations: conversationRows,
     apiKeys: apiKeys.data ?? [],
     achievements: achievements.data ?? [],
+    tokenUsage,
   };
 
   const dateStr = new Date().toISOString().split('T')[0];

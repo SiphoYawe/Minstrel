@@ -9,7 +9,6 @@ import {
   type KeyboardEvent,
   type ChangeEvent,
 } from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { capture } from '@/lib/analytics';
 import { useAppStore } from '@/stores/app-store';
@@ -112,10 +111,20 @@ export function AIChatPanel({
   const hasApiKey = useAppStore((s) => s.hasApiKey);
   const { isOnline } = useOnlineStatus();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (messagesEndRef.current && typeof messagesEndRef.current.scrollIntoView === 'function') {
+    const container = scrollAreaRef.current;
+    if (!container) return;
+    // Only auto-scroll if user is already at (or near) the bottom (UI-M4)
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 80;
+    if (
+      isNearBottom &&
+      messagesEndRef.current &&
+      typeof messagesEndRef.current.scrollIntoView === 'function'
+    ) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isLoading]);
@@ -123,8 +132,7 @@ export function AIChatPanel({
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      const formEvent = new Event('submit', { bubbles: true, cancelable: true });
-      textareaRef.current?.form?.dispatchEvent(formEvent);
+      textareaRef.current?.form?.requestSubmit();
     }
     if (e.key === 'Escape') {
       textareaRef.current?.blur();
@@ -132,6 +140,8 @@ export function AIChatPanel({
   }
 
   const [isOverflowing, setIsOverflowing] = useState(false);
+  const [resizeAnnouncement, setResizeAnnouncement] = useState('');
+  const previousHeightRef = useRef<number>(0);
   const TEXTAREA_MAX_HEIGHT = 200;
 
   function handleTextareaChange(e: ChangeEvent<HTMLTextAreaElement>) {
@@ -141,6 +151,13 @@ export function AIChatPanel({
     const clamped = Math.min(el.scrollHeight, TEXTAREA_MAX_HEIGHT);
     el.style.height = `${clamped}px`;
     setIsOverflowing(el.scrollHeight > TEXTAREA_MAX_HEIGHT);
+
+    if (clamped > previousHeightRef.current && previousHeightRef.current > 0) {
+      setResizeAnnouncement('Input expanded');
+    } else {
+      setResizeAnnouncement('');
+    }
+    previousHeightRef.current = clamped;
   }
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -177,7 +194,7 @@ export function AIChatPanel({
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <ScrollArea className="flex-1 min-h-0">
+      <div ref={scrollAreaRef} className="flex-1 min-h-0 overflow-y-auto">
         <div
           className="flex flex-col gap-3 p-3"
           role="log"
@@ -250,14 +267,18 @@ export function AIChatPanel({
           )}
           <div ref={messagesEndRef} />
         </div>
-      </ScrollArea>
+      </div>
 
       <form
         onSubmit={handleSubmit}
         className="flex items-end gap-2 p-3 border-t border-surface-light"
       >
         <div className="flex-1 relative">
+          <label htmlFor="chat-input" className="sr-only">
+            Ask your coach
+          </label>
           <textarea
+            id="chat-input"
             ref={textareaRef}
             value={input}
             onChange={handleTextareaChange}
@@ -267,8 +288,10 @@ export function AIChatPanel({
             disabled={isLoading}
             className="w-full resize-none bg-card border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-sans min-h-[36px] overflow-y-auto"
             style={{ maxHeight: `${TEXTAREA_MAX_HEIGHT}px` }}
-            aria-label="Chat message input"
           />
+          <div aria-live="polite" className="sr-only" data-testid="resize-announcement">
+            {resizeAnnouncement}
+          </div>
           {isOverflowing && (
             <div
               className="absolute bottom-0 left-px right-px h-5 bg-gradient-to-t from-card to-transparent pointer-events-none"

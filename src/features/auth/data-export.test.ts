@@ -53,6 +53,23 @@ describe('exportUserData', () => {
     });
   });
 
+  it('includes exportStatus with all sections marked complete on success', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockServerData),
+    });
+
+    const result = await exportUserData();
+
+    expect(result.exportStatus).toEqual({
+      sessions: 'complete',
+      midiEvents: 'complete',
+      analysisSnapshots: 'complete',
+      drillRecords: 'complete',
+      skillProfiles: 'complete',
+    });
+  });
+
   it('throws when server fetch fails', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
@@ -77,6 +94,61 @@ describe('exportUserData', () => {
     const result = await exportUserData();
 
     expect(result.local.sessions).toHaveLength(1);
+    expect(result.exportStatus.sessions).toBe('complete');
+  });
+
+  it('marks individual sections as failed when their IndexedDB query throws', async () => {
+    const { db } = await import('@/lib/dexie/db');
+
+    // Make midiEvents and drillRecords fail, others succeed
+    vi.mocked(db.sessions.toArray).mockResolvedValue([]);
+    vi.mocked(db.midiEvents.toArray).mockRejectedValue(new Error('IndexedDB read error'));
+    vi.mocked(db.analysisSnapshots.toArray).mockResolvedValue([]);
+    vi.mocked(db.drillRecords.toArray).mockRejectedValue(new Error('Quota exceeded'));
+    vi.mocked(db.skillProfiles.toArray).mockResolvedValue([]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockServerData),
+    });
+
+    const result = await exportUserData();
+
+    // Failed sections
+    expect(result.exportStatus.midiEvents).toBe('failed');
+    expect(result.exportStatus.drillRecords).toBe('failed');
+    expect(result.local.midiEvents).toEqual([]);
+    expect(result.local.drillRecords).toEqual([]);
+
+    // Successful sections still have data
+    expect(result.exportStatus.sessions).toBe('complete');
+    expect(result.exportStatus.analysisSnapshots).toBe('complete');
+    expect(result.exportStatus.skillProfiles).toBe('complete');
+  });
+
+  it('resets to complete status after previous failures', async () => {
+    const { db } = await import('@/lib/dexie/db');
+
+    // Explicitly reset all mocks to resolve with empty arrays
+    vi.mocked(db.sessions.toArray).mockResolvedValue([]);
+    vi.mocked(db.midiEvents.toArray).mockResolvedValue([]);
+    vi.mocked(db.analysisSnapshots.toArray).mockResolvedValue([]);
+    vi.mocked(db.drillRecords.toArray).mockResolvedValue([]);
+    vi.mocked(db.skillProfiles.toArray).mockResolvedValue([]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockServerData),
+    });
+
+    const result = await exportUserData();
+
+    // All sections should be marked complete when queries succeed
+    expect(result.exportStatus.sessions).toBe('complete');
+    expect(result.exportStatus.midiEvents).toBe('complete');
+    expect(result.exportStatus.analysisSnapshots).toBe('complete');
+    expect(result.exportStatus.drillRecords).toBe('complete');
+    expect(result.exportStatus.skillProfiles).toBe('complete');
   });
 });
 
@@ -112,6 +184,13 @@ describe('downloadExportAsJson', () => {
         analysisSnapshots: [],
         drillRecords: [],
         skillProfiles: [],
+      },
+      exportStatus: {
+        sessions: 'complete',
+        midiEvents: 'complete',
+        analysisSnapshots: 'complete',
+        drillRecords: 'complete',
+        skillProfiles: 'complete',
       },
     };
 

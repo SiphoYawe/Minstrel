@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@/test-utils/render';
 import { AchievementGallery } from './achievement-gallery';
 import { useAppStore } from '@/stores/app-store';
 import { ACHIEVEMENT_COUNT } from '@/features/engagement/achievement-definitions';
+import { fetchAchievementDisplay } from '@/features/engagement/achievement-service';
 
 // Mock achievement service — factory must not reference top-level imports
 vi.mock('@/features/engagement/achievement-service', () => ({
@@ -138,6 +139,56 @@ describe('AchievementGallery', () => {
     expect(
       screen.getByText('10 consecutive notes within beat grid tolerance.')
     ).toBeInTheDocument();
+  });
+});
+
+describe('AchievementGallery pagination (UI-M11)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useAppStore.setState({
+      user: { id: 'user-1', email: 'test@example.com', displayName: null },
+      isAuthenticated: true,
+    });
+
+    // Generate 30 mock achievements to exceed PAGE_SIZE of 24
+    const manyItems = Array.from({ length: 30 }, (_, i) => ({
+      definition: {
+        achievementId: `badge-${i}`,
+        name: `Badge ${i}`,
+        description: `Description for badge ${i}.`,
+        category: 'Genre',
+        icon: 'jazz',
+        triggerCondition: () => false,
+      },
+      unlocked: i < 5,
+      unlockedAt: i < 5 ? '2026-02-10T10:00:00Z' : null,
+    }));
+
+    vi.mocked(fetchAchievementDisplay).mockResolvedValue(manyItems);
+  });
+
+  it('shows only 24 items initially and displays Show More button', async () => {
+    render(<AchievementGallery />);
+
+    await screen.findAllByRole('listitem');
+    const items = screen.getAllByRole('listitem');
+    expect(items).toHaveLength(24);
+    expect(screen.getByText('Show More')).toBeInTheDocument();
+    expect(screen.getByText('24 of 30 achievements')).toBeInTheDocument();
+  });
+
+  it('loads more items when Show More is clicked', async () => {
+    render(<AchievementGallery />);
+
+    await screen.findAllByRole('listitem');
+    expect(screen.getAllByRole('listitem')).toHaveLength(24);
+
+    fireEvent.click(screen.getByText('Show More'));
+
+    const allItems = screen.getAllByRole('listitem');
+    expect(allItems).toHaveLength(30);
+    expect(screen.queryByText('Show More')).not.toBeInTheDocument();
+    expect(screen.getByText('30 of 30 achievements')).toBeInTheDocument();
   });
 });
 

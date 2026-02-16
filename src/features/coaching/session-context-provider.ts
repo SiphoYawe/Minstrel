@@ -14,7 +14,7 @@ export function getSessionContextForAI(): SessionContext {
     .slice(-20)
     .map((c) => `${c.root}${c.quality === 'Major' ? '' : c.quality === 'Minor' ? 'm' : c.quality}`);
 
-  const timingAccuracy = state.timingAccuracy / 100;
+  const timingAccuracy = Math.max(0, Math.min(1, state.timingAccuracy / 100));
 
   const tempo = state.currentTempo;
 
