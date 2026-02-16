@@ -39,10 +39,13 @@ export function SessionExpiredModal() {
         </h2>
         <div className="mt-2 h-px w-8 bg-accent-warm" />
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-          Your session has expired. Please log in again to continue.
+          Your session has expired. Sign in again to continue.
+        </p>
+        <p className="mt-2 text-xs text-muted-foreground/70">
+          Your practice data is safely saved locally.
         </p>
         <Button className="mt-6 w-full" onClick={handleLogin}>
-          Log In
+          Sign In
         </Button>
       </div>
     </div>

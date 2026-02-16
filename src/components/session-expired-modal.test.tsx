@@ -29,21 +29,27 @@ describe('SessionExpiredModal', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Session Expired')).toBeInTheDocument();
     expect(
-      screen.getByText('Your session has expired. Please log in again to continue.')
+      screen.getByText('Your session has expired. Sign in again to continue.')
     ).toBeInTheDocument();
   });
 
-  it('renders a Log In button', () => {
+  it('renders data preservation reassurance message', () => {
     useAppStore.setState({ sessionExpired: true });
     render(<SessionExpiredModal />);
-    expect(screen.getByRole('button', { name: 'Log In' })).toBeInTheDocument();
+    expect(screen.getByText('Your practice data is safely saved locally.')).toBeInTheDocument();
+  });
+
+  it('renders a Sign In button', () => {
+    useAppStore.setState({ sessionExpired: true });
+    render(<SessionExpiredModal />);
+    expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
   });
 
   it('navigates to login with redirect on button click', () => {
     useAppStore.setState({ sessionExpired: true });
     render(<SessionExpiredModal />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Log In' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Sign In' }));
 
     expect(mockPush).toHaveBeenCalledWith(expect.stringMatching(/^\/login\?redirectTo=/));
   });
@@ -52,7 +58,7 @@ describe('SessionExpiredModal', () => {
     useAppStore.setState({ sessionExpired: true });
     render(<SessionExpiredModal />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Log In' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Sign In' }));
 
     expect(useAppStore.getState().sessionExpired).toBe(false);
   });
