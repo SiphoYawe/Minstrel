@@ -5,6 +5,9 @@ import type { TroubleshootingStep } from '@/features/midi/troubleshooting';
 import type { MidiConnectionStatus } from '@/features/midi/midi-types';
 import { Button } from '@/components/ui/button';
 
+const DEBOUNCE_MS = 2000;
+const SUCCESS_DISPLAY_MS = 3000;
+
 interface TroubleshootingPanelProps {
   steps: TroubleshootingStep[];
   onRetry: () => Promise<void>;
@@ -24,26 +27,69 @@ export function TroubleshootingPanel({
   const retryingRef = useRef(false);
   const [audioStarting, setAudioStarting] = useState(false);
   const audioStartingRef = useRef(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevStatusRef = useRef<MidiConnectionStatus>(connectionStatus);
 
-  // Auto-dismiss on successful connection (only when panel has content)
+  // Debounced auto-dismiss: show success for 3 seconds before closing
   useEffect(() => {
-    if (steps.length > 0 && connectionStatus === 'connected') {
-      onDismiss();
+    // Clean up any pending debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
     }
-  }, [connectionStatus, onDismiss, steps.length]);
+
+    if (connectionStatus === 'connected' && prevStatusRef.current !== 'connected') {
+      // Connection succeeded — debounce then show success state
+      debounceTimerRef.current = setTimeout(() => {
+        debounceTimerRef.current = null;
+        setShowSuccess(true);
+        // After 3 seconds of success, auto-close
+        successTimerRef.current = setTimeout(() => {
+          successTimerRef.current = null;
+          setShowSuccess(false);
+          onDismiss();
+        }, SUCCESS_DISPLAY_MS);
+      }, DEBOUNCE_MS);
+    }
+
+    prevStatusRef.current = connectionStatus;
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+    };
+  }, [connectionStatus, onDismiss]);
+
+  // Clean up success timer on unmount
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) {
+        clearTimeout(successTimerRef.current);
+      }
+    };
+  }, []);
 
   // Escape key to dismiss
   useEffect(() => {
-    if (steps.length === 0) return;
+    if (steps.length === 0 && !showSuccess) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        setShowSuccess(false);
+        if (successTimerRef.current) {
+          clearTimeout(successTimerRef.current);
+          successTimerRef.current = null;
+        }
         onDismiss();
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onDismiss, steps.length]);
+  }, [onDismiss, steps.length, showSuccess]);
 
   const handleRetry = useCallback(async () => {
     if (retryingRef.current) return;
@@ -69,9 +115,51 @@ export function TroubleshootingPanel({
     }
   }, [onAudioFallback]);
 
-  if (steps.length === 0) return null;
+  const handleDismiss = useCallback(() => {
+    setShowSuccess(false);
+    if (successTimerRef.current) {
+      clearTimeout(successTimerRef.current);
+      successTimerRef.current = null;
+    }
+    onDismiss();
+  }, [onDismiss]);
 
-  const isConnected = connectionStatus === 'connected';
+  // Show success state
+  if (showSuccess) {
+    return (
+      <div
+        role="complementary"
+        aria-label="MIDI connected"
+        className="fixed inset-x-0 bottom-12 z-50 flex justify-center px-4 pb-2"
+      >
+        <div className="w-full max-w-[480px] border border-border bg-card">
+          <div className="flex items-center gap-3 px-4 py-4">
+            <span className="inline-block h-2 w-2 bg-accent-success" aria-hidden="true" />
+            <p className="text-ui-label font-medium text-accent-success">
+              Connected — you&apos;re all set
+            </p>
+            <button
+              type="button"
+              onClick={handleDismiss}
+              className="ml-auto flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors duration-150 hover:text-foreground"
+              aria-label="Dismiss"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M1 1L13 13M13 1L1 13"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="square"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (steps.length === 0) return null;
 
   return (
     <div
@@ -88,7 +176,7 @@ export function TroubleshootingPanel({
           {/* Raw <button> retained: tiny 7x7 dismiss icon with custom sizing */}
           <button
             type="button"
-            onClick={onDismiss}
+            onClick={handleDismiss}
             className="flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors duration-micro hover:text-foreground"
             aria-label="Dismiss troubleshooting"
           >
@@ -141,7 +229,7 @@ export function TroubleshootingPanel({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={onDismiss}
+                      onClick={handleDismiss}
                       className="text-accent-warm border-accent-warm/30 hover:bg-accent-warm/10"
                     >
                       {step.actionLabel}
@@ -169,7 +257,7 @@ export function TroubleshootingPanel({
                           className="inline-block h-1.5 w-1.5 animate-pulse bg-background"
                           aria-label="Scanning for devices"
                         />
-                      ) : isConnected ? (
+                      ) : connectionStatus === 'connected' ? (
                         <svg
                           width="12"
                           height="12"

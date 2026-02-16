@@ -129,14 +129,18 @@ export function StatusBar() {
             </>
           )}
 
-          {(connectionStatus === 'disconnected' || connectionStatus === 'error') && (
+          {connectionStatus !== 'unsupported' && (
             <Button
               variant="link"
               size="sm"
               className="text-caption h-auto p-0"
-              onClick={() => useMidiStore.getState().setShowTroubleshooting(true)}
+              onClick={() => {
+                const store = useMidiStore.getState();
+                store.setShowTroubleshooting(!store.showTroubleshooting);
+              }}
+              aria-label="Toggle MIDI troubleshooting help"
             >
-              Help
+              MIDI Help
             </Button>
           )}
         </div>
