@@ -20,6 +20,28 @@ let autosaveTimer: ReturnType<typeof setInterval> | null = null;
 let metadataTimer: ReturnType<typeof setInterval> | null = null;
 let flushPromise: Promise<void> | null = null;
 let startPromise: Promise<number> | null = null;
+let microBatchTimer: ReturnType<typeof setTimeout> | null = null;
+let writeErrorNotified = false;
+
+const MICRO_BATCH_MS = 100; // 100ms write batching window
+
+export type WriteErrorCallback = (message: string) => void;
+let onWriteError: WriteErrorCallback | null = null;
+
+/**
+ * Register a callback to be notified when IndexedDB writes fail.
+ * Story 24.4: Surfaces write errors to the UI.
+ */
+export function setWriteErrorCallback(cb: WriteErrorCallback | null): void {
+  onWriteError = cb;
+}
+
+function notifyWriteError(message: string): void {
+  if (!writeErrorNotified && onWriteError) {
+    writeErrorNotified = true;
+    onWriteError(message);
+  }
+}
 
 /**
  * Starts recording a session. Creates a session record in Dexie.
@@ -139,6 +161,19 @@ export function recordEvent(event: MidiEvent): void {
     flush().catch((err) => {
       console.warn('Buffer cap flush failed:', err);
     });
+    return;
+  }
+
+  // Story 24.4: Micro-batch high-frequency input into 100ms write windows
+  if (microBatchTimer === null) {
+    microBatchTimer = setTimeout(() => {
+      microBatchTimer = null;
+      if (eventBuffer.length > 0) {
+        flush().catch((err) => {
+          console.warn('Micro-batch flush failed:', err);
+        });
+      }
+    }, MICRO_BATCH_MS);
   }
 }
 
@@ -168,9 +203,13 @@ export async function flush(): Promise<void> {
         await db.transaction('rw', db.midiEvents, async () => {
           await db.midiEvents.bulkAdd(retryBatch);
         });
-      } catch {
+      } catch (err) {
         // Re-enqueue failed retries
         retryQueue = [...retryBatch, ...retryQueue];
+        notifyWriteError("Some practice data couldn't be saved");
+        Sentry.captureException(err, {
+          tags: { feature: 'session-recorder', phase: 'retry-flush' },
+        });
       }
     }
 
@@ -182,9 +221,13 @@ export async function flush(): Promise<void> {
         await db.transaction('rw', db.midiEvents, async () => {
           await db.midiEvents.bulkAdd(toWrite);
         });
-      } catch {
+      } catch (err) {
         // Move failed events to retry queue (not back to main buffer)
         retryQueue = [...retryQueue, ...toWrite];
+        notifyWriteError("Some practice data couldn't be saved");
+        Sentry.captureException(err, {
+          tags: { feature: 'session-recorder', phase: 'main-flush' },
+        });
       }
     }
   })();
@@ -305,6 +348,10 @@ export async function stopRecording(): Promise<number | null> {
     clearInterval(metadataTimer);
     metadataTimer = null;
   }
+  if (microBatchTimer !== null) {
+    clearTimeout(microBatchTimer);
+    microBatchTimer = null;
+  }
 
   // Final flush
   await flush();
@@ -334,6 +381,7 @@ export async function stopRecording(): Promise<number | null> {
   activeSessionId = null;
   recordingRequested = false;
   pendingBuffer = [];
+  writeErrorNotified = false;
 
   // Detach emergency flush handler
   detachBeforeUnload();
@@ -367,6 +415,10 @@ export function resetRecorder(): void {
     clearInterval(metadataTimer);
     metadataTimer = null;
   }
+  if (microBatchTimer !== null) {
+    clearTimeout(microBatchTimer);
+    microBatchTimer = null;
+  }
   detachBeforeUnload();
   activeSessionId = null;
   recordingRequested = false;
@@ -375,6 +427,7 @@ export function resetRecorder(): void {
   retryQueue = [];
   flushPromise = null;
   startPromise = null;
+  writeErrorNotified = false;
 }
 
 /**
