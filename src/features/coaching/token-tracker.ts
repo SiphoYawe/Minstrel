@@ -142,41 +142,6 @@ export async function recordTokenUsage(params: TokenUsageParams): Promise<void> 
 }
 
 /**
- * Track token usage for a specific user and provider interaction.
- * Upserts a row into ai_conversations with prompt/completion breakdown.
- * Designed for server-side or client-side use after an AI response completes.
- */
-export async function trackTokenUsage(
-  userId: string,
-  providerId: string,
-  promptTokens: number,
-  completionTokens: number
-): Promise<void> {
-  const supabase = await createClient();
-
-  const totalTokens = promptTokens + completionTokens;
-
-  const { error } = await supabase.from('ai_conversations').insert({
-    user_id: userId,
-    provider: providerId,
-    token_count: totalTokens,
-    role: 'assistant',
-    content: '',
-    model: '',
-    session_id: '',
-    metadata: {
-      prompt_tokens: promptTokens,
-      completion_tokens: completionTokens,
-      tracked_at: new Date().toISOString(),
-    },
-  });
-
-  if (error) {
-    console.error('Failed to track token usage:', error.message);
-  }
-}
-
-/**
  * Get a summary of token usage for a user, aggregated across all interactions.
  */
 export async function getTokenUsageSummary(userId: string): Promise<TokenUsageSummaryResult> {

@@ -1,5 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { estimateCost, PROVIDER_PRICING, PRICING_LAST_UPDATED } from './pricing';
+import { describe, it, expect, vi } from 'vitest';
+import {
+  estimateCost,
+  PROVIDER_PRICING,
+  PRICING_LAST_UPDATED,
+  checkPricingStaleness,
+} from './pricing';
 
 describe('pricing', () => {
   it('exports PRICING_LAST_UPDATED as a date string', () => {
@@ -63,6 +68,29 @@ describe('pricing', () => {
       const costLower = estimateCost('openai', 'gpt-4o', 1000, 500);
       const costUpper = estimateCost('OpenAI', 'gpt-4o', 1000, 500);
       expect(costLower).toBeCloseTo(costUpper, 6);
+    });
+  });
+
+  describe('checkPricingStaleness (AI-L4)', () => {
+    it('returns false when pricing is recent', () => {
+      // PRICING_LAST_UPDATED is 2026-02-12, test runs near that date
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-02-15'));
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      expect(checkPricingStaleness()).toBe(false);
+      expect(warnSpy).not.toHaveBeenCalled();
+      warnSpy.mockRestore();
+      vi.useRealTimers();
+    });
+
+    it('returns true and warns when pricing is stale (>30 days)', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-04-15'));
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      expect(checkPricingStaleness()).toBe(true);
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('PROVIDER_PRICING is'));
+      warnSpy.mockRestore();
+      vi.useRealTimers();
     });
   });
 });

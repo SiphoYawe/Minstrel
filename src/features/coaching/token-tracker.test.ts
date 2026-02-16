@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   extractTokenUsage,
   recordTokenUsage,
-  trackTokenUsage,
   getTokenUsageSummary,
   getTokenFallbackQueueSize,
 } from './token-tracker';
@@ -222,53 +221,6 @@ describe('recordTokenUsage', () => {
       'not-a-valid-uuid'
     );
     consoleSpy.mockRestore();
-  });
-});
-
-describe('trackTokenUsage', () => {
-  it('inserts a row with prompt and completion breakdown in metadata', async () => {
-    await trackTokenUsage('user-abc', 'openai', 200, 100);
-
-    expect(mockInsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user_id: 'user-abc',
-        provider: 'openai',
-        token_count: 300,
-        role: 'assistant',
-        metadata: expect.objectContaining({
-          prompt_tokens: 200,
-          completion_tokens: 100,
-        }),
-      })
-    );
-  });
-
-  it('sets total token count as sum of prompt + completion', async () => {
-    await trackTokenUsage('user-xyz', 'anthropic', 500, 250);
-
-    expect(mockInsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        token_count: 750,
-      })
-    );
-  });
-
-  it('logs error but does not throw on insert failure', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    mockInsert.mockResolvedValue({ error: { message: 'Insert failed' } });
-
-    await expect(trackTokenUsage('u1', 'openai', 10, 5)).resolves.toBeUndefined();
-
-    expect(consoleSpy).toHaveBeenCalledWith('Failed to track token usage:', 'Insert failed');
-    consoleSpy.mockRestore();
-  });
-
-  it('includes tracked_at timestamp in metadata', async () => {
-    await trackTokenUsage('user-time', 'openai', 100, 50);
-
-    const insertArg = mockInsert.mock.calls[0][0];
-    expect(insertArg.metadata).toHaveProperty('tracked_at');
-    expect(typeof insertArg.metadata.tracked_at).toBe('string');
   });
 });
 

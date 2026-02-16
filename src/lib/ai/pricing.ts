@@ -11,6 +11,28 @@ export interface ProviderPricing {
 
 export const PRICING_LAST_UPDATED = '2026-02-12';
 
+const PRICING_STALENESS_DAYS = 30;
+
+/**
+ * AI-L4: Check if pricing data is stale (>30 days old) and log a warning.
+ * Called once at module load to alert developers when pricing needs updating.
+ */
+export function checkPricingStaleness(): boolean {
+  const lastUpdated = new Date(PRICING_LAST_UPDATED);
+  const daysSince = Math.floor((Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysSince > PRICING_STALENESS_DAYS) {
+    console.warn(
+      `[pricing] PROVIDER_PRICING is ${daysSince} days old (last updated: ${PRICING_LAST_UPDATED}). ` +
+        'Cost estimates may be inaccurate. Please update pricing data.'
+    );
+    return true;
+  }
+  return false;
+}
+
+// Run staleness check on module initialization
+checkPricingStaleness();
+
 export const PROVIDER_PRICING: ProviderPricing = {
   openai: {
     'gpt-4o': { inputPer1kTokens: 0.0025, outputPer1kTokens: 0.01 },
