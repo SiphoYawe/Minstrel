@@ -6,11 +6,14 @@ import { requestMidiAccess, disconnectMidi } from './midi-engine';
 import { requestAudioAccess, stopAudioListening, isAudioSupported } from './audio-engine';
 import { isMidiSupported } from './midi-utils';
 import { isDrumChannel } from './troubleshooting';
+import { useSessionStore } from '@/stores/session-store';
 import type { MidiEngineCallbacks } from './midi-engine';
 
 const TROUBLESHOOT_TIMEOUT_MS = 3000;
 
 let channelChecked = false;
+// Story 24.5: Track previous device ID for device swap detection
+let previousDeviceId: string | null = null;
 
 function resetChannelChecked(): void {
   channelChecked = false;
@@ -39,7 +42,22 @@ function createMidiCallbacks(): MidiEngineCallbacks {
       }
     },
     onDevicesChanged: (devices) => useMidiStore.getState().setAvailableDevices(devices),
-    onActiveDeviceChanged: (device) => useMidiStore.getState().setActiveDevice(device),
+    onActiveDeviceChanged: (device) => {
+      useMidiStore.getState().setActiveDevice(device);
+
+      // Story 24.5: Detect device swap and add session marker
+      if (device && previousDeviceId && device.id !== previousDeviceId) {
+        const sessionStore = useSessionStore.getState();
+        if (sessionStore.sessionStartTimestamp !== null) {
+          sessionStore.addSessionMarker({
+            type: 'device-changed',
+            timestamp: Date.now(),
+            metadata: { oldDeviceId: previousDeviceId, newDeviceId: device.id },
+          });
+        }
+      }
+      previousDeviceId = device?.id ?? null;
+    },
     onError: (message) => useMidiStore.getState().setErrorMessage(message),
     onMidiEvent: (event) => {
       useMidiStore.getState().addEvent(event);
@@ -102,6 +120,7 @@ export function useMidi() {
       stopAudioListening();
       disconnectMidi();
       resetChannelChecked();
+      previousDeviceId = null;
       useMidiStore.getState().reset();
     };
   }, [isSupported]);

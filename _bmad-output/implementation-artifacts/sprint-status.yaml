@@ -292,7 +292,7 @@ development_status:
   23-3-fix-harmonic-overlay-markers-and-chord-quality-distinction: done
   23-4-add-chord-hud-empty-and-waiting-states: done
   23-5-fix-canvas-clearing-and-idle-frame-handling: done
-  23-6-fix-snapshot-and-label-text-readability: ready-for-dev
+  23-6-fix-snapshot-and-label-text-readability: done
   23-7-fix-timing-grid-model-and-velocity-rendering: ready-for-dev
   epic-23-retrospective: optional
 
@@ -303,7 +303,7 @@ development_status:
   24-2-add-multi-store-state-coordination: done # 2026-02-16
   24-3-fix-audio-midi-switch-note-state-loss: done # 2026-02-16
   24-4-add-indexeddb-write-error-handling-and-feedback: done # 2026-02-16
-  24-5-fix-navigation-duplicate-handlers-and-device-hotplug: ready-for-dev
+  24-5-fix-navigation-duplicate-handlers-and-device-hotplug: done # 2026-02-16
   24-6-fix-migration-indicator-and-localstorage-safety: ready-for-dev
   epic-24-retrospective: optional
 

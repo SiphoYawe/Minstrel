@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useMidi } from './use-midi';
 import { useMidiStore } from '@/stores/midi-store';
+import { useSessionStore } from '@/stores/session-store';
 import * as midiEngine from './midi-engine';
 import * as midiUtils from './midi-utils';
 import * as audioEngine from './audio-engine';
@@ -24,6 +25,7 @@ vi.mock('./audio-engine', () => ({
 describe('useMidi', () => {
   beforeEach(() => {
     useMidiStore.getState().reset();
+    useSessionStore.getState().endSession();
     vi.mocked(midiUtils.isMidiSupported).mockReset().mockReturnValue(true);
     vi.mocked(midiEngine.requestMidiAccess).mockReset().mockResolvedValue(undefined);
     vi.mocked(midiEngine.disconnectMidi).mockReset();
@@ -424,6 +426,96 @@ describe('useMidi', () => {
     expect(result.current.detectedChannel).toBeNull();
     expect(typeof result.current.retryConnection).toBe('function');
     expect(typeof result.current.dismissTroubleshooting).toBe('function');
+  });
+
+  describe('device swap detection (Story 24.5)', () => {
+    it('adds device-changed marker when a different device connects during active session', () => {
+      renderHook(() => useMidi());
+      const callbacks = vi.mocked(midiEngine.requestMidiAccess).mock.calls[0][0];
+
+      // Start a session and set initial device
+      useSessionStore.getState().setSessionStartTimestamp(Date.now());
+      act(() => {
+        callbacks.onActiveDeviceChanged({
+          id: 'device-a',
+          name: 'Piano A',
+          manufacturer: 'Test',
+          state: 'connected',
+          type: 'input',
+        });
+      });
+
+      // Swap to a different device
+      act(() => {
+        callbacks.onActiveDeviceChanged({
+          id: 'device-b',
+          name: 'Piano B',
+          manufacturer: 'Test',
+          state: 'connected',
+          type: 'input',
+        });
+      });
+
+      const markers = useSessionStore.getState().sessionMarkers;
+      expect(markers).toHaveLength(1);
+      expect(markers[0].type).toBe('device-changed');
+      expect(markers[0].metadata?.oldDeviceId).toBe('device-a');
+      expect(markers[0].metadata?.newDeviceId).toBe('device-b');
+    });
+
+    it('does not add marker when same device reconnects', () => {
+      renderHook(() => useMidi());
+      const callbacks = vi.mocked(midiEngine.requestMidiAccess).mock.calls[0][0];
+
+      useSessionStore.getState().setSessionStartTimestamp(Date.now());
+      act(() => {
+        callbacks.onActiveDeviceChanged({
+          id: 'device-a',
+          name: 'Piano A',
+          manufacturer: 'Test',
+          state: 'connected',
+          type: 'input',
+        });
+      });
+
+      // Same device reconnects
+      act(() => {
+        callbacks.onActiveDeviceChanged({
+          id: 'device-a',
+          name: 'Piano A',
+          manufacturer: 'Test',
+          state: 'connected',
+          type: 'input',
+        });
+      });
+
+      expect(useSessionStore.getState().sessionMarkers).toEqual([]);
+    });
+
+    it('does not add marker when no active session', () => {
+      renderHook(() => useMidi());
+      const callbacks = vi.mocked(midiEngine.requestMidiAccess).mock.calls[0][0];
+
+      // No active session (sessionStartTimestamp is null)
+      act(() => {
+        callbacks.onActiveDeviceChanged({
+          id: 'device-a',
+          name: 'Piano A',
+          manufacturer: 'Test',
+          state: 'connected',
+          type: 'input',
+        });
+        callbacks.onActiveDeviceChanged({
+          id: 'device-b',
+          name: 'Piano B',
+          manufacturer: 'Test',
+          state: 'connected',
+          type: 'input',
+        });
+      });
+
+      expect(useSessionStore.getState().sessionMarkers).toEqual([]);
+    });
   });
 
   describe('audio mode', () => {
