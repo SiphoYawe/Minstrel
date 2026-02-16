@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { submitApiKey, getApiKeyMetadata, deleteApiKey } from './api-key-manager';
+import {
+  submitApiKey,
+  getApiKeyMetadata,
+  deleteApiKey,
+  validateApiKeyFormat,
+  classifyProviderError,
+} from './api-key-manager';
 import type { ApiKeyMetadata } from './auth-types';
 
 const mockMetadata: ApiKeyMetadata = {
@@ -44,7 +50,7 @@ describe('submitApiKey', () => {
     expect(result).toEqual({ data: mockMetadata, error: null });
   });
 
-  it('returns error on non-ok response', async () => {
+  it('returns classified error on non-ok response', async () => {
     vi.stubGlobal(
       'fetch',
       mockFetchResponse(
@@ -58,18 +64,24 @@ describe('submitApiKey', () => {
 
     expect(result).toEqual({
       data: null,
-      error: { code: 'INVALID_KEY', message: 'The API key is invalid.' },
+      error: {
+        code: 'INVALID_KEY',
+        message: 'Key not recognized by OpenAI. Double-check you copied the correct key.',
+      },
     });
   });
 
-  it('returns default error when response has no error details', async () => {
+  it('returns classified error when response has no error details', async () => {
     vi.stubGlobal('fetch', mockFetchResponse({}, false, 500));
 
     const result = await submitApiKey('openai', 'sk-test-key-1234567890');
 
     expect(result).toEqual({
       data: null,
-      error: { code: 'SUBMIT_FAILED', message: 'Failed to save API key.' },
+      error: {
+        code: 'SUBMIT_FAILED',
+        message: 'Could not validate key with OpenAI. Please try again.',
+      },
     });
   });
 
@@ -210,7 +222,125 @@ describe('deleteApiKey', () => {
 
     expect(result).toEqual({
       data: null,
-      error: { code: 'NETWORK_ERROR', message: 'Network error — please check your connection.' },
+      error: {
+        code: 'NETWORK_ERROR',
+        message: 'Network error — please check your connection.',
+      },
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Format Validation Tests
+// ---------------------------------------------------------------------------
+
+describe('validateApiKeyFormat', () => {
+  describe('OpenAI keys', () => {
+    it('accepts keys starting with sk-', () => {
+      const result = validateApiKeyFormat('openai', 'sk-test-key-1234567890');
+      expect(result).toEqual({ valid: true });
+    });
+
+    it('rejects keys not starting with sk-', () => {
+      const result = validateApiKeyFormat('openai', 'bad-key-1234567890');
+      expect(result).toEqual({
+        valid: false,
+        error: "API keys from OpenAI start with 'sk-'. Check you copied the full key.",
+      });
+    });
+
+    it('rejects keys that are too short', () => {
+      const result = validateApiKeyFormat('openai', 'sk-short');
+      expect(result).toEqual({
+        valid: false,
+        error: 'API key seems too short — check you copied the full key.',
+      });
+    });
+  });
+
+  describe('Anthropic keys', () => {
+    it('accepts keys starting with sk-ant-', () => {
+      const result = validateApiKeyFormat('anthropic', 'sk-ant-test-key-1234567890');
+      expect(result).toEqual({ valid: true });
+    });
+
+    it('rejects keys not starting with sk-ant-', () => {
+      const result = validateApiKeyFormat('anthropic', 'sk-test-key-1234567890');
+      expect(result).toEqual({
+        valid: false,
+        error: "API keys from Anthropic start with 'sk-ant-'. Check you copied the full key.",
+      });
+    });
+
+    it('rejects keys that are too short', () => {
+      const result = validateApiKeyFormat('anthropic', 'sk-ant-');
+      expect(result).toEqual({
+        valid: false,
+        error: 'API key seems too short — check you copied the full key.',
+      });
+    });
+  });
+
+  describe('Other provider keys', () => {
+    it('accepts any key with sufficient length', () => {
+      const result = validateApiKeyFormat('other', 'any-key-format-1234567890');
+      expect(result).toEqual({ valid: true });
+    });
+
+    it('rejects keys that are too short', () => {
+      const result = validateApiKeyFormat('other', 'short');
+      expect(result).toEqual({
+        valid: false,
+        error: 'API key seems too short — check you copied the full key.',
+      });
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Error Classification Tests
+// ---------------------------------------------------------------------------
+
+describe('classifyProviderError', () => {
+  it('classifies INVALID_KEY correctly', () => {
+    const message = classifyProviderError('INVALID_KEY', 'openai');
+    expect(message).toBe('Key not recognized by OpenAI. Double-check you copied the correct key.');
+  });
+
+  it('classifies KEY_EXPIRED correctly', () => {
+    const message = classifyProviderError('KEY_EXPIRED', 'anthropic');
+    expect(message).toBe('This key has expired. Generate a new key from your Anthropic dashboard.');
+  });
+
+  it('classifies INSUFFICIENT_PERMISSIONS correctly', () => {
+    const message = classifyProviderError('INSUFFICIENT_PERMISSIONS', 'openai');
+    expect(message).toBe(
+      'This key lacks required permissions. Ensure your key has model access enabled.'
+    );
+  });
+
+  it('classifies RATE_LIMITED correctly', () => {
+    const message = classifyProviderError('RATE_LIMITED', 'openai');
+    expect(message).toBe('Too many requests to OpenAI. Wait a moment and try again.');
+  });
+
+  it('classifies PROVIDER_DOWN correctly', () => {
+    const message = classifyProviderError('PROVIDER_DOWN', 'anthropic');
+    expect(message).toBe('Cannot reach Anthropic right now. Try again in a moment.');
+  });
+
+  it('classifies NETWORK_ERROR correctly', () => {
+    const message = classifyProviderError('NETWORK_ERROR', 'openai');
+    expect(message).toBe('Network error — please check your connection.');
+  });
+
+  it('classifies VALIDATION_ERROR correctly', () => {
+    const message = classifyProviderError('VALIDATION_ERROR', 'openai');
+    expect(message).toBe('The key format is invalid. Check you copied the full key.');
+  });
+
+  it('provides generic message for unknown error codes', () => {
+    const message = classifyProviderError('UNKNOWN_ERROR', 'openai');
+    expect(message).toBe('Could not validate key with OpenAI. Please try again.');
   });
 });

@@ -76,9 +76,13 @@ describe('ProfileMenu', () => {
     // Open the dropdown menu using userEvent (handles pointerdown for Radix)
     await user.click(screen.getByLabelText('Profile menu'));
 
-    // Click the sign out option
-    const signOutButton = await screen.findByText('Sign Out');
-    await user.click(signOutButton);
+    // Click the sign out option (opens confirmation dialog)
+    const signOutMenuItem = await screen.findByRole('menuitem', { name: /sign out/i });
+    await user.click(signOutMenuItem);
+
+    // Wait for confirmation dialog to appear
+    const confirmButton = await screen.findByRole('button', { name: /^sign out$/i });
+    await user.click(confirmButton);
 
     await waitFor(() => {
       expect(mockSignOut).toHaveBeenCalledTimes(1);
@@ -94,8 +98,12 @@ describe('ProfileMenu', () => {
     render(<ProfileMenu email="jane@example.com" displayName="Jane" />);
 
     await user.click(screen.getByLabelText('Profile menu'));
-    const signOutButton = await screen.findByText('Sign Out');
-    await user.click(signOutButton);
+    const signOutMenuItem = await screen.findByRole('menuitem', { name: /sign out/i });
+    await user.click(signOutMenuItem);
+
+    // Confirm in dialog
+    const confirmButton = await screen.findByRole('button', { name: /^sign out$/i });
+    await user.click(confirmButton);
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalled();

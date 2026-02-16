@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAppStore } from '@/stores/app-store';
@@ -16,6 +17,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { LogoutConfirmationDialog } from '@/components/logout-confirmation-dialog';
 
 interface NavItem {
   href: string;
@@ -37,6 +39,7 @@ export function AppSidebar() {
   const collapsed = useAppStore((s) => s.sidebarCollapsed);
   const setCollapsed = useAppStore((s) => s.setSidebarCollapsed);
   const user = useAppStore((s) => s.user);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleSignOut = async () => {
     capture('user_logged_out');
@@ -148,7 +151,7 @@ export function AppSidebar() {
         )}
         <button
           type="button"
-          onClick={handleSignOut}
+          onClick={() => setShowLogoutDialog(true)}
           className="
             flex items-center gap-2.5 h-9 px-2 w-full
             font-mono text-[11px] uppercase tracking-[0.08em]
@@ -161,6 +164,12 @@ export function AppSidebar() {
           {!collapsed && <span>Sign Out</span>}
         </button>
       </div>
+
+      <LogoutConfirmationDialog
+        open={showLogoutDialog}
+        onOpenChange={setShowLogoutDialog}
+        onConfirm={handleSignOut}
+      />
     </aside>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useAppStore } from '@/stores/app-store';
@@ -12,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { LogoutConfirmationDialog } from '@/components/logout-confirmation-dialog';
 
 interface ProfileMenuProps {
   email: string;
@@ -20,6 +22,7 @@ interface ProfileMenuProps {
 
 export function ProfileMenu({ email, displayName }: ProfileMenuProps) {
   const router = useRouter();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const initial = (displayName ?? email ?? '?').charAt(0).toUpperCase();
   const label = displayName ?? email.split('@')[0];
@@ -88,13 +91,19 @@ export function ProfileMenu({ email, displayName }: ProfileMenuProps) {
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-surface-light" />
           <DropdownMenuItem
-            onClick={handleSignOut}
+            onClick={() => setShowLogoutDialog(true)}
             className="font-mono text-[11px] uppercase tracking-[0.1em] text-foreground/60 focus:bg-card focus:text-foreground"
           >
             Sign Out
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <LogoutConfirmationDialog
+        open={showLogoutDialog}
+        onOpenChange={setShowLogoutDialog}
+        onConfirm={handleSignOut}
+      />
     </div>
   );
 }
