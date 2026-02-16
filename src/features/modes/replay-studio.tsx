@@ -59,6 +59,7 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
   const replaySession = useSessionStore((s) => s.replaySession);
   const replayEvents = useSessionStore((s) => s.replayEvents);
   const replayStatus = useSessionStore((s) => s.replayStatus);
+  const replayErrorMessage = useSessionStore((s) => s.replayErrorMessage);
   const replayPosition = useSessionStore((s) => s.replayPosition);
   const replayState = useSessionStore((s) => s.replayState);
   const replaySpeed = useSessionStore((s) => s.replaySpeed);
@@ -222,19 +223,61 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
     );
   }
 
-  // --- Error state ---
-  if (replayStatus === 'error') {
+  // --- Error / deleted states ---
+  if (replayStatus === 'error' || replayStatus === 'deleted') {
     return (
       <div className="relative h-dvh w-full bg-background">
         <StatusBar />
         <div className="flex h-full pt-10 items-center justify-center">
           <div className="max-w-md px-6 text-center">
             <div className="mb-4 font-mono text-lg text-accent-warm" aria-live="polite">
-              No sessions to replay
+              {replayStatus === 'deleted' ? 'Session unavailable' : 'Replay error'}
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Play a session first, then come back here to review your playing.
+            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+              {replayErrorMessage || 'No sessions to replay. Play a session first, then come back here to review your playing.'}
             </p>
+            <Link
+              href="/replay"
+              className="inline-block font-mono text-[11px] uppercase tracking-[0.1em]
+                text-primary hover:text-white
+                border border-primary/20 hover:border-primary/50
+                px-4 py-2 transition-colors duration-150"
+            >
+              Back to Sessions
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Empty session state: 0-duration sessions show placeholder instead of broken scrubber ---
+  if (replaySession && totalDurationMs === 0 && replayEvents.length === 0) {
+    return (
+      <div className="relative h-dvh w-full bg-background">
+        <StatusBar />
+        <div className="flex h-full pt-10 items-center justify-center">
+          <div className="max-w-md px-6 text-center">
+            <div className="mb-4 font-mono text-lg text-muted-foreground" aria-live="polite">
+              Empty session
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+              This session has no recorded data to replay.
+            </p>
+            {replaySession.startedAt && (
+              <p className="text-xs text-muted-foreground/60 mb-6">
+                Started {formatDate(replaySession.startedAt)}
+              </p>
+            )}
+            <Link
+              href="/replay"
+              className="inline-block font-mono text-[11px] uppercase tracking-[0.1em]
+                text-primary hover:text-white
+                border border-primary/20 hover:border-primary/50
+                px-4 py-2 transition-colors duration-150"
+            >
+              Back to Sessions
+            </Link>
           </div>
         </div>
       </div>

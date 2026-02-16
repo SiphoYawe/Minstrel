@@ -4,13 +4,15 @@ import { useEffect, useCallback } from 'react';
 import { useSessionStore } from '@/stores/session-store';
 import { db } from '@/lib/dexie/db';
 import type { GuestSession, StoredMidiEvent } from '@/lib/dexie/db';
-import { resetReplayDispatcher } from '@/features/session/replay-engine';
+import { resetReplayDispatcher, pausePlayback } from '@/features/session/replay-engine';
 
 export interface ReplaySessionData {
   session: GuestSession | null;
   events: StoredMidiEvent[];
-  status: 'idle' | 'loading' | 'success' | 'error';
+  status: 'idle' | 'loading' | 'success' | 'error' | 'deleted';
 }
+
+const DELETION_POLL_INTERVAL_MS = 5000;
 
 async function loadSessionFromDexie(id: number): Promise<GuestSession | undefined> {
   if (!db) return undefined;
@@ -41,6 +43,7 @@ export function useReplaySession(sessionId: number | null) {
   const setReplaySession = useSessionStore((s) => s.setReplaySession);
   const setReplayEvents = useSessionStore((s) => s.setReplayEvents);
   const setReplayStatus = useSessionStore((s) => s.setReplayStatus);
+  const setReplayErrorMessage = useSessionStore((s) => s.setReplayErrorMessage);
   const setReplayPosition = useSessionStore((s) => s.setReplayPosition);
   const resetReplay = useSessionStore((s) => s.resetReplay);
 
@@ -48,10 +51,12 @@ export function useReplaySession(sessionId: number | null) {
     async (id: number) => {
       setReplayStatus('loading');
       setReplayPosition(0);
+      setReplayErrorMessage(null);
 
       try {
         const session = await loadSessionFromDexie(id);
         if (!session) {
+          setReplayErrorMessage('Session not found. It may have been deleted.');
           setReplayStatus('error');
           return;
         }
@@ -62,19 +67,22 @@ export function useReplaySession(sessionId: number | null) {
         resetReplayDispatcher();
         setReplayStatus('success');
       } catch {
+        setReplayErrorMessage('Failed to load session data.');
         setReplayStatus('error');
       }
     },
-    [setReplaySession, setReplayEvents, setReplayStatus, setReplayPosition]
+    [setReplaySession, setReplayEvents, setReplayStatus, setReplayPosition, setReplayErrorMessage]
   );
 
   const loadLatest = useCallback(async () => {
     setReplayStatus('loading');
     setReplayPosition(0);
+    setReplayErrorMessage(null);
 
     try {
       const latest = await loadLatestSession();
       if (!latest || !latest.id) {
+        setReplayErrorMessage('No sessions to replay. Play a session first, then come back here to review your playing.');
         setReplayStatus('error');
         return;
       }
@@ -85,13 +93,14 @@ export function useReplaySession(sessionId: number | null) {
       resetReplayDispatcher();
       setReplayStatus('success');
     } catch {
+      setReplayErrorMessage('Failed to load session data.');
       setReplayStatus('error');
     }
-  }, [setReplaySession, setReplayEvents, setReplayStatus, setReplayPosition]);
+  }, [setReplaySession, setReplayEvents, setReplayStatus, setReplayPosition, setReplayErrorMessage]);
 
+  // Load session on mount / ID change
   useEffect(() => {
     if (sessionId === null || sessionId === 0) {
-      // Auto-load most recent completed session
       loadLatest();
       return () => {
         resetReplay();
@@ -102,4 +111,29 @@ export function useReplaySession(sessionId: number | null) {
       resetReplay();
     };
   }, [sessionId, loadSession, loadLatest, resetReplay]);
+
+  // Poll for mid-playback session deletion
+  useEffect(() => {
+    const replaySessionId = useSessionStore.getState().replaySession?.id;
+    if (!replaySessionId) return;
+
+    const interval = setInterval(async () => {
+      const { replayStatus } = useSessionStore.getState();
+      // Only poll while actively playing or paused with a loaded session
+      if (replayStatus !== 'success') return;
+
+      try {
+        const exists = await loadSessionFromDexie(replaySessionId);
+        if (!exists) {
+          pausePlayback();
+          setReplayErrorMessage('This session is no longer available.');
+          setReplayStatus('deleted');
+        }
+      } catch {
+        // Ignore transient DB errors during polling
+      }
+    }, DELETION_POLL_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [sessionId, setReplayStatus, setReplayErrorMessage]);
 }

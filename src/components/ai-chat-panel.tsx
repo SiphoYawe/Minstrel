@@ -146,7 +146,8 @@ export function AIChatPanel({
   const [isOverflowing, setIsOverflowing] = useState(false);
   const [resizeAnnouncement, setResizeAnnouncement] = useState('');
   const previousHeightRef = useRef<number>(0);
-  /** CSS max-h-[200px] handles the visual cap; this constant drives overflow detection */
+  /** CSS max-h handles the visual cap; this constant drives overflow detection.
+   *  Uses 200px as upper bound; mobile CSS caps at 120px via responsive class. */
   const TEXTAREA_MAX_HEIGHT = 200;
 
   function handleTextareaChange(e: ChangeEvent<HTMLTextAreaElement>) {
@@ -198,7 +199,7 @@ export function AIChatPanel({
   }
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full bg-background w-full overflow-x-hidden">
       <div ref={scrollAreaRef} className="flex-1 min-h-0 overflow-y-auto">
         <div
           className="flex flex-col gap-3 p-3"
@@ -291,7 +292,7 @@ export function AIChatPanel({
             placeholder="Ask about your playing..."
             rows={1}
             disabled={isLoading}
-            className="w-full resize-none bg-card border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-sans min-h-[36px] max-h-[200px] overflow-y-auto"
+            className="w-full resize-none bg-card border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-sans min-h-[36px] max-h-[120px] md:max-h-[200px] overflow-y-auto"
           />
           <div aria-live="polite" className="sr-only" data-testid="resize-announcement">
             {resizeAnnouncement}

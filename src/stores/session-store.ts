@@ -101,7 +101,8 @@ interface SessionState {
   // Replay Studio state
   replaySession: GuestSession | null;
   replayEvents: StoredMidiEvent[];
-  replayStatus: 'idle' | 'loading' | 'success' | 'error';
+  replayStatus: 'idle' | 'loading' | 'success' | 'error' | 'deleted';
+  replayErrorMessage: string | null;
   replayPosition: number;
   replayState: 'paused' | 'playing';
   replaySpeed: number;
@@ -157,7 +158,8 @@ interface SessionActions {
   // Replay actions
   setReplaySession: (session: GuestSession | null) => void;
   setReplayEvents: (events: StoredMidiEvent[]) => void;
-  setReplayStatus: (status: 'idle' | 'loading' | 'success' | 'error') => void;
+  setReplayStatus: (status: 'idle' | 'loading' | 'success' | 'error' | 'deleted') => void;
+  setReplayErrorMessage: (message: string | null) => void;
   setReplayPosition: (position: number) => void;
   setReplayState: (state: 'paused' | 'playing') => void;
   setReplaySpeed: (speed: number) => void;
@@ -216,6 +218,7 @@ const initialState: SessionState = {
   replaySession: null,
   replayEvents: [],
   replayStatus: 'idle',
+  replayErrorMessage: null,
   replayPosition: 0,
   replayState: 'paused',
   replaySpeed: 1,
@@ -412,6 +415,7 @@ export const useSessionStore = create<SessionStore>()(
     setReplaySession: (session) => set({ replaySession: session }),
     setReplayEvents: (events) => set({ replayEvents: events }),
     setReplayStatus: (status) => set({ replayStatus: status }),
+    setReplayErrorMessage: (message) => set({ replayErrorMessage: message }),
     setReplayPosition: (position) => set({ replayPosition: position }),
     setReplayState: (state) => set({ replayState: state }),
     setReplaySpeed: (speed) => set({ replaySpeed: speed }),
@@ -439,6 +443,7 @@ export const useSessionStore = create<SessionStore>()(
         replaySession: null,
         replayEvents: [],
         replayStatus: 'idle',
+        replayErrorMessage: null,
         replayPosition: 0,
         replayState: 'paused',
         replaySpeed: 1,
