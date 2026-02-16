@@ -72,10 +72,10 @@ export function AppSidebar() {
             aria-label="Minstrel home"
           >
             <Image
-              src="/minstrel-logo-white.svg"
+              src={collapsed ? '/minstrel-symbol.svg' : '/minstrel-logo-white.svg'}
               alt=""
-              width={collapsed ? 20 : 88}
-              height={collapsed ? 20 : 22}
+              width={collapsed ? 18 : 88}
+              height={collapsed ? 18 : 22}
               className="shrink-0"
               aria-hidden="true"
             />
