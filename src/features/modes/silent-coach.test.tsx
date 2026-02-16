@@ -1,9 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@/test-utils/render';
 
-vi.mock('@/components/status-bar', () => ({
-  StatusBar: () => <div data-testid="status-bar">StatusBar</div>,
-}));
 vi.mock('@/components/viz/visualization-canvas', () => ({
   VisualizationCanvas: () => <div data-testid="visualization-canvas">VisualizationCanvas</div>,
 }));
@@ -19,22 +16,15 @@ describe('SilentCoach', () => {
     expect(screen.getByTestId('visualization-canvas')).toBeInTheDocument();
   });
 
-  it('renders StatusBar', () => {
+  it('does not render StatusBar (hoisted to session page layout, Story 28.2)', () => {
     render(<SilentCoach />);
-    expect(screen.getByTestId('status-bar')).toBeInTheDocument();
+    expect(screen.queryByTestId('status-bar')).not.toBeInTheDocument();
   });
 
-  it('ModeSwitcher is rendered via StatusBar (not directly)', () => {
-    render(<SilentCoach />);
-    // ModeSwitcher was moved into StatusBar in Story 13.2
-    expect(screen.getByTestId('status-bar')).toBeInTheDocument();
-  });
-
-  it('renders a <main> landmark element (UI-M1)', () => {
+  it('does not render a <main> element (single <main> is at page level, Story 28.2)', () => {
     render(<SilentCoach />);
     const mainEl = document.querySelector('main');
-    expect(mainEl).toBeInTheDocument();
-    expect(mainEl).toHaveAttribute('id', 'main-content');
+    expect(mainEl).not.toBeInTheDocument();
   });
 
   it('does not render any chat panel or data cards', () => {

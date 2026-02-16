@@ -1,12 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@/test-utils/render';
 
-// Mock all child component imports to isolate landmark testing
+// Mock all child component imports to isolate testing
 vi.mock('@/components/viz/visualization-canvas', () => ({
   VisualizationCanvas: () => <div data-testid="viz-canvas" />,
-}));
-vi.mock('@/components/status-bar', () => ({
-  StatusBar: () => <div data-testid="status-bar" />,
 }));
 vi.mock('@/components/snapshot-cta', () => ({
   SnapshotCTA: () => <div data-testid="snapshot-cta" />,
@@ -89,28 +86,30 @@ describe('DashboardChat', () => {
     mockIsAuthenticated = false;
   });
 
-  describe('landmark structure (UI-C1)', () => {
-    it('renders a <main> landmark element', () => {
+  describe('layout structure (Story 28.2)', () => {
+    it('does not render StatusBar (hoisted to session page)', () => {
       render(<DashboardChat />);
-      expect(screen.getByRole('main')).toBeInTheDocument();
+      expect(screen.queryByTestId('status-bar')).not.toBeInTheDocument();
     });
 
-    it('the <main> element contains the visualization canvas', () => {
+    it('does not render a <main> element (single <main> at page level)', () => {
       render(<DashboardChat />);
-      const main = screen.getByRole('main');
-      expect(main.querySelector('[data-testid="viz-canvas"]')).not.toBeNull();
+      expect(document.querySelector('main')).not.toBeInTheDocument();
     });
 
-    it('the <main> element contains the chat panel', () => {
+    it('renders the visualization canvas', () => {
       render(<DashboardChat />);
-      const main = screen.getByRole('main');
-      expect(main.querySelector('[data-testid="ai-chat-panel"]')).not.toBeNull();
+      expect(screen.getByTestId('viz-canvas')).toBeInTheDocument();
     });
 
-    it('the <main> element contains the data card', () => {
+    it('renders the chat panel', () => {
       render(<DashboardChat />);
-      const main = screen.getByRole('main');
-      expect(main.querySelector('[data-testid="data-card"]')).not.toBeNull();
+      expect(screen.getByTestId('ai-chat-panel')).toBeInTheDocument();
+    });
+
+    it('renders the data card', () => {
+      render(<DashboardChat />);
+      expect(screen.getByTestId('data-card')).toBeInTheDocument();
     });
   });
 

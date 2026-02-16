@@ -13,6 +13,7 @@ import type { AchievementToastItem } from '@/components/achievement-toast';
 import { ErrorBanner } from '@/components/error-banner';
 import { MidiConnectionLoading } from '@/components/midi-connection-loading';
 import { AudioModeLimitations } from '@/components/audio-mode-limitations';
+import { StatusBar } from '@/components/status-bar';
 import { SilentCoach } from '@/features/modes/silent-coach';
 import { DashboardChat } from '@/features/modes/dashboard-chat';
 import { ReplayStudio } from '@/features/modes/replay-studio';
@@ -116,6 +117,9 @@ export default function SessionPage() {
       {/* Centralized error banner — visible across all modes */}
       <ErrorBanner />
       <MidiConnectionLoading />
+
+      {/* Shared StatusBar — rendered once, above all modes (Story 28.2) */}
+      <StatusBar />
 
       {/* Mode-specific layout */}
       <div className="relative">

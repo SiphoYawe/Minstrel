@@ -4,7 +4,6 @@ import { useState, useCallback, useMemo, useRef, useEffect, memo } from 'react';
 import Link from 'next/link';
 import { ChevronUp, Settings } from 'lucide-react';
 import { VisualizationCanvas } from '@/components/viz/visualization-canvas';
-import { StatusBar } from '@/components/status-bar';
 import { TimelineScrubber } from '@/components/timeline-scrubber';
 import type { TimelineMarker } from '@/components/timeline-scrubber';
 import { useReplaySession } from '@/features/session/use-replay-session';
@@ -201,7 +200,6 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
   if (replayStatus === 'loading') {
     return (
       <div className="relative h-dvh w-full bg-background">
-        <StatusBar />
         <div className="flex h-full pt-10 items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <div
@@ -227,7 +225,6 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
   if (replayStatus === 'error' || replayStatus === 'deleted') {
     return (
       <div className="relative h-dvh w-full bg-background">
-        <StatusBar />
         <div className="flex h-full pt-10 items-center justify-center">
           <div className="max-w-md px-6 text-center">
             <div className="mb-4 font-mono text-lg text-accent-warm" aria-live="polite">
@@ -256,7 +253,6 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
   if (replaySession && totalDurationMs === 0 && replayEvents.length === 0) {
     return (
       <div className="relative h-dvh w-full bg-background">
-        <StatusBar />
         <div className="flex h-full pt-10 items-center justify-center">
           <div className="max-w-md px-6 text-center">
             <div className="mb-4 font-mono text-lg text-muted-foreground" aria-live="polite">
@@ -288,8 +284,6 @@ export function ReplayStudio({ sessionId }: ReplayStudioProps) {
   // --- Success state: two-column layout with scrubber in left column (Story 13.4) ---
   return (
     <div className="relative h-dvh w-full bg-background">
-      <StatusBar />
-
       {/* Main grid: canvas+scrubber column + detail panel */}
       <div className="flex flex-col h-full pt-10">
         {/* Upper region: canvas + right panel */}

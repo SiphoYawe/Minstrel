@@ -5,6 +5,7 @@ import { TroubleshootingPanel } from '@/components/troubleshooting-panel';
 import { KeyboardShortcutsPanel } from '@/components/keyboard-shortcuts-panel';
 import { FirstRunPrompt } from '@/components/first-run-prompt';
 import { SessionSummary } from '@/components/session-summary';
+import { StatusBar } from '@/components/status-bar';
 import { SilentCoach } from '@/features/modes/silent-coach';
 import { DashboardChat } from '@/features/modes/dashboard-chat';
 import { ReplayStudio } from '@/features/modes/replay-studio';
@@ -50,6 +51,9 @@ export default function GuestPlayPage() {
 
   return (
     <>
+      {/* Shared StatusBar — rendered once, above all modes (Story 28.2) */}
+      <StatusBar />
+
       {/* Mode-specific layout */}
       <div className="relative">
         <FirstRunPrompt />
