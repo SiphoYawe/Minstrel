@@ -264,15 +264,25 @@ export async function recordSnapshot(snapshot: InstantSnapshot): Promise<void> {
 /**
  * Starts periodic metadata updates from the session store.
  * Takes a getter function to read current key/tempo.
+ * STATE-L6: Writes metadata immediately on first detection, then
+ * continues at the standard interval.
  */
 export function startMetadataSync(
   getMetadata: () => { key: string | null; tempo: number | null }
 ): void {
   if (metadataTimer !== null) return;
 
-  metadataTimer = setInterval(() => {
-    const { key, tempo } = getMetadata();
+  // STATE-L6: Write metadata immediately on first detection
+  const { key, tempo } = getMetadata();
+  if (key !== null || tempo !== null) {
     updateMetadata(key, tempo).catch((err) => {
+      console.warn('Initial metadata write failed:', err);
+    });
+  }
+
+  metadataTimer = setInterval(() => {
+    const { key: k, tempo: t } = getMetadata();
+    updateMetadata(k, t).catch((err) => {
       console.warn('Metadata update failed:', err);
     });
   }, METADATA_UPDATE_INTERVAL_MS);

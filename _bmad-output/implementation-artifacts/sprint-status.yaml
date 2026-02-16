@@ -265,7 +265,7 @@ development_status:
   21-1-harden-middleware-and-rls-verification: done
   21-2-fix-dst-edge-case-and-accumulator-reset: done
   21-3-fix-timer-and-subscription-cleanup: done
-  21-4-fix-session-cache-and-metadata: ready-for-dev
+  21-4-fix-session-cache-and-metadata: done
   21-5-clean-up-dead-code-and-stale-pricing: ready-for-dev
   21-6-fix-retry-logic-and-export-compression: ready-for-dev
   21-7-expand-growth-mindset-rules: ready-for-dev

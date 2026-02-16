@@ -40,11 +40,15 @@ export function transitionSessionType(newType: SessionType): void {
 /**
  * Resets session type and interruption state.
  * Called when the session ends or the component unmounts.
+ * STATE-L4: Also invalidates the continuity context cache so the
+ * next session re-fetches fresh cross-session data.
  */
 export function resetSessionManager(): void {
   const store = useSessionStore.getState();
   store.setSessionType(null);
   store.setInterruptionsAllowed(false);
+  // STATE-L4: Invalidate continuity cache on session completion
+  store.setRecentSessions([]);
 }
 
 /**
