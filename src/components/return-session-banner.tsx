@@ -51,6 +51,7 @@ export function ReturnSessionBanner({ onStartFresh, onContinue }: ReturnSessionB
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
   const recentSessions = useSessionStore((s) => s.recentSessions);
   const totalNotesPlayed = useSessionStore((s) => s.totalNotesPlayed);
+  const currentMode = useSessionStore((s) => s.currentMode);
   const unsubRef = useRef<(() => void) | null>(null);
   const bannerRef = useRef<HTMLDivElement>(null);
 
@@ -74,13 +75,32 @@ export function ReturnSessionBanner({ onStartFresh, onContinue }: ReturnSessionB
     };
   }, []);
 
+  // Keyboard dismiss — any key press dismisses the banner (Story 28.5 AC#2)
+  useEffect(() => {
+    if (dismissed) return;
+
+    function handleKeyDown() {
+      setDismissed(true);
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [dismissed]);
+
   const lastSession = recentSessions.length > 0 ? recentSessions[0] : null;
 
   const absenceDays = useMemo(() => (lastSession ? daysSince(lastSession.date) : 0), [lastSession]);
   const isLongAbsence = absenceDays >= LONG_ABSENCE_DAYS;
 
-  // Don't show for guests, if dismissed, if playing, or if no recent sessions
-  if (!isAuthenticated || dismissed || totalNotesPlayed > 0 || !lastSession) {
+  // Don't show for guests, if dismissed, if playing, in replay mode, or if no recent sessions
+  // Suppress in replay mode — replay has its own context (Story 28.5 AC#1)
+  if (
+    !isAuthenticated ||
+    dismissed ||
+    totalNotesPlayed > 0 ||
+    !lastSession ||
+    currentMode === 'replay-studio'
+  ) {
     return null;
   }
 

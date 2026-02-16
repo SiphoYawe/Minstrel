@@ -343,12 +343,12 @@ development_status:
 
   # Epic 28: Navigation & Layout Fixes (P1)
   # Source: adversarial-ux-review-2026-02-16.md — NAV-C1-C4, NAV HIGH findings
-  epic-28: in-progress
+  epic-28: done
   28-1-fix-z-index-collisions-and-overlay-stacking: done # 2026-02-16
   28-2-fix-duplicate-main-elements-and-shared-statusbar: done # 2026-02-16
   28-3-fix-keyboard-shortcut-suppression-in-text-inputs: done # 2026-02-16
   28-4-improve-sign-out-discoverability-and-audio-mode-banner: done # 2026-02-16
-  28-5-fix-return-session-banner-and-mode-transition-feedback: ready-for-dev
+  28-5-fix-return-session-banner-and-mode-transition-feedback: done # 2026-02-16
   epic-28-retrospective: optional
 
   # Epic 29: Replay, Engagement & Design Polish (P1/P2)

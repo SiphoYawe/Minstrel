@@ -251,4 +251,50 @@ describe('ReturnSessionBanner', () => {
     expect(screen.getByText('Welcome back.')).toBeInTheDocument();
     expect(screen.queryByText('Good rhythmic consistency.')).not.toBeInTheDocument();
   });
+
+  describe('Story 28.5 fixes', () => {
+    it('suppresses banner when in replay mode (AC#1)', () => {
+      useSessionStore.setState({
+        recentSessions: [makeSession()],
+        totalNotesPlayed: 0,
+        currentMode: 'replay-studio',
+      });
+      const { container } = render(<ReturnSessionBanner />);
+      expect(container.firstChild).toBeNull();
+    });
+
+    it('shows banner in silent-coach mode', () => {
+      useSessionStore.setState({
+        recentSessions: [makeSession()],
+        totalNotesPlayed: 0,
+        currentMode: 'silent-coach',
+      });
+      render(<ReturnSessionBanner />);
+      expect(screen.getByText('Welcome back.')).toBeInTheDocument();
+    });
+
+    it('shows banner in dashboard-chat mode', () => {
+      useSessionStore.setState({
+        recentSessions: [makeSession()],
+        totalNotesPlayed: 0,
+        currentMode: 'dashboard-chat',
+      });
+      render(<ReturnSessionBanner />);
+      expect(screen.getByText('Welcome back.')).toBeInTheDocument();
+    });
+
+    it('dismisses on any keydown event (AC#2)', () => {
+      render(<ReturnSessionBanner />);
+      expect(screen.getByText('Welcome back.')).toBeInTheDocument();
+      fireEvent.keyDown(window, { key: 'a' });
+      expect(screen.queryByText('Welcome back.')).not.toBeInTheDocument();
+    });
+
+    it('dismisses on Escape keydown (AC#2)', () => {
+      render(<ReturnSessionBanner />);
+      expect(screen.getByText('Welcome back.')).toBeInTheDocument();
+      fireEvent.keyDown(window, { key: 'Escape' });
+      expect(screen.queryByText('Welcome back.')).not.toBeInTheDocument();
+    });
+  });
 });

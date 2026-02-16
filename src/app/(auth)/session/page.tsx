@@ -135,9 +135,12 @@ export default function SessionPage() {
         {(!returnBannerWouldShow || returnBannerDismissed) && (
           <WarmUpPrompt onStartWarmUp={startWarmUp} onSkip={skipWarmUp} />
         )}
-        {currentMode === 'silent-coach' && <SilentCoach />}
-        {currentMode === 'dashboard-chat' && <DashboardChat />}
-        {currentMode === 'replay-studio' && <ReplayStudio sessionId={activeSessionId} />}
+        {/* Mode container: keyed to remount on switch with 200ms fade (Story 28.5 AC#3) */}
+        <div key={currentMode} style={{ animation: 'mode-fade-in 200ms ease-out' }}>
+          {currentMode === 'silent-coach' && <SilentCoach />}
+          {currentMode === 'dashboard-chat' && <DashboardChat />}
+          {currentMode === 'replay-studio' && <ReplayStudio sessionId={activeSessionId} />}
+        </div>
       </div>
 
       {/* Session summary overlay */}
