@@ -144,6 +144,17 @@ export default function MarketingPage() {
           <p className="font-mono text-[11px] tracking-wider text-muted-foreground">
             Your instrument. Your ears. Your pace.
           </p>
+          <p className="mt-4 font-mono text-[11px] tracking-wider text-muted-foreground">
+            Built by{' '}
+            <a
+              href="https://siphoyawe.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors duration-150 hover:text-primary"
+            >
+              Sipho Yawe
+            </a>
+          </p>
         </section>
       </div>
     </main>
